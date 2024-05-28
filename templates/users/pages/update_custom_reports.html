@@ -81,6 +81,7 @@
                                                     <th>Add filter</th>
                                                     <th>Field</th>
                                                     <th>Default</th>
+                                                    <th>Apply Sum</th>
 
                                                 </tr>
                                             </thead>
@@ -122,6 +123,10 @@
                                                     <td>
                                                         <input type="text" class="form-check-input" name="filter_{{forloop.counter}}" {% if data.default_filter%} value="{{data.default_filter}}"  {% endif%}>
                                                     </td>
+                                                    <td>
+                                                        <input type="checkbox" class="form-check-input" name="sum_{{forloop.counter}}" {% if data.apply_sum%} checked {% endif%}>
+                                                    </td>
+
 
 
                                                 </tr>

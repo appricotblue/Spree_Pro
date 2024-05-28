@@ -20369,6 +20369,7 @@ def addnewcustom_report(request):
                     add_filter      = 1 if request.POST.get('add_filter_'+i) else 0
                     fkfield         = request.POST.get('fields_'+i)
                     filter          = request.POST.get('filter_'+i)
+                    apply_sum       =1 if  request.POST.get('sum_'+i) else 0
                     print(filter)
                     add_custom_reports_field    = custom_reports_fields(label=label,
                                                                                 field_type  =field_type,
@@ -20378,7 +20379,8 @@ def addnewcustom_report(request):
                                                                                 add_filter  =add_filter,
                                                                                 add_on_report=add_on_report,
                                                                                 custom_report= new_report,
-                                                                                default_filter = filter
+                                                                                default_filter = filter,
+                                                                                apply_sum   =apply_sum
                                                                                 )
                     add_custom_reports_field.save()
                 return redirect('list-custom-reports')
@@ -20445,6 +20447,7 @@ def updatecustomreport(request):
             filter_voucher_type         = None if not vtype else voucher_type_data.objects.get(pk=vtype)
             filter_branch               = 1 if request.POST.get('filter_branch') else 0
             filter_entity               = 1 if request.POST.get('filter_entity') else 0
+            
             print("******")
             print(filter_financial_year)
             if length:
@@ -20461,6 +20464,8 @@ def updatecustomreport(request):
                     add_filter      = 1 if request.POST.get('add_filter_'+i) else 0
                     fkfield         = request.POST.get('fields_'+i)
                     filter          = request.POST.get('filter_'+i)
+                    apply_sum       =1 if  request.POST.get('sum_'+i) else 0
+                    
                     print(filter)
                     add_custom_reports_field    = custom_reports_fields(label=label,
                                                                                 field_type  =field_type,
@@ -20470,7 +20475,8 @@ def updatecustomreport(request):
                                                                                 add_filter  =add_filter,
                                                                                 add_on_report=add_on_report,
                                                                                 custom_report= get_report[0],
-                                                                                default_filter = filter
+                                                                                default_filter = filter,
+                                                                                apply_sum   =apply_sum
                                                                                 )
                     add_custom_reports_field.save()
                 return redirect('list-custom-reports')
@@ -20599,7 +20605,6 @@ def view_custom_report(request):
         if 'report_id' in request.GET:
             search_branch       = int(request.POST.get('branch_id',0))
             search_entity       = int(request.POST.get('entity_id',0))
-            print("entityyyyy")
             print(search_entity)
             
             user_id             = request.session.get('userId')
@@ -20610,6 +20615,19 @@ def view_custom_report(request):
             report_name         = get_report.name
             # get all custom_reports_fields with add on report = 1 because we only need to display those for report view page
             base_report_fields  = get_report.get_fields.filter(add_on_report=1)
+            sum_fields_list     = []
+            counter   = 0
+            for i in list(base_report_fields.values()):
+                if i['apply_sum']==1:
+                    sum_fields_list.append({
+                        'field_name':i['field_name'],
+                        'label':i['label'],
+                        'position':counter
+                        })
+                
+                counter= counter+1
+
+            print(sum_fields_list)
             # get label field name fkfield as list
             name_and_label_fk   =  list(base_report_fields.values('label','field_name','fkfield'))
             # set lables in separate list
@@ -20626,6 +20644,7 @@ def view_custom_report(request):
                                 get_report.get_fields.filter(~Q(default_filter='')).filter(default_filter__isnull=False).values('field_name', 'default_filter')
                             )
             # print(default_filters)
+
 
             query_default_filter    ={}
             if default_filters:
@@ -20651,12 +20670,10 @@ def view_custom_report(request):
             filters = request.POST.get('filter','')
 
             print(filters)
-            if not filters:
-                
+            if not filters:    
                 filters = request.GET.get('filters','')
                 print(filters)
             
-        
             # take a backup variable to assign currently searched filter to pass back to html
             pass_filter_to_html = ''
             if filters:
@@ -20716,6 +20733,22 @@ def view_custom_report(request):
             # append id also to fields list to use on values
             # this is used to get the correct object in report model and get foreignkey values from that.
             fields_names.append('id')
+            sum_to_display  = []
+            print(sum_fields_list)
+            
+            if sum_fields_list:
+                
+                for i in sum_fields_list:
+                    print(i['field_name'])
+                    aggregated  = datavalues.aggregate(total=Sum(i['field_name']))['total']
+                    sum_to_display.append(
+                        {'total':aggregated,
+                         'position':i['position'],
+                         'label':i['label']
+                         }
+                    )
+            print(sum_to_display)    
+
             values_to_display   = list(datavalues.values(*fields_names)) 
 
             # here only contain the values of pk field's object not it's value we want to display on page
@@ -20748,6 +20781,20 @@ def view_custom_report(request):
                             updated_row.append(value) 
                     
                 data_to_pass.append(updated_row) 
+
+            total_row   = []
+            for i in range(counter):
+                total_row= total_row+['']
+
+            if sum_to_display:
+                print(sum_to_display)
+                for i in sum_to_display:
+                    total_row[i['position']]    = i['total']
+                    
+
+            print(total_row)
+            if total_row:
+                data_to_pass.append(total_row)
 
             updated_filter_dictionary={}
             if filters:
@@ -20860,8 +20907,12 @@ def view_custom_report(request):
             paginator       = Paginator(data_to_pass, 10)
             data_to_pass    = paginator.get_page(page_number)
             print(filters)
+            for i in data_to_pass:
+                print(i)
+            
 
-        return render(request,'users/pages/view_custom_report.html',{'report_id':report_id,'search_entity':search_entity,'search_branch':search_branch,'report_name':report_name,'default_filter':default_filter,'row_get_data':data_to_pass,'labels':labels,'filter_to_pass':filter_to_pass,'filters':filters,'updated_filter_dictionary':updated_filter_dictionary,'entity_list':entity_list,'branch_list':branch_list})
+
+        return render(request,'users/pages/view_custom_report.html',{'report_id':report_id,'search_entity':search_entity,'search_branch':search_branch,'report_name':report_name,'default_filter':default_filter,'row_get_data':data_to_pass,'labels':labels,'filter_to_pass':filter_to_pass,'filters':filters,'updated_filter_dictionary':updated_filter_dictionary,'entity_list':entity_list,'branch_list':branch_list,'sum_to_display':sum_to_display})
     
     else:
         return redirect('user-login')

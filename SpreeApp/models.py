@@ -700,6 +700,7 @@ class custom_reports_fields(models.Model):
     fkfield                     = models.TextField(default='',null=True)
     add_on_report               = models.BooleanField(max_length=100,default=0)     
     add_filter                  = models.BooleanField(max_length=100,default=0)
-    default_filter              = models.TextField(default='',null=True)         
+    default_filter              = models.TextField(default='',null=True)   
+    apply_sum                   = models.BooleanField(max_length=100,default=0)    
 
 

@@ -158,7 +158,7 @@
                         $('#length').val(data['length'])
                         var tableHtml = '<div class="table-responsive">';
                         tableHtml += '<table id="myTable" class="table table-striped addrowtable">';
-                        tableHtml += '<thead><tr><th>Add on Report</th><th>Field Name</th><th>Label</th><th>Field Type</th><th>Model Name</th><th>Add Filter</th><th>Fields</th><th>Default</th></tr></thead><tbody>';
+                        tableHtml += '<thead><tr><th>Add on Report</th><th>Field Name</th><th>Label</th><th>Field Type</th><th>Model Name</th><th>Add Filter</th><th>Fields</th><th>Default</th><th>Apply Sum</th></tr></thead><tbody>';
 
                         // Iterate over data to create table rows
                         $.each(data, function(index, item) {
@@ -178,6 +178,7 @@
                             });
                             tableHtml += '</select></td>';
                             tableHtml += '<td><input type="text" name="filter_' + index + '"></td>';
+                            tableHtml += '<td><input type="checkbox" class="form-check-input" name="sum_' + index + '"></td>';
                             
 
                             tableHtml += '</tr>';
