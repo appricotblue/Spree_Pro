@@ -1,0 +1,50 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">View Entity</h4>
+                <p class="card-description">
+                View entity from here
+                </p>
+                    <input readonly type="hidden" name="id" value="{{entity_data.id}}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input readonly type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{entity_data.name}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity Type</label>
+                                <div class="col-sm-9">
+                                    <select  disabled class="js-example-basic-single w-100" name="type_id" required >
+                                        <option value="" disabled selected>Select Entity Type</option>
+                                        {% for x in entity_types %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == entity_data.entity_type_id.id|slugify %} selected {% endif %}>{{x.type}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Description</label>
+                                <div class="col-sm-9">
+                                    <textarea readonly class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="4">{{entity_data.description}}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

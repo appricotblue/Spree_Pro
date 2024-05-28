@@ -1,0 +1,130 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">View Accounting Group</h4>
+                <p class="card-description">
+                View accounting group from here
+                </p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id"  required disabled>
+                                        <option value="" disabled>Select Entity</option>
+                                        {% for x in list_entity %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == group_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Branch</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required disabled>
+                                        <option value="" disabled selected>Select Branch</option>
+                                        {% for x in list_branch %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == group_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{group_data.name}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Description</label>
+                                <div class="col-sm-9">
+                                    <textarea class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="4">{{group_data.description}}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Under Group</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="group_id">
+                                        <option value="" disabled selected>Select Under Group</option>
+                                        {% for x in list_all_group %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == group_data.under_group.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Nature</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="nature" required>
+                                        <option value="" disabled selected>Select Nature</option>
+                                        <option value="Assets" {% if group_data.nature == 'Assets' %} selected {% endif %}>Assets</option>
+                                        <option value="Expenses" {% if group_data.nature == 'Expenses' %} selected {% endif %}>Expenses</option>
+                                        <option value="Income" {% if group_data.nature == 'Income' %} selected {% endif %}>Income</option>
+                                        <option value="Liabilities" {% if group_data.nature == 'Liabilities' %} selected {% endif %}>Liabilities</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Affect Gross Profit</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Affect Gross Profit" name="affect_gross_profit" value="{{group_data.affect_gross_profit}}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.entity_data', function(event){
+            var entity_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-single-entity-branch' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'entity_id': entity_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var branches        = data.branches;
+                    var branchSelect    = $('.branch');
+                    branchSelect.empty();  // Clear previous options
+                    branchSelect.append('<option value="" disabled>Select Branch</option>');
+                    $.each(branches, function (index, branch) {
+                        branchSelect.append('<option value="' + branch.id + '">' + branch.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

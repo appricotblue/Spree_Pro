@@ -1,0 +1,319 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<style>
+    .table > :not(:last-child) > :last-child > *, .jsgrid .jsgrid-table > :not(:last-child) > :last-child > *
+        {
+            border: 1px solid #515151 !important;  
+        }
+table .select2{
+        width: 172.8646px !important;
+    }
+    table .select2-container--default .select2-selection--single:read-only{
+        background-color: 1c1c1c !important;
+        border: 1px solid #000 !important;
+        height: 10px !important;
+    }
+    table .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 10px !important;
+    }
+    table .input{
+        border: 1px solid #000 !important;
+        height: 28px;
+        border-radius: 3px;
+    }
+</style>
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Update Contra Voucher</h4>
+                <p class="card-description">
+                Update contra voucher from here
+                </p>
+                <form class="forms-sample" action="{% url 'update-contra-voucher' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="id" value="{{get_data.id}}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id"  required>
+                                        <option value="" disabled>Select Entity</option>
+                                        {% for x in list_entity %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Branch</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
+                                        <option value="" disabled selected>Select Branch</option>
+                                        {% for x in list_branch %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Voucher Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="voucher_type_id" id="voucher_type" required>
+                                        <option value="" disabled selected>Select Voucher Type</option>
+                                        {% for x in list_voucher_types %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.voucher_series_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Order Number</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control order_number" id="order_number" placeholder="Order Number" name="order_number" value="{{get_data.voucher_number_id.voucher_number}}" readonly>
+                                    <input type="hidden" name="order_number" class="order_number">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Date</label>
+                                <div class="col-sm-9">
+                                    <input type="date" class="form-control" id="date" placeholder="Date" name="date" value="{{get_data.date}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Credit Ledger</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="credit_ledger_id" required>
+                                        <option value="" disabled selected>Select Credit Ledger</option>
+                                        {% for x in get_credit_account_ledger %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.credit_ledger_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="table-responsive">
+                            <table id="myTable" class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Debit Account Ledger</th>
+                                        <th>Against</th>
+                                        <th>Amount</th>
+                                        <th>Cheque Number</th>
+                                        <th>Cheque Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select class="js-example-basic-single w-100 selectatr" name="debit_ledger_id" data-id="0" required>
+                                                <option value="" disabled selected>Select An Item</option>
+                                                {% for ledger in get_debit_account_ledger %}
+                                                <option value="{{ledger.id}}" {% if ledger.id|slugify == get_data.debit_ledger_id.id|slugify %} selected {% endif %}>{{ledger.name}}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <p class="card-description" style="color: red; display:none; margin-bottom: -20px !important;" id="error0">
+                                                Please select item
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <input class="input" type="text" name="against" id="against0" data-id="0" value="Against" value="{{data.against}}" required/>
+                                        </td>
+                                        <td>
+                                            <input class="input amount" type="text" name="amount" id="amount0" data-id="0" value="{{get_data.total_amount}}" required/>
+                                        </td>
+                                        <td>
+                                            <input class="input" type="text" name="cheque_number" id="cheque_number0" data-id="0" value="{{data.cheque_number}}"/>
+                                        </td>
+                                        <td>
+                                            <input class="input" type="date" name="cheque_date" id="cheque_number0" data-id="0" value="{{data.cheque_date}}"/>
+                                        </td>
+                                        <!-- <td>
+                                            <button type="button" class="addRow btn-add btn btn-block btn-success btn-sm font-weight-medium auth-form-btn me-3">
+                                                Add
+                                            </button>
+                                            <a href="{% url 'delete-contra-voucher-ledger' %}?id={{data.id}}" class="removeRow btn-add btn btn-block btn-danger btn-sm font-weight-medium auth-form-btn">
+                                                remove
+                                            </a>
+                                        </td> -->
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Total Amount</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control total_amount" id="total_amount" placeholder="Total Amount" name="total_amount" value="{{get_data.total_amount}}" readonly>
+                                    <input type="hidden" class="total_amount" name="total_amount" value="{{get_data.total_amount}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Description</label>
+                                <div class="col-sm-9">
+                                    <textarea class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="9">{{get_data.description}}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="number_of_input" value="{{total_items}}" id="number_of_input">
+                    <button type="submit" class="btn btn-primary me-2">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        updateRemoveButtons();
+
+        $(document).on("click", "#myTable .addRow", function () {
+            var number_of_input = $('#number_of_input').val();
+            var i               = parseInt(number_of_input) + 1;
+            $('#number_of_input').val(i);
+
+            var newRow          =   '<tr>' +
+                                    '<td>' +
+                                    '<select class="js-example-basic-single w-100 selectatr" name="ledger['+i+']ledger_id" id="ledger_id'+i+'" data-id="'+i+'" required>' +
+                                    '<option value="" disabled selected>Select An Item</option>' +
+                                    '{% for x in list_account_ledger %}' +
+                                    '<option value="{{x.id}}">{{x.name}}</option>' +
+                                    '{% endfor %}' +
+                                    '</select>'+
+                                    '<p class="card-description" style="color: red; display:none; margin-bottom: -20px !important;" id="error'+i+'" >Please select item</p>'+
+                                    '</td>'+
+                                    '<td><input class="input" type="text" name="ledger['+i+']against" id="against'+i+'" data-id="'+i+'" value="Against" required/></td>' +
+                                    '<td><input class="input amount" type="text" name="ledger['+i+']amount" id="amount'+i+'" data-id="'+i+'" required/></td>' +
+                                    '<td><input class="input" type="text" name="ledger['+i+']cheque_number" id="cheque_number'+i+'" data-id="'+i+'"/></td>' +
+                                    '<td><input class="input" type="date" name="ledger['+i+']cheque_date" id="cheque_date'+i+'" data-id="'+i+'"/></td>' +
+                                    '<td>' +
+                                    '<button type="button" class="addRow btn-add btn btn-block btn-success btn-sm font-weight-medium auth-form-btn me-3">Add</button>' +
+                                    '<button type="button" class="removeRow btn-add btn btn-block btn-danger btn-sm font-weight-medium auth-form-btn">Remove</button>' +
+                                    '</td>' +
+                                    '</tr>';
+
+            // Append the new row to the table
+            $('#myTable tbody').append(newRow);
+
+            // Initialize Select2 for the new row's selects
+            $('.js-example-basic-single').select2();
+        
+            updateRemoveButtons();
+        });
+
+        // Remove row
+        $("#myTable").on("click", ".removeRow", function () {
+            var number_of_input     = $('#number_of_input').val();
+            var i                   = parseInt(number_of_input) - parseInt(1);
+            
+            $('#number_of_input').val(i);
+
+            $(this).closest("tr").remove();
+            calculateTotalAmount();
+            updateRemoveButtons();
+        });
+
+        function updateRemoveButtons() {
+            var rowCount    = $("#myTable tbody tr").length;
+
+            // Show/hide remove buttons based on the number of rows
+            if (rowCount > 1) {
+                $(".removeRow").show();
+            } else {
+                $(".removeRow").hide();
+            }
+        }
+    });
+</script>
+<script>
+    function calculateTotalAmount() {
+        var totalAmount = 0;
+
+        $('.amount').each(function () {
+            var rowAmount = parseFloat($(this).val()) || 0;
+            totalAmount += rowAmount;
+        });
+        
+        $('.total_amount').val(totalAmount.toFixed(2));
+    }
+</script>
+
+<script>
+    $(document).on('change', '.amount', function () {
+        calculateTotalAmount();
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $(document).on("change", "#voucher_type", function () {
+            var voucher_series_id   = $(this).val();
+            $.ajax({
+                url:"{% url 'get-purchase-voucher-number' %}",
+                method:"get",
+                data:{voucher_series_id:voucher_series_id},
+                success:function(data)
+                {  
+                    voucher_number  = data['voucher_number'];
+                    $('.order_number').val(voucher_number);  
+                } 
+            });
+        });
+    });
+</script>
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.entity_data', function(event){
+            var entity_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-single-entity-branch' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'entity_id': entity_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var branches        = data.branches;
+                    var branchSelect    = $('.branch');
+                    branchSelect.empty();  // Clear previous options
+                    branchSelect.append('<option value="" disabled>Select Branch</option>');
+                    $.each(branches, function (index, branch) {
+                        branchSelect.append('<option value="' + branch.id + '">' + branch.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

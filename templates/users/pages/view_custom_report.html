@@ -1,0 +1,319 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+
+{% if filter_to_pass or default_filter %}
+{% include "users/layout/filter.html" %}
+    <form method="post" id="myForm">
+        {% csrf_token %}
+        <div class="row">
+                {% if entity_list or branch_list%}
+                
+                    {% if entity_list %}
+                    <div class="col-md-2 col-6">
+                        <div class="form-group">
+                            <label for="exampleInputName1">Entity</label>
+                            <select name="entity_id" id="entity_id" class="js-example-basic-single w-100 append" >
+                                <option value="0">Select</option>
+                                {% if entity_list %}
+                                    {% for x in entity_list %}          
+                                        <option value="{{x.id}}" {% if x.id|slugify == search_entity|slugify %} selected {% endif %}>{{x.name}}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                    {%endif%}
+                    {% if branch_list %}
+                        <div class="col-md-2 col-6">
+                            <div class="form-group">
+                                <label for="exampleInputName1">Branch</label>
+                                <select name="branch_id" id="branch_id" class="js-example-basic-single w-100 append">
+                                
+                                    <option value="0">Select</option>
+                                        {% if branch_list %}
+                                            {% for x in branch_list %}
+                                            
+                                                <option value="{{x.id}}" {% if x.id|slugify == search_branch|slugify %} selected {% endif %}>{{x.name}}</option>
+                                            {% endfor %}
+                                        {% endif %}
+                                        
+                                </select>
+                            </div>
+                        </div>
+                    {%endif%}
+                
+                {%endif%}
+
+                {% for filter in filter_to_pass %}
+                        {% if filter.field_type == 'ForeignKey' %}
+                            <div class="col-md-2 col-6">
+                                <div class="form-group">
+                                    <label for="exampleInputName1">{{filter.label}}</label>
+                                    <select class="form-control js-example-basic-single w-100 append" name="{{filter.field_name}}" id="{{filter.field_name}}"  >
+                                        <option class="select-option-list-product" value="0">Select</option>
+                                        {% if filter.fkvalues %}
+                                            {% for x in filter.fkvalues %}    
+                                                <option class="select-option-list-product" value="{{x.id}}" {% if x.id|slugify == filter.value|slugify  %} selected {% endif%} >{{x.name}}</option>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                        {% elif filter.field_type == 'DateTimeField' %}
+                        <div class="col-md-2 col-6">
+                            <div class="form-group">
+                                <label for="exampleInputName1">{{filter.label}} From</label>
+                                <input type="date" class="form-control append " name="{{filter.field_name}}0" id="{{filter.field_name}}"  placeholder="Search"
+                               
+                                {% for key,value in updated_filter_dictionary.items %}
+                                     
+                                    {% if key == filter.field_name|stringformat:"s0" %}  
+                                             value="{{value}}"
+                                    {% endif %}
+
+                                {% endfor %}
+                                >
+
+                               
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <div class="form-group">
+                                <label for="exampleInputName1">{{filter.label}} To</label>
+                                <input type="date" class="form-control append" name="{{filter.field_name}}1" id="{{filter.field_name}}"  placeholder="Search" 
+                                {% for key,value in updated_filter_dictionary.items %}                           
+                                    {% if key == filter.field_name|stringformat:"s1" %}  
+                                             value="{{value}}"
+                                    {% endif %}
+
+                                {% endfor %}  
+                                >      
+                            </div>
+                        </div>
+
+
+                        {% elif filter.field_type == 'BooleanField' %}
+
+                        <div class="col-md-2 col-6">
+                            <div class="form-group">
+                                <label for="exampleInputName1">{{filter.label}}</label>
+                                    <select class="form-control js-example-basic-single w-100 append" name="{{filter.field_name}}" id="boolean"  >
+                                        <option class="select-option-list-product" value="0" >Select</option>
+                                        <option class="select-option-list-product" value="true" {% if filter.value|slugify == '1'|slugify %} selected {%endif%}>True</option>
+                                        <option class="select-option-list-product" value="false" {% if filter.value|slugify == '0'|slugify %} selected {%endif%}>false</option>
+                                    </select>     
+                            </div>
+                        </div>
+                    
+                        {% else %}
+                        
+                        <div class="col-md-2 col-6">
+                            <div class="form-group">
+                                <label for="exampleInputName1">{{filter.label}}</label>
+                                <input type="text" class="form-control append" name="{{filter.field_name}}"  placeholder="Search"  id="{{filter.field_name}}" value="{{filter.value}}">      
+                            </div>
+                        </div>
+                        {%endif%}
+                {% endfor%}
+       
+                <input type="hidden" id="filter" name="filter" value="{{filters}}">
+
+                <div class="col-md-2 col-12 d-flex">
+                    <div class="form-group mx-auto">
+                    <button type="submit" class="btn-add btn btn-block  btn-sm font-weight-medium auth-form-btn filter" style="width: 73px; margin-top: 28px; height: 35px;" name="search">Search</button>
+                    </div>
+                </div>
+        </div>
+
+    </form>
+{% include  "users/layout/filter_end.html" %}
+{%endif%}
+
+
+
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <div>
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if message.tags == 'error' %}
+                        <div class="alert {% if message.tags %}alert-danger{% endif %}" role="alert">{{ message }}</div>
+                        {% else %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+
+
+            
+            <div class="d-flex flex-column flex-md-row align-items-center" style="padding-top: 15px;">
+                <div class="col-md">
+                    <h4 class="card-title div-title mb-0"> {{report_name}}</h4>
+                </div>
+                <div class="d-flex gap-3 mt-3 mt-md-0">
+                    <div class="col-md text-md-right">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" id="filter" name="filter" value="{{filters}}">
+                            <input type="submit" name="download" value="Download Excel" class="btn btn-sm font-weight-medium auth-form-btn download" >
+                        </form>
+
+                    </div>
+                    
+                </div>
+            </div>
+
+
+
+
+            <div class="table-responsive">
+                {% if row_get_data %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            {% for label in labels%}
+                            <th>
+                                {{label}}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in row_get_data %}
+                        <tr>
+                            {% for column in data %}
+                            <td>
+                                    {{column}}
+                            </td>
+                           {% endfor %}
+
+                        </tr>
+                        {% endfor %} 
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="text-align: center;" class="a">
+                    No Data Found
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% if row_get_data %}
+<div class="col-lg-12 col-12 grid-margin stretch-card">
+    <div class="card" style="background: #0c0c0c; box-shadow: none;">
+        <div class="card-body">
+            <nav aria-label="..." >
+                <ul class="pagination justify-content-end">
+                        <li class="page-item">
+                                <span class="current page-link">
+                                Page {{ row_get_data.number }} of {{ row_get_data.paginator.num_pages }}
+                                </span>
+                        </li> 
+
+                        {% if row_get_data.has_previous %}
+                            <li class="page-item">  
+                                    <a class="page-link" href="?report_id={{report_id}}&page=1&filters={{filters}}">&laquo; first</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?report_id={{report_id}}&page={{ row_get_data.previous_page_number }}&filters={{filters}}">previous</a>
+                            </li>
+                        {% endif %}
+                
+                  
+                    
+                    {% if row_get_data.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?report_id={{report_id}}&page={{ row_get_data.next_page_number }}&filters={{filters}}">next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?report_id={{report_id}}&page={{ row_get_data.paginator.num_pages }}&filters={{filters}}">last &raquo;</a>
+                        </li>
+                    {% endif %}
+                   
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+{%endif%}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+    // Add change event listener to elements with class 'append'
+    $('.append').change(function() {
+        var processedIDs = {}; // Object to keep track of processed IDs
+        var formData = {};
+
+            $('.append').each(function() {
+                var elementId = $(this).attr('id');
+
+                // Check if the element's ID has already been processed
+                if (processedIDs[elementId]) {
+                    return; // Skip processing if the ID has already been encountered
+                }
+
+                // Mark the current ID as processed
+                processedIDs[elementId] = true;
+
+                var elementName = $(this).attr('name');
+                var elementValue = $(this).val();
+                var elementType = $(this).prop('type');
+
+                if ($(this).is('select')) {
+                    if(elementId=='boolean'){
+                        if (elementValue !== '0'){
+                            if (elementValue == 'true') {
+                            formData[elementName] = "1";
+                            }
+                            else{
+                                formData[elementName] = "0";
+                            }
+                        }
+                    }
+                    else if (elementValue !== '0') {
+                        // For select elements with a value other than '0', append name=value
+                        formData[elementName] = elementValue;
+                    
+                    }
+                } else if (elementType === 'date') {
+                    if (elementName.endsWith('0') || elementName.endsWith('1')) {
+                        var baseName = elementName.slice(0, -1);
+                        var connectedValue = $('[name="' + baseName + (elementName.endsWith('0') ? '1' : '0') + '"]').val();
+                        if (connectedValue && elementValue) {
+                            formData[baseName + '__range'] = [elementValue,connectedValue];
+                        }  else if (elementValue) {
+                            formData[baseName + '__gte'] = elementValue;
+                        }
+                        else if (connectedValue) {
+                            formData[baseName + '__lte'] = connectedValue;
+                        }
+                    }
+                } 
+                
+                else {
+                    if (elementValue) {
+                        formData[elementName + '__istartswith'] = elementValue;
+                    }
+                }
+            });
+            // Convert the object to JSON format
+            var filteredData = JSON.stringify(formData);
+
+            // Display the filtered data in the 'filter' element
+            $('#filter').val(filteredData);
+        });
+});
+</script>
+
+
+{% endblock %}

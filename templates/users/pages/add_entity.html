@@ -1,0 +1,65 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Add Entity</h4>
+                <p class="card-description">
+                Add new entity from here
+                </p>
+                <form class="forms-sample" action="{% url 'add-entity' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="type_id" required>
+                                        <option value="" disabled selected>Select Entity Type</option>
+                                        {% for x in entity_types %}
+                                        <option value="{{x.id}}">{{x.type}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Description</label>
+                                <div class="col-sm-9">
+                                    <textarea class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="4"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Location</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="location_id" required>
+                                        <option value="" disabled selected>Select Location</option>
+                                        {% for x in location_list %}
+                                        <option value="{{x.id}}">{{x.location}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary me-2">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

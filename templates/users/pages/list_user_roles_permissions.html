@@ -1,0 +1,91 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <div>
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if message.tags == 'error' %}
+                        <div class="alert {% if message.tags %}alert-danger{% endif %}" role="alert">{{ message }}</div>
+                        {% else %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </div>  
+            <div class="d-flex flex-column flex-md-row align-items-center" style="padding-top: 15px;">
+                <div class="col-md" style="margin-left: 10px;">
+                    <h4 class="card-title div-title mb-0">User Roles</h4>
+                </div>
+            </div>
+            <div class="table-responsive">
+                {% if get_user_roles %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in get_user_roles %}
+                        <tr>
+                            <td>
+                                {{data.role}}
+                            </td>
+                            <td>
+                                <a href="{% url 'update-user-role-permission' %}?id={{data.id}}" class="adec">
+                                    <i class="mdi mdi-grease-pencil  me-3 lupdate hidethis"></i>
+                                </a>
+                                {% if not write %}
+                                <a class="delete-btn" href="{% url 'view-userpermission' %}?id={{data.id}}" >
+                                    <i class="mdi mdi mdi-eye lview"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="text-align: center;" class="a">
+                    No Data Found
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- readonly  and hide-->
+<script>
+
+    $(document).ready(function(){
+                checkReadOnly();
+            });
+    
+            function checkReadOnly() {
+                // Check if readonly is passed from views
+                var writeValue = "{{ write }}"; // Assuming the value is passed as a string
+                
+                if (writeValue === "0") {
+                    makeReadOnly();
+                    // Hide elements with hidden class
+                    $(".hidethis").hide();
+                    console.log("success")
+                }
+            }
+            
+            function makeReadOnly() {
+                var form = $("#myForm");
+                var inputs = form.find(".readonlythis");
+                inputs.prop('readonly', true);
+            }
+           
+    
+    </script>
+
+
+{% endblock %}

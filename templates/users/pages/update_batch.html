@@ -1,0 +1,128 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Update Batch</h4>
+                <p class="card-description">
+                Add new branch from here
+                </p>
+                <form class="forms-sample" action="{% url 'update-batch' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="id" value="{{get_data.id}}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id"  required>
+                                        <option value="" disabled>Select Entity</option>
+                                        {% for x in list_entity %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Branch</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
+                                        <option value="" disabled selected>Select Branch</option>
+                                        {% for x in list_branch %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{get_data.name}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Product</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="product_id" required>
+                                        <option value="" disabled selected>Select Product</option>
+                                        {% for x in list_product %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.product_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Manufacture Date</label>
+                                <div class="col-sm-9">
+                                    <input type="date" class="form-control" id="exampleInputName1" placeholder="Manufacture Date" name="manufacture_date" value="{{get_data.manufacture_date}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Expiry Date</label>
+                                <div class="col-sm-9">
+                                    <input type="date" class="form-control" id="exampleInputName1" placeholder="Expiry Date" name="expiry_date" value="{{get_data.expiry_date}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Description</label>
+                                <div class="col-sm-9">
+                                    <textarea class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="4">{{get_data.description}}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary me-2">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.entity_data', function(event){
+            var entity_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-single-entity-branch' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'entity_id': entity_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var branches        = data.branches;
+                    var branchSelect    = $('.branch');
+                    branchSelect.empty();  // Clear previous options
+                    branchSelect.append('<option value="" disabled>Select Branch</option>');
+                    $.each(branches, function (index, branch) {
+                        branchSelect.append('<option value="' + branch.id + '">' + branch.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

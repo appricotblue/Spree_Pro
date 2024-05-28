@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Spree Dashboard</title>
+    <link rel="stylesheet" href="/static/admin/vendors/feather/feather.css">
+    <link rel="stylesheet" href="/static/admin/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="/static/admin/vendors/ti-icons/css/themify-icons.css">
+    <link rel="stylesheet" href="/static/admin/vendors/typicons/typicons.css">
+    <link rel="stylesheet" href="/static/admin/vendors/simple-line-icons/css/simple-line-icons.css">
+    <link rel="stylesheet" href="/static/admin/vendors/css/vendor.bundle.base.css">
+    <link rel="stylesheet" href="/static/admin/vendors/select2/select2.min.css">
+    <link rel="stylesheet" href="/static/admin/vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
+    <link rel="stylesheet" href="/static/admin/css/vertical-layout-light/style.css">
+    <link rel="shortcut icon" href="/static/admin/images/Fav New.png" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+
+
+    <style>
+        
+        .addrowtable{
+            border: 1px solid #515151 !important;   
+        }
+
+        textarea{
+            color:#9d9b9b !important;
+            background: #1c1c1c !important;
+           
+            border: 1px solid #515151 !important;
+            
+        }
+        .nodata,.a{
+            color: white;
+        }
+        .adec{
+            text-decoration: none !important;
+        }
+        
+        .listop,.download{
+            background: white !important;
+        }
+        .filter
+        {
+            background: white !important;
+            width: 73px; margin-top: 28px; height: 35px;
+        }
+       .ldelete,.lupdate,.lview{
+        color: white !important;
+        text-decoration: none !important;
+       }
+
+       .lupdate{
+        text-decoration: none !important;
+        color: white !important;
+       }
+
+       .select2-selection__rendered{
+        color:#9d9b9b !important;
+        
+       }
+       
+       
+       .select2-container--default .select2-selection--multiple{
+        background-color: #1c1c1c;
+        border: none !important;
+            border-bottom: 1px #9d9b9b solid !important;
+            border-radius: 0% !important;
+            
+       }
+
+        a.btn-add {
+            background-color: #4a6fc8 !important;
+            
+        }
+     
+       .select2-container {
+        height: auto; /* Set height to auto */
+        background-color: #1c1c1c;
+    }
+
+    .select2-container .select2-selection--single  {
+        height: 7px; 
+        background-color: #1c1c1c !important;
+        
+        border: none;
+        border-bottom: 1px #9d9b9b solid;
+        margin-top: 3px;
+        border-radius: 0%;
+        
+    }
+    
+    .select2-dropdown{
+        background-color: #1c1c1c !important;
+        color: white !important;
+    }
+    
+    .select2-dropdown{
+        border: #626060 1px solid !important;
+    }
+    .table{
+        border: #626060;
+    }
+
+    .select2-search__field{
+        background-color: #1c1c1c;
+        border-radius: 5px;
+        color: #9d9b9b;
+    }
+
+    .select2-selection{
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    
+        .card{
+            background: #1c1c1c; 
+            box-shadow: none;
+        }
+        .card .card-title{
+            color:white
+        }
+        .table{
+            color: white;
+            --bs-table-striped-color:white
+        }
+        .text-black{
+            color:white
+        }
+        .mdi{
+            color: white;
+        }
+        .delete-btn{
+            color: white;
+        }
+        .navbar{
+            background:  #1c1c1c;
+        }
+
+
+    .form-group {
+      margin-bottom: 20px; /* Adjust margin bottom as needed */
+    }
+    
+    .form-group {
+      margin-bottom: 20px; /* Adjust margin bottom as needed */
+    }
+    
+    input[type="text"],input[type="email"]
+    {
+    
+      border: none !important;
+      border-radius: 0px !important;
+      border-bottom: 1px solid #9d9b9b !important; /* Line instead of box */
+      outline: none !important;
+      width: 100% !important;
+      background-color: #1c1c1c !important; /* Background color */
+      padding: 5px 0 !important; /* Adjust padding as needed */
+      font-size: 16px !important; /* Adjust font size as needed */
+      color: #9d9b9b !important; /* Text color */
+      
+    }
+
+   
+    input[type="datetime-local"],
+    input[type="date"]
+    {
+        background: #1c1c1c;
+        color: #9d9b9b;
+        border: 1px solid #9d9b9b
+    }
+
+    input[type="text"]::placeholder,
+   
+    select::placeholder {
+      color: #6c757d; /* Placeholder text color */
+      opacity: 1; /* Full opacity */
+    }
+
+    label {
+      color: white; /* Label text color */
+    }
+
+   
+    .page-body-wrapper{
+        background: black !important;
+    }
+
+    .nav.flex-column.sub-menu {
+        position: relative !important;
+    }
+    
+/* scroll */
+/* width */
+::-webkit-scrollbar {
+        width: 10px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 5px grey; 
+        border-radius: 10px;
+        }
+        
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+        background: #6c757d; 
+        border-radius: 10px;
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+        background: #6c757d; 
+        }
+
+
+        .select2-selection__choice{
+        color: black;
+        background-color: white !important;
+        background: white !important;
+
+    
+    }
+        
+/* color of selected section */
+
+        .selected {
+            background-color: #f0f0f0; /* Change the background color to the desired color */
+        }
+
+        /* pagination */
+       
+            
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #9d9b9b;
+  -webkit-box-shadow: 0 0 0px 1000px #1c1c1c inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+    
+    </style>
+
+
+
+<!-- prevent auto suggestion -->
+<script>
+
+
+
+window.addEventListener('DOMContentLoaded', function() {
+        // Select all input elements of type "text"
+        var textInputs = document.querySelectorAll('input[type="text"]');
+        var emailInputs = document.querySelectorAll('input[type="email"]');
+        
+        // Loop through each input and set the "autocomplete" attribute to "off"
+        textInputs.forEach(function(input) {
+            input.setAttribute('autocomplete', 'off');
+        });
+        emailInputs.forEach(function(input){
+            input.setAttribute('autocomplete', 'off');
+        });
+    });
+    </script>
+    
+    <!-- end -->
+
+
+
+</head>
+<body class="sidebar-dark">
+
+    {% load custom_filters %} 
+    <div class="container-scroller"> 
+        <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row navbar-light" style="border-bottom: none;" > <!-- Added inline style to remove border-bottom -->
+            <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start" style="background:#0c0c0c !important; border-right: none;"> <!-- Added inline style to remove border-right -->
+                <div class="me-3">
+                    <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-bs-toggle="minimize">
+                        <span class="icon-menu"></span>
+                    </button>
+                </div>
+                <div>
+                    <a class="navbar-brand brand-logo" href="{% url 'user-dashboard' %}">
+                        <img src="/static/admin/images/image 1.png" alt="logo" />
+                    </a>
+                    <a class="navbar-brand brand-logo-mini" href="{% url 'user-dashboard' %}">
+                        <img src="/static/admin/images/logo-mini.svg" alt="logo" />
+                    </a>
+                </div>
+            </div>
+            <div class="navbar-menu-wrapper d-flex align-items-top" style="background: #161616 !important; border-left: none;"> <!-- Added inline style to remove border-left -->
+                <ul class="navbar-nav">
+                    <li class="nav-item font-weight-semibold d-none d-lg-block ms-0">
+                        <h4><span class="text-black fw-bold"><b>Welcome Back, Admin </b>&#128075;</span></h4>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown d-none d-lg-block me-3">
+                        <select class="nav-link dropdown-bordered dropdown-toggle dropdown-toggle-split js-example-basic-single select-entity" data-bs-toggle="dropdown" id="messageDropdown">
+                          <option value="" disabled selected>Select Entity</option>
+                          <option value="All">All</option>
+                          {% for x in common_entities %}
+                            <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </li>
+                    <li class="nav-item dropdown"> 
+                        <a class="nav-link count-indicator" id="countDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span class="count"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list pb-0" aria-labelledby="countDropdown">
+                            <a class="dropdown-item py-3">
+                                <p class="mb-0 font-weight-medium float-left">You have 7 unread mails </p>
+                                <span class="badge badge-pill badge-primary float-right">View all</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item preview-item">
+                                <div class="preview-thumbnail">
+                                    <img src="/static/admin/images/faces/face10.jpg" alt="image" class="img-sm profile-pic">
+                                </div>
+                                <div class="preview-item-content flex-grow py-2">
+                                    <p class="preview-subject ellipsis font-weight-medium text-dark">Marian Garner </p>
+                                    <p class="fw-light small-text mb-0"> The meeting is cancelled </p>
+                                </div>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown d-none d-lg-block user-dropdown">
+                        <a class="nav-link" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                           <h1>{{data.profile_image.url}}</h1> 
+                            {% if common_user_data.profile_image %}
+
+                            <img class="img-xs rounded-circle" src="{{common_user_data.profile_image.url}}" style="height: 32px;width: 32px !important;" alt="Profile image">
+                            {% else %}
+                            <img class="img-xs rounded-circle" src="/static/admin/images/images.png" alt="Profile image">
+                            {% endif %}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
+                            <div class="dropdown-header text-center">
+                                {% if common_user_data.profile_image %}
+                                <img class="img-md rounded-circle" src="{{common_user_data.profile_image.url}}" style="height: 32px;width: 32px !important;" alt="Profile image">
+                                {% else %}
+                                <img class="img-md rounded-circle" src="/static/admin/images/images.png" alt="Profile image">
+                                {% endif %}
+                                <p class="mb-1 mt-3 font-weight-semibold">{{common_user_data.name}}</p>
+                                <p class="fw-light text-muted mb-0">{{common_user_data.email}}</p>
+                            </div>
+                            <a class="dropdown-item"><i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> My Profile 
+                            </a>
+                            <a class="dropdown-item" href="{% url 'user-logout' %}">
+                                <i class="dropdown-item-icon mdi mdi-power text-primary me-2"></i>Sign Out
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+                <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-bs-toggle="offcanvas">
+                    <span class="mdi mdi-menu"></span>
+                </button>
+            </div>
+        </nav>
+        
+        <div class="container-fluid page-body-wrapper">
+            <nav class="sidebar sidebar-offcanvas" id="sidebar" style="background: #0c0c0c;overflow-y: auto; max-height: calc(100vh - 60px);" onscroll="storeScrollPosition()">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'user-dashboard' %}">
+                            <i class="mdi mdi-grid-large menu-icon"></i>
+                            <span class="menu-title">Dashboard</span>
+                        </a>
+                    </li>
+                    {% if all_user_role_permission.entity_read|booltoint:all_user_role_permission.entity_write  %}
+                    <li class="nav-item nav-category">Entity</li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Entity</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity-type' %}">Entity Types</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity' %}">Entity</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity-category' %}">Entity Category</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-branch' %}">Branch</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    {% if all_user_role_permission.users_read|booltoint:all_user_role_permission.users_write  %}
+                    <li class="nav-item nav-category">Control Panel</li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic1" aria-expanded="false" aria-controls="ui-basic1">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Users</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic1">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user-roles' %}">User Roles</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user-role-permissions' %}">Role Permissions</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user' %}">Users</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-series' %}">Series</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+
+                    <li class="nav-item nav-category">Masters</li>
+                    {% if all_user_role_permission.customers_read|booltoint:all_user_role_permission.customers_write  %}
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic2" aria-expanded="false" aria-controls="ui-basic2">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Customer</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic2">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer-type' %}">Customer Type</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer' %}">Customer</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% if all_user_role_permission.supplier_read|booltoint:all_user_role_permission.supplier_write  %}
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic3" aria-expanded="false" aria-controls="ui-basic3">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Supplier</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic3">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-supplier-type' %}">Supplier Type</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-supplier' %}">Supplier</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% if all_user_role_permission.accounting_read|booltoint:all_user_role_permission.accounting_write  %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic4" aria-expanded="false" aria-controls="ui-basic4">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Accounting</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic4">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-accounting-group' %}">Accounting Group</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-accounting-ledger' %}">Accounting Ledger</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-financial-year' %}">Financial Year</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    {% if all_user_role_permission.invendory_read|booltoint:all_user_role_permission.invendory_write  %}
+ 
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic5" aria-expanded="false" aria-controls="ui-basic5">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Invendory</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic5">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-warehouse' %}">Warehouse</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-brand' %}">Brand</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-model-number' %}">Model Number</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-size' %}">Size</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-unit' %}">Unit</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-godown' %}">Godown</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-rack' %}">Rack</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-product-group' %}">Product Group</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-product' %}">Products</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-pricing-level' %}">Pricing Level</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-batch' %}">Batch</a></li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    {% endif %}
+
+                    {% if all_user_role_permission.general_read|booltoint:all_user_role_permission.general_write  %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic6" aria-expanded="false" aria-controls="ui-basic6">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">General</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic6">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-tax-data' %}">Tax</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-voucher-type' %}">Voucher Type</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-voucher-series' %}">Voucher Series</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-location' %}">Location</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-gst-treatment' %}">GST Treatment</a></li>
+
+                            </ul>
+                        </div>
+                    </li>
+
+                    {% endif %}
+
+                    {% if all_user_role_permission.purchase_read|booltoint:all_user_role_permission.purchase_read  %}
+
+                    <li class="nav-item nav-category">Purchase</li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic7" aria-expanded="false" aria-controls="ui-basic7">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Purchase</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic7">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-purchase-order' %}">Purchase Order</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-purchase-invoice' %}">Purchase Invoice</a></li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    {% endif %}
+
+                    {% if all_user_role_permission.sales_read|booltoint:all_user_role_permission.sales_write  %}
+
+                    <li class="nav-item nav-category">Sales</li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic8" aria-expanded="false" aria-controls="ui-basic8">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Sales</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic8">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-sales-order' %}">Sales Order</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-sales-invoice' %}">Sales Invoice</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    {% if all_user_role_permission.transactions_read|booltoint:all_user_role_permission.transactions_write  %}
+
+                    <li class="nav-item nav-category">Transactions</li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic9" aria-expanded="false" aria-controls="ui-basic9">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Transactions</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic9">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-payment-voucher' %}">Payment Voucher</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-receipt-voucher' %}">Receipt Voucher</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-contra-voucher' %}">Contra</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-journal-voucher' %}">Journal</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-credit-note' %}">Credit Note</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-debit-note' %}">Debit Note</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item nav-category">Settings</li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic10" aria-expanded="false" aria-controls="ui-basic10">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Settings</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic10">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-golden-rule' %}">Golden Rule</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'user-reset-password' %}">Reset Password</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item nav-category">Reports</li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic11" aria-expanded="false" aria-controls="ui-basic11">
+                            <i class="menu-icon mdi mdi-floor-plan"></i>
+                            <span class="menu-title">Reports</span>
+                            <i class="menu-arrow"></i> 
+                        </a>
+                        <div class="collapse" id="ui-basic11">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-custom-reports' %}">Custom Reports</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-stock-summary' %}">Stock Summary</a></li>     
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-daybook' %}">Daybook</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-trail-balance' %}">Trail Balance</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-balancesheet' %}">Balance Sheet</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-profit-andloss' %}">Profit And Loss</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-account_group' %}">Account Group</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-account-ledger' %}">Account Ledger</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-gstr1' %}">GSTR 1</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-gstr2' %}">GSTR 2</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-gstn3b' %}">GSTR 3 B</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{% url 'report-gstn9' %}">GSTR 9</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    
+                </ul>
+            </nav>
+            <div class="main-panel">
+                <div class="content-wrapper" style="background:#0c0c0c !important;">
+                {% block content %}
+                {% endblock %}
+                </div>
+                <footer class="footer" style="background: #161616;color: white;">
+                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                        <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Copyright © 2023. All rights reserved.</span>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/static/admin/vendors/js/vendor.bundle.base.js"></script>
+    <script src="/static/admin/vendors/chart.js/Chart.min.js"></script>
+    <script src="/static/admin/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="/static/admin/vendors/progressbar.js/progressbar.min.js"></script>
+    <script src="/static/admin/js/off-canvas.js"></script>
+    <script src="/static/admin/js/hoverable-collapse.js"></script>
+    <script src="/static/admin/js/template.js"></script>
+    <script src="/static/admin/js/settings.js"></script>
+    <script src="/static/admin/js/todolist.js"></script>
+    <script src="/static/admin/js/dashboard.js"></script>
+    <script src="/static/admin/js/Chart.roundedBarCharts.js"></script>
+
+    <script src="/static/admin/vendors/select2/select2.min.js"></script>
+    <script src="/static/admin/js/select2.js"></script>
+    <script src="/static/admin/js/file-upload.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <script>
+        $(document).ready(function() {
+            $(".alert").fadeTo(8000, 1000).slideUp(900, function(){
+                $(".alert").slideUp(900);
+            });
+        });
+    </script>
+
+<script>
+    // Function to store the scroll position
+    function storeScrollPosition() {
+        localStorage.setItem('sidebarScrollPosition', document.getElementById('sidebar').scrollTop);
+    }
+
+    // Function to restore the scroll position
+    function restoreScrollPosition() {
+        var scrollPosition = localStorage.getItem('sidebarScrollPosition');
+        if (scrollPosition) {
+            document.getElementById('sidebar').scrollTop = scrollPosition;
+        }
+    }
+
+    // Restore scroll position when the page loads
+    window.onload = function() {
+        restoreScrollPosition();
+    };
+</script>
+
+
+<script>
+    
+    document.addEventListener('DOMContentLoaded', function() {
+     // Retrieve sidebar state from local storage
+     const sidebarState = localStorage.getItem('sidebarState');
+     
+ 
+     // Check if sidebar state exists
+     if (sidebarState) {
+         const targetCollapseId = sidebarState;
+         const targetCollapse = document.querySelector(targetCollapseId);
+ 
+         // Add 'show' class to the target collapse element
+         if (targetCollapse) {
+             targetCollapse.classList.add('show', 'selected'); // Add 'selected' class
+         }
+     }
+ 
+     const sidebarLinks = document.querySelectorAll('.nav-link[data-bs-toggle="collapse"]');
+     
+     sidebarLinks.forEach(link => {
+         link.addEventListener('click', function() {
+             const targetCollapseId = this.getAttribute('href');
+             console.log(targetCollapseId)
+             const targetCollapse = document.querySelector(targetCollapseId);
+             
+             const sidebarState = localStorage.getItem('sidebarState');
+             console.log(sidebarState)
+                      
+             if (!targetCollapse) return; // If target collapse not found, exit
+ 
+             // Check if the target collapse is currently open
+             const isCurrentlyOpen = targetCollapse.classList.contains('show');
+             console.log(isCurrentlyOpen)
+ 
+           
+ 
+             // If the target collapse was not open before, open it
+             if (!isCurrentlyOpen) {
+                 // Add 'selected' class to the clicked collapse
+                 targetCollapse.classList.add('show', 'selected');
+                 const isCurrentlyOpen = targetCollapse.classList.contains('show');
+                 console.log("heyy")
+                 console.log(isCurrentlyOpen)
+ 
+                 // Store sidebar state in local storage
+                 localStorage.setItem('sidebarState', targetCollapseId);
+                 
+ 
+             } 
+             if (targetCollapseId==sidebarState){
+                 console.log('hey')
+                 targetCollapse.classList.remove('selected','show');
+                 // Remove sidebar state from local storage
+                 localStorage.removeItem('sidebarState');
+             }
+         });
+     });
+ });
+ 
+ 
+ </script>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.select-entity', function(event){
+            var entity_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'set-default-entity' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'entity_id': entity_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
+
+
+
+

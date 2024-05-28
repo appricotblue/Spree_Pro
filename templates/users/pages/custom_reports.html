@@ -1,0 +1,126 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<style>
+    select{
+        background-color: #1c1c1c;
+        border-radius: 5px;
+        color: #9d9b9b;
+    }
+    table .input{
+        border: 1px solid #000 !important;
+        height: 28px;
+        border-radius: 3px;
+    }
+    td{
+        border: 1px solid #515151 !important;  
+    }
+</style>
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Add New Custom Report</h4>
+                <p class="card-description">
+                Bulid Your Own Custom Reports from here
+                </p>
+                <form class="forms-sample" action="{% url 'add-receipt-voucher' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Report Name</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="date" placeholder="Name" name="name" required>
+                                    </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Module</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 model" id="model" name="model" required>
+                                        <option value="" disabled selected>Select Data Table</option>
+                                        {% for table in custom_tables %}
+                                        <option value="{{table}}">{{table}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div id="formContainer"></div>
+                    <div class="row" style="height: 20px;"></div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="hidden" name="number_of_input" value="0" id="number_of_input">
+
+                            <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        </div>
+                    </div>  
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+      
+        // additional
+            $(document).on('change', '.model', function(event){
+                var model = $(this).val();
+                $('#formContainer').empty();
+
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'get-table-fields' %}",  // Update the URL based on your Django URL configuration
+                    data: {
+                        'model': model,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                    },
+                    success: function (data) {
+                        var data        = data['table_details'];
+                        var tableHtml = '<div class="table-responsive">';
+                        tableHtml += '<table id="myTable" class="table table-striped addrowtable">';
+                        tableHtml += '<thead><tr><th>Add on Report</th><th>Field Name</th><th>Label</th><th>Field Type</th><th>Model Name</th><th>Add Filter</th><th>Fields</th></tr></thead><tbody>';
+
+                        // Iterate over data to create table rows
+                        $.each(data, function(index, item) {
+                            tableHtml += '<tr>';
+                            tableHtml += '<td><input type="checkbox" class="form-check-input" name="add_on_report_' + index + '"></td>';
+                            tableHtml += '<td><input type="text" name="field_name_' + index + '" value="' + item.field_name + '" readonly></td>';
+                            tableHtml += '<td><input type="text" name="label_' + index + '" value="' + item.label +'" ></td>';
+                            tableHtml += '<td><input type="text" name="field_type_' + index + '" value="' + item.field_type + '" readonly></td>';
+                            tableHtml += '<td><input type="text" name="model_name_' + index + '" value="' + item.model + '" readonly></td>';
+                            tableHtml += '<td><input type="checkbox" class="form-check-input" name="add_filter_' + index + '"></td>';
+
+                            // Create select dropdown for fields
+                            tableHtml += '<td><select class="js-example-basic-single w-100" name="fields_' + index + '" id="fields_' + index + '" data-id="' + index + '" size: "6">';
+                            $.each(item.fields, function(idx, field) {
+                                tableHtml += '<option value="' + field + '">' + field + '</option>';
+                            });
+                            tableHtml += '</select></td>';
+                            
+
+                            tableHtml += '</tr>';
+                        });
+
+                        tableHtml += '</tbody></table></div>';
+
+                        // Append table to the container
+                        $('#formContainer').append(tableHtml);
+                },
+                
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }});
+        });
+    });
+</script>
+
+
+{% endblock %}

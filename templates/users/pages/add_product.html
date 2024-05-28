@@ -1,0 +1,432 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Add Product</h4>
+                <p class="card-description">
+                Add new product from here
+                </p>
+                <form class="forms-sample" action="{% url 'add-product' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" required>
+                                        <option value="" disabled selected>Select Entity</option>
+                                        {% for x in list_entity %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == common_user_data.default_entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Branch</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
+                                        <option value="" disabled selected>Select Branch</option>
+                                        {% for x in list_branch %}
+                                        <option value="{{x.id}}">{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Product Code</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Product Code" name="product_code" value="{{product_code}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Product Group</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="product_group_id" required>
+                                        <option value="" disabled selected>Select Product Group</option>
+                                        {% for x in list_product_group %}
+                                        <option value="{{x.id}}">{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Brand</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="brand_id">
+                                        <option value="" disabled selected>Select Product Group</option>
+                                        {% for x in list_brand %}
+                                        <option value="{{x.id}}">{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Unit</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="unit_id">
+                                        <option value="" disabled selected>Select Product Unit</option>
+                                        {% for x in list_unit %}
+                                        <option value="{{x.id}}">{{x.formal_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Size</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="size_id">
+                                        <option value="" disabled selected>Select Product Size</option>
+                                        {% for x in list_size %}
+                                        <option value="{{x.id}}">{{x.size}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label ">Product Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="product_type">
+                                        
+                                        <option value="Goods or Service">Goods or Service</option>
+                                        <option value="Service Only">Service Only</option>
+  
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="hsn">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">HSN</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control hsn" id="exampleInputName1" placeholder="HSN" name="hsn">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 " id="sac">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">SAC</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control sac" id="exampleInputName1" placeholder="SAC" name="sac">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Model Number</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="model_number_id">
+                                        <option value="" disabled selected>Select Product Model Number</option>
+                                        {% for x in list_model_numbers %}
+                                        <option value="{{x.id}}">{{x.model_number}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Godown</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-multiple w-100 godown_data" name="godown_id[]" multiple>
+                                        <!-- <option value="" disabled selected>Select Godown</option> -->
+                                        {% for x in list_godown %}
+                                        <option value="{{x.id}}">{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Rack</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-multiple w-100 rack" name="rack_id[]" multiple>
+                                        <!-- <option value="" disabled selected>Select Rack</option> -->
+                                        <!-- {% for x in list_rack %}
+                                        <option value="{{x.id}}">{{x.name}}</option>
+                                        {% endfor %} -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Warehouse</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="warehouse_id">
+                                        <option value="" disabled selected>Select Warehouse</option>
+                                        {% for x in list_warehouse %}
+                                        <option value="{{x.id}}">{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <!-- <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Discount Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="discount_type">
+                                        <option value="" disabled selected>Select Discount Type</option>
+                                        <option value="Percentage">Percentage( % )</option>
+                                        <option value="Amount">Amount</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Discount</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Discount" name="discount">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div> -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Purchase Rate</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Purchase Rate" name="purchase_rate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">MRP</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="MRP" name="mrp">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Sales Rate</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Sales Rate" name="sales_rate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Reorder Level</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Reorder Level" name="reorder_level">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Minimum Stock</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Minimum Stock" name="minimum_stock">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Maximum Stock</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Maximum Stock" name="maximum_stock">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Tax</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="tax_id">
+                                        <option value="" disabled selected>Select Tax</option>
+                                        {% for x in list_tax %}
+                                        <option value="{{x.id}}">{{x.tax}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">BOM</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="BOM" name="bom">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Barcode</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Barcode" name="barcode">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary me-2">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.entity_data', function(event){
+            var entity_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-single-entity-branch' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'entity_id': entity_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var branches        = data.branches;
+                    var branchSelect    = $('.branch');
+                    branchSelect.empty();  // Clear previous options
+                    branchSelect.append('<option value="" disabled selected>Select Branch</option>');
+                    $.each(branches, function (index, branch) {
+                        branchSelect.append('<option value="' + branch.id + '">' + branch.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.godown_data', function(event){
+            var godown_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-godown-rack' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'godown_id': godown_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var racks           = data.racks;
+                    var rackSelect    = $('.rack');
+                    rackSelect.empty();  // Clear previous options
+                    rackSelect.append('<option value="" disabled>Select rack</option>');
+                    $.each(racks, function (index, rack) {
+                        rackSelect.append('<option value="' + rack.id + '">' + rack.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+
+
+
+<script>
+    $(document).ready(function() {
+        $('#hsn').hide();
+        $('#sac').hide();
+       
+
+        function checkConditions() {
+            var selectedName = $('select[name="product_type"]').find('option:selected').text();
+            $('#hsn').hide();
+            $('#sac').hide();
+            $('.hsn').prop('required', false);
+            $('.sac').prop('required', false);
+            
+
+
+            console.log(selectedName)            
+            if (selectedName === 'Goods or Service') {
+                $('#hsn').show();
+                $('.hsn').prop('required', true);
+                $('.sac').prop('required', false);
+                $('.sac').val("")
+
+            }
+            else if (selectedName === 'Service Only') {
+                $('#sac').show();
+                $('.sac').prop('required', true);
+                $('.hsn').prop('required', false);
+                $('.hsn').val("")
+
+
+            }
+        }
+
+        checkConditions()
+
+        $('select[name="product_type"]').change(function() {
+            var selectedName = $(this).find('option:selected').text();
+            checkConditions()
+        });
+    });
+
+
+</script>
+
+{% endblock %}

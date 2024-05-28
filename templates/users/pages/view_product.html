@@ -1,0 +1,301 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">View Product</h4>
+                <p class="card-description">
+                    View product from here
+                </p>
+                <form class="forms-sample" action="{% url 'update-product' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="id" value="{{get_data.id}}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id"  required>
+                                        <option value="" disabled>Select Entity</option>
+                                        {% for x in list_entity %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Branch</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
+                                        <option value="" disabled selected>Select Branch</option>
+                                        {% for x in list_branch %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{get_data.name}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Product Code</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Product Code" name="product_code" value="{{get_data.product_code}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Product Group</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="product_group_id" required>
+                                        <option value="" disabled selected>Select Product Group</option>
+                                        {% for x in list_product_group %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.product_group_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Brand</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="brand_id">
+                                        <option value="" disabled selected>Select Product Group</option>
+                                        {% for x in list_brand %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.brand_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Unit</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="unit_id">
+                                        <option value="" disabled selected>Select Product Unit</option>
+                                        {% for x in list_unit %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.unit_id.id|slugify %} selected {% endif %}>{{x.formal_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Size</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="size_id">
+                                        <option value="" disabled selected>Select Product Size</option>
+                                        {% for x in list_size %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.size_id.id|slugify %} selected {% endif %}>{{x.size}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Model Number</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="model_number_id">
+                                        <option value="" disabled selected>Select Product Model Number</option>
+                                        {% for x in list_model_numbers %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.model_number_id.id|slugify %} selected {% endif %}>{{x.model_number}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Godown</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="godown_id">
+                                        <option value="" disabled selected>Select Godown</option>
+                                        {% for x in list_godown %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.godown_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Rack</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="rack_id">
+                                        <option value="" disabled selected>Select Rack</option>
+                                        {% for x in list_rack %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.rack_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Warehouse</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="warehouse_id">
+                                        <option value="" disabled selected>Select Warehouse</option>
+                                        {% for x in list_warehouse %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.warehouse_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Purchase Rate</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Purchase Rate" name="purchase_rate" value="{{get_data.purchase_rate}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">MRP</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="MRP" name="mrp" value="{{get_data.mrp}}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Sales Rate</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Sales Rate" name="sales_rate" value="{{get_data.sales_rate}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Reorder Level</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Reorder Level" name="reorder_level" value="{{get_data.reorder_level}}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Minimum Stock</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Minimum Stock" name="minimum_stock" value="{{get_data.minimum_stock}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Maximum Stock</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Maximum Stock" name="maximum_stock" value="{{get_data.maximum_stock}}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Tax</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="tax_id">
+                                        <option value="" disabled selected>Select Tax</option>
+                                        {% for x in list_tax %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.tax_id.id|slugify %} selected {% endif %}>{{x.tax}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">BOM</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="BOM" name="bom" value="{{get_data.bom}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Barcode</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Barcode" name="barcode" value="{{get_data.barcode}}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.entity_data', function(event){
+            var entity_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-single-entity-branch' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'entity_id': entity_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var branches        = data.branches;
+                    var branchSelect    = $('.branch');
+                    branchSelect.empty();  // Clear previous options
+                    branchSelect.append('<option value="" disabled>Select Branch</option>');
+                    $.each(branches, function (index, branch) {
+                        branchSelect.append('<option value="' + branch.id + '">' + branch.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
