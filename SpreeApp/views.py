@@ -553,11 +553,11 @@ def listEntity(request):
                 
             #Session set for query result for excel based on last search    
             request.session['entity_list']=json.dumps(list(entity_list.values('name','description',entity_type=F('entity_type_id_id__type'))), cls=DjangoJSONEncoder)
-            page_number = request.GET.get("page",1)
+            # page_number = request.GET.get("page",1)
 
-            paginator = Paginator(entity_list, 10)
+            # paginator = Paginator(entity_list, 10)
 
-            entity_list = paginator.get_page(page_number)
+            # entity_list = paginator.get_page(page_number)
 
             write=0
             if role_permission['entity_write']:
@@ -12951,7 +12951,9 @@ def addVoucherTransactionUserPortal(request):
                                         cheque_date             = c_cheque_date,
                                         branch_gst_state_id     = branch_gst_state_id,
                                         branch_gst_treatment_id = branch_gst_treatment_id,
-                                        pricing_lvl             = pricing_lvl
+                                        pricing_lvl             = pricing_lvl,
+                                        latest                  = 1,
+                                        status                  = status,
                                     )
                 insert_debit_ledger_data.save()
 
@@ -13021,7 +13023,9 @@ def addVoucherTransactionUserPortal(request):
                                         cheque_date             = d_cheque_date,
                                         branch_gst_state_id     = branch_gst_state_id,
                                         branch_gst_treatment_id = branch_gst_treatment_id,
-                                        pricing_lvl             = pricing_lvl
+                                        pricing_lvl             = pricing_lvl,
+                                        latest                  = 1,
+                                        status                  = status,
                                         
                                     )
                 insert_credit_ledger_data.save()
@@ -13990,7 +13994,9 @@ def updateVoucherTransactionUserPortal(request):
                                         cheque_date             = c_cheque_date,
                                         branch_gst_state_id     = branch_gst_state_id,
                                         branch_gst_treatment_id = branch_gst_treatment_id,
-                                        pricing_lvl             = pricing_lvl
+                                        pricing_lvl             = pricing_lvl,
+                                        latest                  = 1,
+                                        status                  = status,
 
                                     )
                 insert_debit_ledger_data.save()
@@ -14061,8 +14067,9 @@ def updateVoucherTransactionUserPortal(request):
                                         cheque_date             = d_cheque_date,
                                         branch_gst_state_id     = branch_gst_state_id,
                                         branch_gst_treatment_id = branch_gst_treatment_id,
+                                        pricing_lvl             = pricing_lvl,
+                                        latest                  = 1,
                                         status                  = status,
-                                        pricing_lvl             = pricing_lvl
                                     )
                 insert_credit_ledger_data.save()
 
@@ -18163,8 +18170,6 @@ def filterAccountLedgerUserPortal(request):
 
 
 
-
-
 @api_view(['POST'])
 def filterFinancialYearUserPortal(request):
          
@@ -19050,7 +19055,7 @@ def filterProductUserPortal(request):
                         print(debit_product)
                         if debit_product:
                             sum_debit_product       = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']  
-                            sum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
+                            dsum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
                             
                     else:
                         credit_product      = order_product_data.objects.filter(product_id=product_id,rack_id=rack_id,latest=1,entry_type="Credit",status='Approved')
@@ -20332,6 +20337,130 @@ def report_gstn9(request):
 from django.db import connection
 from django.apps import apps
 
+
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def get_branch_details(request):
+    branch_id    = request.POST['branch_id']
+    
+    branch     = branch_data.objects.get(pk=branch_id)
+
+    address=''
+    address =str(branch.address)+' '+str(branch.city)
+
+    return JsonResponse({'address': address})
+
+
+
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def get_AccountLedger_balance(request):
+           
+        ledger_id               = request.POST.get('ledger_id') 
+        getledger               = accounting_ledger_data.objects.get(pk=ledger_id)
+        branch_id               = getledger.branch_id 
+        end_date                = request.POST.get('end','')
+        start_date              = request.POST.get('start','')
+        invoice_data_list       = invoice_data.objects.filter(latest=1,status="Approved")
+        
+
+        list_invoice_data   = invoice_data_list.filter(
+                (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id))
+            )
+        print(list_invoice_data)
+
+        if start_date or end_date:
+            pass
+
+        else:
+            financial    = financial_year_data.objects.filter(active=1,branch_id=branch_id).order_by('-id')
+            if financial:
+                start_date  = financial[0].from_date
+                to_data     = financial[0].to_date
+
+        if  start_date and end_date:   
+                list_invoice_data                = list_invoice_data.filter(date__range=(start_date,end_date))
+                        
+        elif start_date:   
+            list_invoice_data                = list_invoice_data.filter(date__gte=start_date)
+
+        elif end_date:
+            list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
+
+       
+        if getledger.opening_balance:
+            opening_balance     = float(getledger.opening_balance)
+        else:
+            opening_balance     = 0
+
+        sum_of_credits      = 0
+        sum_of_debits       = 0
+
+        credit_invoices = list_invoice_data.filter(entry_type='Credit')
+        if credit_invoices:
+            sum_of_credits  = credit_invoices.aggregate(total_amount=Sum('total_amount'))['total_amount']
+        debit_invoices  = list_invoice_data.filter(entry_type="Debit")
+        if debit_invoices:
+            sum_of_debits   = debit_invoices.aggregate(total_amount=Sum('total_amount'))['total_amount']
+        print(sum_of_credits)
+        print(sum_of_debits)
+        if getledger.entry_type=='Cr':        
+            current_balance     = opening_balance+(sum_of_credits-sum_of_debits)
+        else:
+            current_balance    = opening_balance+(sum_of_debits-sum_of_credits)
+   
+        return JsonResponse({'balance':current_balance})
+
+
+@api_view(['POST'])
+def getProduct_balance(request):
+         
+    data            = request.data
+    user_id         = data.get('user_id')
+    app_token       = data.get('app_token')
+    get_token       = app_auth_token_tb.objects.first()
+
+    if user_id and app_token == get_token.token:
+        product_id                       = data.get('product_id')
+        get_product_data                 = product_data.objects.get(pk=product_id)
+        start_date                       = data.get('start_date','')
+        end_date                         = data.get('end_date','')
+        
+        get_product_transactions        = order_product_data.objects.filter(product_id=product_id,latest=1,status='Approved')
+
+        if  start_date and end_date:   
+                get_product_transactions            = get_product_transactions.filter(date__range=(start_date,end_date))
+                        
+        elif start_date:   
+            get_product_transactions                = get_product_transactions.filter(date__gte=start_date)
+
+        elif end_date:
+            get_product_transactions                = get_product_transactions.filter(date__lte=end_date)
+
+        sum_credit_product_quantity = 0
+        sum_debit_product_quantity  = 0  
+        credit_product      = get_product_transactions.filter(entry_type="Credit")
+        if credit_product:
+            sum_credit_product      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+            csum_free_quantity      = credit_product.aggregate(total_free=Sum('free'))['total_free']
+        debit_product       = order_product_data.objects.filter(entry_type="Debit")
+        if debit_product:
+            sum_debit_product       = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']  
+            dsum_free_quantity      = debit_product.aggregate(total_free=Sum('free'))['total_free']    
+            
+                       
+        balance_quantity  = (sum_credit_product+csum_free_quantity) - (sum_debit_product+dsum_free_quantity)
+
+        
+        response                        ={
+                                            "success"               :True,
+                                            "balance_quantity"      : balance_quantity
+                                        }
+        
+    else:
+            response    =   {
+                                "success"   : False,
+                                "message"   : "Invalid Token Or User",
+                            }
+    return Response(response)
 
 
 

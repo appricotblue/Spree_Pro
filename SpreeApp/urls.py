@@ -62,6 +62,9 @@ urlpatterns = [
     path('add-accounting-ledger/', views.addNewAccountingLedger ,name='add-accounting-ledger'),
     path('update-accounting-ledger/', views.updateAccountingLedger ,name='update-accounting-ledger'),
     path('delete-accounting-ledger/', views.deleteAccountingLedger ,name='delete-accounting-ledger'),
+    path('get-AccountLedger-balance',views.get_AccountLedger_balance,name='get-AccountLedger-balance'),
+
+    path('getProduct-balance',views.getProduct_balance,name='getProduct-balance'),
 
     path('list-financial-year/', views.listFinancialYear ,name='list-financial-year'),
     path('add-financial-year/', views.addNewFinancialYear ,name='add-financial-year'),

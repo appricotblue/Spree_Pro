@@ -90,7 +90,7 @@
                 </p>
                 <form class="forms-sample"  method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <input type="hidden" name="id" value="{{get_data.id}}">
+                    <input type="hidden" name="id" id="acid" value="{{get_data.id}}">
                     <div class="form-group">
                         <div class="form-check form-check-primary">
                             <label class="form-check-label">
@@ -305,6 +305,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Current Balance</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="current_bal" placeholder="Current Balance" name="curret_balance" value="{{get_data.opening_balance}}" readonly>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -501,6 +509,28 @@
 
 <script>
     $(document).ready(function() {
+        // balance check
+        var value = $('#acid').val();
+        console.log(value);
+        $.ajax({
+                type: 'POST',
+                url: "{% url 'get-AccountLedger-balance' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'ledger_id': value,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var balance        = data
+                    $('#current_bal').val = balance   
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+
+
+        
         $('#additional').hide()
        
         function checkConditions() {

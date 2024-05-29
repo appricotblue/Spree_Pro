@@ -166,11 +166,10 @@
                 </div>
             </div>
 
-
             <div class="table-responsive">
                 {% if sum_to_display %}
                     {% for i in sum_to_display %}
-                        <h3 style="color: wheat;text-align: right">Total {{i.label}} : {{i.total}}</h3>
+                        <h5 style="color: wheat;text-align: right">Total {{i.label}} : {{i.total}}</h5>
                     {% endfor %}
                 {% endif %}
                 {% if row_get_data %}
