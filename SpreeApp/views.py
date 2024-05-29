@@ -684,6 +684,7 @@ def deleteEntity(request):
 
 
 
+
 # @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def listBanch(request):
     if request.session.has_key('userId'):
@@ -699,19 +700,23 @@ def listBanch(request):
         if 'search' in request.POST: 
             
             selected_enitity        = int(request.POST.get('select_entity')) if request.POST.get('select_entity') else None
-            search_branch_name      = request.POST.get('branch')    
-            if selected_enitity or search_branch_name:    
-                    # we got pk from html post we need to get name to diaplay on popups
-                           
-                if selected_enitity and search_branch_name:     
-                    branch_list             = branch_list.filter(entity_id=selected_enitity,name__istartswith=search_branch_name).order_by('-id')
+            search_branch_name      = request.POST.get('branch','') 
+        else:
+            selected_enitity        = int(request.GET.get('select_entity',0)) if request.GET.get('select_entity')!='None' else None
+            search_branch_name      = request.GET.get('branch','')    
+
+        if selected_enitity or search_branch_name:    
+                # we got pk from html post we need to get name to diaplay on popups
                         
-                elif  selected_enitity:   
-                    branch_list             = branch_list.filter(entity_id_id=selected_enitity).order_by('-id')
-                         
-                else:      
-                    branch_list             = branch_list.filter(name__istartswith=search_branch_name).order_by('-id')
-                              
+            if selected_enitity and search_branch_name:     
+                branch_list             = branch_list.filter(entity_id=selected_enitity,name__istartswith=search_branch_name).order_by('-id')
+                    
+            elif  selected_enitity:   
+                branch_list             = branch_list.filter(entity_id_id=selected_enitity).order_by('-id')
+                        
+            else:      
+                branch_list             = branch_list.filter(name__istartswith=search_branch_name).order_by('-id')
+                            
         #Download Section 
         if 'download' in request.POST:
             
@@ -727,10 +732,10 @@ def listBanch(request):
         paginator = Paginator(branch_list, 10)
 
         branch_list = paginator.get_page(page_number)
-
         return render(request,'users/pages/list_branch.html',{'branch_list' : branch_list,'list_entity':listEntity,'selected_enitity':selected_enitity,'search_branch_name':search_branch_name})
     else:
         return redirect('user-login')
+
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -2759,51 +2764,35 @@ def listCustomer(request):
                 start_date          = request.POST.get('start')
                 end_date            =request.POST.get('end')
                 
-                if selected_type or search_name or start_date or end_date:    
                 
-                    if selected_type and search_name:     
-                        customer_list             = customer_list.filter(customer_type_id=selected_type,name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_type:   
-                        customer_list             = customer_list.filter(customer_type_id=selected_type).order_by('-id')
-                        
-                    elif  search_name:   
-                        customer_list             = customer_list.filter(name__istartswith=search_name).order_by('-id')
-
-                    if  start_date and end_date: 
-                        customer_list             = customer_list.filter(created_at__range=(start_date,end_date))
-                                
-                    elif start_date:   
-                        customer_list             = customer_list.filter(created_at__gte=start_date)
-
-                    elif end_date:
-                        customer_list             = customer_list.filter(created_at__lte=end_date)
                         
             else:
-                selected_type       = int(request.GET.get('selected_type'))
+                selected_type       = int(request.GET.get('selected_type',0))
                 print(selected_type)
                 print("############")
                 search_name         = request.GET.get('name') 
                 start_date          = request.GET.get('start')
                 end_date            = request.GET.get('end')
-                if selected_type or search_name or start_date or end_date:    
-                    if selected_type and search_name:     
-                        customer_list             = customer_list.filter(customer_type_id=selected_type,name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_type:   
-                        customer_list             = customer_list.filter(customer_type_id=selected_type).order_by('-id')
-                        
-                    elif  search_name:   
-                        customer_list             = customer_list.filter(name__istartswith=search_name).order_by('-id')
 
-                    if  start_date and end_date: 
-                        customer_list             = customer_list.filter(created_at__range=(start_date,end_date))
-                                
-                    elif start_date:   
-                        customer_list             = customer_list.filter(created_at__gte=start_date)
 
-                    elif end_date:
-                        customer_list             = customer_list.filter(created_at__lte=end_date)     
+            if selected_type or search_name or start_date or end_date:    
+                if selected_type and search_name:     
+                    customer_list             = customer_list.filter(customer_type_id=selected_type,name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_type:   
+                    customer_list             = customer_list.filter(customer_type_id=selected_type).order_by('-id')
+                    
+                elif  search_name:   
+                    customer_list             = customer_list.filter(name__istartswith=search_name).order_by('-id')
+
+                if  start_date and end_date: 
+                    customer_list             = customer_list.filter(created_at__range=(start_date,end_date))
+                            
+                elif start_date:   
+                    customer_list             = customer_list.filter(created_at__gte=start_date)
+
+                elif end_date:
+                    customer_list             = customer_list.filter(created_at__lte=end_date)     
                             
             #Download Section 
             if 'download' in request.POST:
@@ -20216,13 +20205,109 @@ def filterContraUserPortal(request):
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_stock_summary(request):
     if request.session.has_key('userId'):
-        get_data        = []
-        product_list    = product_data.objects.all()
-        for product in product_list:
-            name            = product.name
-            purchase_rate   = product.purchase_rate
+        user_id             = request.session.has_key('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
 
-        return render(request,'users/pages/report_stock_summary.html',{'get_data':'just'})
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks = list(list_entity.values_list('pk',flat=True))
+            list_branch = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            branch_pks      = list(user_branches.values_list('pk',flat=True))
+            list_branch     = list_branch.filter(pk__in=branch_pks)
+        
+        branch_filter   = list_branch.values('pk','name')  
+        branch_pks      = list(list_branch.values_list('pk', flat=True))
+       
+        get_data        = []
+        product_list    = product_data.objects.filter(branch_id__in=branch_pks)
+        
+        data_to_display = []
+        products_filter = product_list.values('pk','name')
+        search_product  = 0
+        search_branch   = 0
+        if 'search' in request.POST:
+            search_product  = int(request.POST.get('search_product',0))
+            search_branch   = int(request.POST.get('search_branch',0))
+            print(search_product)
+            if search_product:
+                product_list = product_list.filter(pk=search_product)
+            if search_branch:
+                product_list = product_list.filter(branch_id=search_branch) 
+
+        print(product_list)
+        
+        headings        = ['Product Name','Sale Price','Purchase Price','Stock Quantity']
+        for product in product_list:
+           
+            data_to_display_child       = []
+            sum_credit_product_quantity = 0
+            sum_debit_product_quantity  = 0  
+            sum_credit_product_amount   = 0
+            sum_debit_product_amount    = 0
+            avg_sale_price              = 0
+            avg_purchase_price          = 0
+            sum_credit_product          = 0
+            sum_debit_product           = 0
+            csum_free_quantity          = 0
+            dsum_free_quantity          = 0
+            balance_quantity            = 0
+
+            # avg sale and purchase
+            
+            # credit_product      = order_product_data.objects.filter(product_id=product.id,latest=1,entry_type="Credit",status='Approved')
+            # print(credit_product)
+            # if credit_product:
+            #     sum_credit_product_quantity     = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+            #     sum_credit_product_amount       = credit_product.aggregate(total_credit_amount=Sum('amount'))['total_credit_amount']
+            #     print(sum_credit_product_quantity,sum_credit_product_amount)
+            #     print("@@@@@@@22")
+            #     print(sum_credit_product_amount)
+            #     if sum_credit_product_amount:
+            #         avg_purchase_price              = int(sum_credit_product_amount)/int(sum_credit_product_quantity)
+
+            # debit_product       = order_product_data.objects.filter(product_id=product.id,latest=1,entry_type="Debit",status='Approved')
+            # if debit_product:
+            #     sum_debit_product_quantity      = debit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+            #     sum_debit_product_amount        = debit_product.aggregate(total_debit_amount=Sum('amount'))['total_debit_amount']
+                
+
+            #     if sum_debit_product_amount:
+
+            #         avg_sale_price                  = int(sum_debit_product_amount)/int(sum_debit_product_quantity)
+
+            get_invoices    = order_product_data.objects.filter(product_id=product.id,latest=1,status='Approved')
+                
+            credit_product      = get_invoices.filter(entry_type="Credit")
+            
+            if credit_product:
+                sum_credit_product      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+                csum_free_quantity              = credit_product.aggregate(total_free=Sum('free'))['total_free']
+
+            debit_product       = get_invoices.filter(entry_type="Debit")
+            
+            if debit_product:
+                sum_debit_product               = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']  
+                dsum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
+                    
+
+            balance_quantity  = (sum_credit_product+csum_free_quantity) - (sum_debit_product+dsum_free_quantity)
+
+            data_to_display_child.extend([product.name,product.sales_rate,product.purchase_rate,balance_quantity])
+            data_to_display.extend([data_to_display_child])
+            
+        
+        print(data_to_display)
+        return render(request,'users/pages/report_stock_summary.html',{'headings':headings,'data_to_display':data_to_display,'products_filter':products_filter,'search_product':search_product,'branch_filter':branch_filter,'search_branch':search_branch})
     else:
         return redirect('user-login')
 
@@ -20351,6 +20436,10 @@ def get_branch_details(request):
 
 
 
+
+
+
+
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def get_AccountLedger_balance(request):
            
@@ -20408,6 +20497,11 @@ def get_AccountLedger_balance(request):
             current_balance    = opening_balance+(sum_of_debits-sum_of_credits)
    
         return JsonResponse({'balance':current_balance})
+
+
+
+
+
 
 
 @api_view(['POST'])
@@ -21078,5 +21172,6 @@ def get_table_fields(request):
                         
 
     return JsonResponse({'table_details':table_details,'length':len(table_details)})
+
 
 

@@ -142,10 +142,10 @@
 
                         {% if branch_list.has_previous %}
                             <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
+                                    <a class="page-link" href="?page=1&select_entity={{selected_enitity}}&branch={{search_branch_name}}">&laquo; first</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ branch_list.previous_page_number }}">previous</a>
+                                <a class="page-link" href="?page={{ branch_list.previous_page_number }}&select_entity={{selected_enitity}}&branch={{search_branch_name}}">previous</a>
                             </li>
                         {% endif %}
                 
@@ -153,10 +153,10 @@
                     
                     {% if branch_list.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ branch_list.next_page_number }}">next</a>
+                            <a class="page-link" href="?page={{ branch_list.next_page_number }}&select_entity={{selected_enitity}}&branch={{search_branch_name}}">next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ branch_list.paginator.num_pages }}">last &raquo;</a>
+                            <a class="page-link" href="?page={{ branch_list.paginator.num_pages }}&select_entity={{selected_enitity}}&branch={{search_branch_name}}">last &raquo;</a>
                         </li>
                     {% endif %}
                    
