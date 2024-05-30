@@ -5,31 +5,41 @@
 
 
 {% include "users/layout/filter.html" %}
-    <form method="post" action="{% url 'report-daybook' %}" >
+    <form method="post" >
         {% csrf_token %}
         <div class="row">
             <div class="col-md-2 col-6">
                 <div class="form-group">
-                    <label for="exampleInputName1">Filter Transaction</label>
-                    <select class="js-example-basic-single w-100 input" name="filter_type" required>
-                        <option value="" disabled selected>Select Transaction Type</option>
-                        <option value="Purchase" {% if filter_type == 'Purchase' %} selected {% endif %}>Purchase</option>
-                        <option value="Sales" {% if filter_type == 'Sales' %} selected {% endif %}>Sales</option>
+                    <label for="exampleInputName1">Account Ledger</label>
+                    <select class="js-example-basic-single w-100 input" name="search_acc_ledger" required>
+                        <option value="0" selected>Select</option>
+                        {% for ledger in account_ledger_filter%}
+                        <option value={{ledger.pk}} {% if search_acc_ledger|slugify == ledger.pk|slugify %} selected {% endif %}>{{ledger.name}}</option>
+                        {%endfor%}
                     </select>      
                 </div>
             </div>
+            <!-- <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">Branch Name</label>
+                    <select class="js-example-basic-single w-100 input" name="search_branch" required>
+                        <option value="0" selected>Select</option>
+                        {% for branch in branch_filter%}
+                        <option value={{branch.pk}} {% if search_branch|slugify == branch.pk|slugify %} selected {% endif %}>{{branch.name}}</option>
+                        {%endfor%}
+                    </select>      
+                </div>
+            </div> -->
+            
             <div class="col-md-2 col-12 d-flex">
                 <div class="form-group mx-auto">
-                <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-filter"></i></button>
+                <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-search"></i></button>
                 </div>
             </div>
         </div>
 
-    </form>
+    
 {% include  "users/layout/filter_end.html" %}
-
-
-
 
 
 
@@ -52,11 +62,11 @@
 
             <div class="d-flex flex-column flex-md-row align-items-center" style="padding-top: 15px;">
                 <div class="col-md" style="margin-left: 10px;">
-                    <h4 class="card-title div-title mb-0">Account Ledger</h4>
+                    <h4 class="card-title div-title mb-0">Acount Ledger Report</h4>
                 </div>
                 <div class="d-flex gap-3 mt-3 mt-md-0">
                     <div class="col-md text-md-right">
-                        <form method="post">
+                        
                             {% csrf_token %}
                             <input type="submit" name="download" value="Download Excel" class="btn btn-sm font-weight-medium auth-form-btn download">
                         </form>
@@ -68,48 +78,21 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Account</th>
-                            <th>Transaction Details</th>
-                            <th>Transaction Type</th>
-                            <th>Transaction</th>
-                            <th>Reference</th>
-                            <th>Debit</th>
-                            <th>Credit</th>
-                            <th>Amount</th>
+                            {% for head in headings %}
+                            
+                            <th>{{head}}</th>
+                            {% endfor %}
                         </tr>
                     </thead>
                     <tbody>
                         {% for data in get_data %}
                         <tr>
+                            {% for column in data %}
                             <td>
-                                {{data.credit_ledger_id.name}}
+                                {{column}}
                             </td>
-                            <td>
-                                {{data.voucher_number_id.voucher_number}}
-                            </td>
-                            <td>
-                                {{data.branch_id.name}}
-                            </td>
-                            <td>
-                                {{data.voucher_type_id.name}}
-                            </td>
-                            <td>
-                                {{data.date}}
-                            </td>
-                            <td>
-                                {{data.total_amount}}
-                            </td>
-                            <td>
-                                {{data.get_balance}}
-                            </td>
-                            <td>
-                                <a href="{% url 'update-sales-invoice' %}?id={{data.id}}" class="adec">
-                                    <i class="mdi mdi-grease-pencil  me-3 lupdate"></i>
-                                </a>
-                                <!-- <a class="delete-btn" href="#" id="{{data.id}}" onclick="showModalAndChangeColor(this)">
-                                    <i class="mdi mdi-delete ldelete"></i>
-                                </a> -->
-                            </td>
+                            {% endfor %}
+                            
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -140,10 +123,10 @@
 
                         {% if get_data.has_previous %}
                             <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
+                                    <a class="page-link" href="?page=1&search_acc_ledger={{search_acc_ledger}}&search_branch={{search_branch}}">&laquo; first</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ get_data.previous_page_number }}">previous</a>
+                                <a class="page-link" href="?page={{ get_data.previous_page_number }}&search_acc_ledger={{search_acc_ledger}}&search_branch={{search_branch}}">previous</a>
                             </li>
                         {% endif %}
                 
@@ -151,10 +134,10 @@
                     
                     {% if get_data.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.next_page_number }}">next</a>
+                            <a class="page-link" href="?page={{ get_data.next_page_number }}&search_acc_ledger={{search_acc_ledger}}&search_branch={{search_branch}}">next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.paginator.num_pages }}">last &raquo;</a>
+                            <a class="page-link" href="?page={{ get_data.paginator.num_pages }}&search_acc_ledger={{search_acc_ledger}}&search_branch={{search_branch}}">last &raquo;</a>
                         </li>
                     {% endif %}
                    

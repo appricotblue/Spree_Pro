@@ -439,6 +439,8 @@ urlpatterns = [
 
     # report 
     path('report-stock-summary/',views.report_stock_summary,name='report-stock-summary'),
+    path('report-low-stock-summary/',views.report_lowstock_summary,name='report-low-stock-summary'),
+    path('report-stock-summary-category/',views.report_stock_summary_category,name='report-stock-summary-category'),
     path('report-daybook/',views.report_daybook,name='report-daybook'),
     path('report-balancesheet/',views.report_balance_sheet,name='report-balancesheet'),
     path('report-account_group/',views.report_account_group,name='report-account_group'),

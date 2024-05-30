@@ -371,8 +371,8 @@ class product_data(models.Model):
     purchase_rate       = models.CharField(max_length=100,default='',null=True)
     mrp                 = models.CharField(max_length=100,default='',null=True)
     sales_rate          = models.CharField(max_length=100,default='',null=True)
-    reorder_level       = models.CharField(max_length=100,default='',null=True)
-    minimum_stock       = models.CharField(max_length=100,default='',null=True)
+    reorder_level       = models.CharField(max_length=100,default=0,null=True)
+    minimum_stock       = models.CharField(max_length=100,default=0,null=True)
     maximum_stock       = models.CharField(max_length=100,default='',null=True)
     tax_id              = models.ForeignKey(tax_data,on_delete=models.CASCADE,default='',null=True)
     bom                 = models.CharField(max_length=100,default='',null=True)
@@ -650,9 +650,12 @@ class order_product_data(models.Model):
     latest              = models.BooleanField(max_length=100,default=0)
     status              = models.CharField(max_length=100,default='Pending',null=True)
     date                = models.DateTimeField(blank=True, null=True)
-
-
-
+    product_group       = models.ForeignKey(product_group_data,on_delete=models.SET_NULL,null=True)    
+    
+    def save(self, *args, **kwargs):
+        if self.product_id:
+            self.product_group = self.product_id.product_group_id
+        super().save(*args, **kwargs)
 
 
 class additional_cost_data(models.Model):

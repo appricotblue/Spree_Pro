@@ -520,8 +520,11 @@
                     'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
                 },
                 success: function (data) {
-                    var balance        = data
-                    $('#current_bal').val = balance   
+                    var balance        = data.balance
+                    console.log(balance)
+                    
+
+                    $('#current_bal').val(balance)   
                 },
                 error: function (xhr, status, error) {
                     console.error(xhr.responseText);

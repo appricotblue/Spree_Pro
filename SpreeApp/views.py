@@ -13708,37 +13708,42 @@ def updateVoucherTransactionUserPortal(request):
                         quantity        = int(product['quantity'])
                         free            = int(product.get('free',0))
                         quantity        = quantity+free
-                        previous_quantity   = int(product['previous_quantity'])
-                        if quantity>previous_quantity:
+                        previous_quantity   = product.get('previous_quantity',0)
+                        if not previous_quantity:
+                            previous_quantity   = 0
+                        
+                        previous_quantity   = int(previous_quantity)
+                        if previous_quantity:
+                            if quantity>previous_quantity:
 
-                            product_details = product_data.objects.get(id=product_id)
-                            sum_debit_product   = 0
-                            sum_credit_product  = 0
-                            csum_free_quantity  = 0
-                            dsum_free_quantity  = 0
-                            credit_product      = order_product_data.objects.filter(product_id=product_id,rack_id=rack_id,latest=1,entry_type="Credit",status='Approved')
-                            print(credit_product)
-                            print("----------------")
-                            if credit_product:
-                                sum_credit_product      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
-                                csum_free_quantity      = credit_product.aggregate(total_free=Sum('free'))['total_free']
-                            debit_product       = order_product_data.objects.filter(product_id=product_id,latest=1,rack_id=rack_id,entry_type="Debit",status='Approved')
-                            print(debit_product)
-                            if debit_product:
-                                sum_debit_product       = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']
-                                dsum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
-                            
-                            balance_quantity  = previous_quantity + (sum_credit_product+csum_free_quantity) - (sum_debit_product+dsum_free_quantity)
+                                product_details = product_data.objects.get(id=product_id)
+                                sum_debit_product   = 0
+                                sum_credit_product  = 0
+                                csum_free_quantity  = 0
+                                dsum_free_quantity  = 0
+                                credit_product      = order_product_data.objects.filter(product_id=product_id,rack_id=rack_id,latest=1,entry_type="Credit",status='Approved')
+                                print(credit_product)
+                                print("----------------")
+                                if credit_product:
+                                    sum_credit_product      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+                                    csum_free_quantity      = credit_product.aggregate(total_free=Sum('free'))['total_free']
+                                debit_product       = order_product_data.objects.filter(product_id=product_id,latest=1,rack_id=rack_id,entry_type="Debit",status='Approved')
+                                print(debit_product)
+                                if debit_product:
+                                    sum_debit_product       = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']
+                                    dsum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
+                                
+                                balance_quantity  = previous_quantity + (sum_credit_product+csum_free_quantity) - (sum_debit_product+dsum_free_quantity)
 
-                            
-                            rack_name         = rack_data.objects.get(id=rack_id).name
-                            if balance_quantity<int(quantity):
-                                response    ={
-                                        "success"   :False,
-                                        "message"   :f"{product_details.name} left Only {balance_quantity} on rack {rack_name}"
-                                }
+                                
+                                rack_name         = rack_data.objects.get(id=rack_id).name
+                                if balance_quantity<int(quantity):
+                                    response    ={
+                                            "success"   :False,
+                                            "message"   :f"{product_details.name} left Only {balance_quantity} on rack {rack_name}"
+                                    }
 
-                                return Response(response)
+                                    return Response(response)
 
 
         bill_by_bill_id         = data.get('bill_by_bill_id','')
@@ -13826,7 +13831,8 @@ def updateVoucherTransactionUserPortal(request):
         #                         )
         # insert_voucher_number.save()
 
-        update_invoice      = invoice_data.objects.filter(pk=invoice_id.id).update(latest=False,updated_at=now)
+        update_invoice      = invoice_data.objects.filter(Q(pk=invoice_id.id) | Q(invoice_id=invoice_id.id)).update(latest=False,updated_at=now)
+        
         print("######")
 
         get_order_product   = order_product_data.objects.filter(invoice_id=invoice_id.id).update(latest=False,updated_at=now)
@@ -14292,7 +14298,6 @@ def updateVoucherTransactionUserPortal(request):
                             }
 
     return Response(response)
-
 
 
 
@@ -20202,10 +20207,10 @@ def filterContraUserPortal(request):
 
 
 
-@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+# @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_stock_summary(request):
     if request.session.has_key('userId'):
-        user_id             = request.session.has_key('userId')
+        user_id         = request.session.get('userId')
         user_details        = user_data.objects.get(id=user_id)
         list_entity         = entity_data.objects.all()
         list_branch         = branch_data.objects.all()
@@ -20222,8 +20227,8 @@ def report_stock_summary(request):
         user_branch         = user_details.branch_id
         if user_branch:
             user_branches   = user_details.branch_id.split(',')
-            branch_pks      = list(user_branches.values_list('pk',flat=True))
-            list_branch     = list_branch.filter(pk__in=branch_pks)
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
         
         branch_filter   = list_branch.values('pk','name')  
         branch_pks      = list(list_branch.values_list('pk', flat=True))
@@ -20235,14 +20240,25 @@ def report_stock_summary(request):
         products_filter = product_list.values('pk','name')
         search_product  = 0
         search_branch   = 0
+
+        if 'download' in request.POST:
+            
+            responce        = downloadexcel("Stock Balance",request.session['headings'],request.session['data_to_display'])
+            return responce
+        
+        
         if 'search' in request.POST:
             search_product  = int(request.POST.get('search_product',0))
             search_branch   = int(request.POST.get('search_branch',0))
             print(search_product)
-            if search_product:
-                product_list = product_list.filter(pk=search_product)
-            if search_branch:
-                product_list = product_list.filter(branch_id=search_branch) 
+        else:
+            search_product  = int(request.GET.get('search_product',0))
+            search_branch   = int(request.GET.get('search_branch',0))
+
+        if search_product:
+            product_list = product_list.filter(pk=search_product)
+        if search_branch:
+            product_list = product_list.filter(branch_id=search_branch) 
 
         print(product_list)
         
@@ -20304,10 +20320,277 @@ def report_stock_summary(request):
 
             data_to_display_child.extend([product.name,product.sales_rate,product.purchase_rate,balance_quantity])
             data_to_display.extend([data_to_display_child])
-            
+
+        request.session['data_to_display'] = data_to_display
+        request.session['headings']         = headings
+
+        page_number     = request.GET.get("page",1)
+
+        paginator           = Paginator(data_to_display, 10)
+        data_to_display     = paginator.get_page(page_number)
+
         
-        print(data_to_display)
-        return render(request,'users/pages/report_stock_summary.html',{'headings':headings,'data_to_display':data_to_display,'products_filter':products_filter,'search_product':search_product,'branch_filter':branch_filter,'search_branch':search_branch})
+        return render(request,'users/pages/report_stock_summary.html',{'headings':headings,'get_data':data_to_display,'products_filter':products_filter,'search_product':search_product,'branch_filter':branch_filter,'search_branch':search_branch})
+    else:
+        return redirect('user-login')
+
+
+# @cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def report_lowstock_summary(request):
+    if request.session.has_key('userId'):
+        user_id         = request.session.get('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
+
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks = list(list_entity.values_list('pk',flat=True))
+            list_branch = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
+        
+        branch_filter   = list_branch.values('pk','name')  
+        branch_pks      = list(list_branch.values_list('pk', flat=True))
+       
+        get_data        = []
+        product_list    = product_data.objects.filter(branch_id__in=branch_pks)
+        
+        data_to_display = []
+        products_filter = product_list.values('pk','name')
+        search_product  = 0
+        search_branch   = 0
+
+        if 'download' in request.POST:
+            
+            responce        = downloadexcel("Low Stock Report",request.session['headings'],request.session['data_to_display'])
+            return responce
+        
+        
+        if 'search' in request.POST:
+            search_product  = int(request.POST.get('search_product',0))
+            search_branch   = int(request.POST.get('search_branch',0))
+            print(search_product)
+        else:
+            search_product  = int(request.GET.get('search_product',0))
+            search_branch   = int(request.GET.get('search_branch',0))
+
+        if search_product:
+            product_list = product_list.filter(pk=search_product)
+        if search_branch:
+            product_list = product_list.filter(branch_id=search_branch) 
+
+        print(product_list)
+        
+        headings        = ['Product Code','Product Name','Product Group','Unit','Minimum Stock','Stock Quantity']
+        for product in product_list:
+           
+            data_to_display_child       = []
+            sum_credit_product_quantity = 0
+            sum_debit_product_quantity  = 0  
+            sum_credit_product_amount   = 0
+            sum_debit_product_amount    = 0
+            avg_sale_price              = 0
+            avg_purchase_price          = 0
+            sum_credit_product          = 0
+            sum_debit_product           = 0
+            csum_free_quantity          = 0
+            dsum_free_quantity          = 0
+            balance_quantity            = 0
+
+            # avg sale and purchase
+            
+            # credit_product      = order_product_data.objects.filter(product_id=product.id,latest=1,entry_type="Credit",status='Approved')
+            # print(credit_product)
+            # if credit_product:
+            #     sum_credit_product_quantity     = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+            #     sum_credit_product_amount       = credit_product.aggregate(total_credit_amount=Sum('amount'))['total_credit_amount']
+            #     print(sum_credit_product_quantity,sum_credit_product_amount)
+            #     print("@@@@@@@22")
+            #     print(sum_credit_product_amount)
+            #     if sum_credit_product_amount:
+            #         avg_purchase_price              = int(sum_credit_product_amount)/int(sum_credit_product_quantity)
+
+            # debit_product       = order_product_data.objects.filter(product_id=product.id,latest=1,entry_type="Debit",status='Approved')
+            # if debit_product:
+            #     sum_debit_product_quantity      = debit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+            #     sum_debit_product_amount        = debit_product.aggregate(total_debit_amount=Sum('amount'))['total_debit_amount']
+                
+
+            #     if sum_debit_product_amount:
+
+            #         avg_sale_price                  = int(sum_debit_product_amount)/int(sum_debit_product_quantity)
+
+            get_invoices    = order_product_data.objects.filter(product_id=product.id,latest=1,status='Approved')
+                
+            credit_product      = get_invoices.filter(entry_type="Credit")
+            
+            if credit_product:
+                sum_credit_product      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+                csum_free_quantity              = credit_product.aggregate(total_free=Sum('free'))['total_free']
+
+            debit_product       = get_invoices.filter(entry_type="Debit")
+            
+            if debit_product:
+                sum_debit_product               = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']  
+                dsum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
+                    
+
+            balance_quantity  = (sum_credit_product+csum_free_quantity) - (sum_debit_product+dsum_free_quantity)
+            if not product.minimum_stock:
+                minimum = 0
+            else:
+                minimum = int(product.minimum_stock)
+            if balance_quantity<=minimum:
+                data_to_display_child.extend([product.product_code,product.name,product.product_group_id.name,"No" if not product.unit_id  else product.unit_id.unit,product.minimum_stock,balance_quantity])
+                data_to_display.extend([data_to_display_child])
+
+        request.session['data_to_display'] = data_to_display
+        request.session['headings']         = headings
+
+        page_number     = request.GET.get("page",1)
+
+        paginator           = Paginator(data_to_display, 10)
+        data_to_display     = paginator.get_page(page_number)
+
+        
+        return render(request,'users/pages/report_lowstock_summary.html',{'headings':headings,'get_data':data_to_display,'products_filter':products_filter,'search_product':search_product,'branch_filter':branch_filter,'search_branch':search_branch})
+    else:
+        return redirect('user-login')
+
+
+
+
+# @cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def report_stock_summary_category(request):
+    if request.session.has_key('userId'):
+        user_id         = request.session.get('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
+
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity     = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
+        
+        branch_filter       = list_branch.values('pk','name')  
+        branch_pks          = list(list_branch.values_list('pk', flat=True))
+       
+        get_data            = []
+        product_group_list  = product_group_data.objects.all()
+        
+        data_to_display = []
+        products_group_filter = product_group_list.values('pk','name')
+        
+
+        if 'download' in request.POST:
+            
+            responce        = downloadexcel("Stock Balance",request.session['headings'],request.session['data_to_display'])
+            return responce
+        
+        
+        if 'search' in request.POST:
+            search_product_group  = int(request.POST.get('search_product_group',0))
+            search_branch           = int(request.POST.get('search_branch',0))
+        else:
+            search_product_group  = int(request.GET.get('search_product_group',0))
+            search_branch   = int(request.GET.get('search_branch',0))
+
+        
+        if search_product_group:
+            product_group_list  = product_group_list.filter(pk=search_product_group)
+        
+        
+        headings        = ['Product Group','Stock Quantity']
+        for product_group in product_group_list:
+           
+            data_to_display_child       = []
+            sum_credit_product_quantity = 0
+            sum_debit_product_quantity  = 0  
+            sum_credit_product_amount   = 0
+            sum_debit_product_amount    = 0
+            avg_sale_price              = 0
+            avg_purchase_price          = 0
+            sum_credit_product          = 0
+            sum_debit_product           = 0
+            csum_free_quantity          = 0
+            dsum_free_quantity          = 0
+            balance_quantity            = 0
+
+            # avg sale and purchase
+            
+            # credit_product      = order_product_data.objects.filter(product_id=product.id,latest=1,entry_type="Credit",status='Approved')
+            # print(credit_product)
+            # if credit_product:
+            #     sum_credit_product_quantity     = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+            #     sum_credit_product_amount       = credit_product.aggregate(total_credit_amount=Sum('amount'))['total_credit_amount']
+            #     print(sum_credit_product_quantity,sum_credit_product_amount)
+            #     print("@@@@@@@22")
+            #     print(sum_credit_product_amount)
+            #     if sum_credit_product_amount:
+            #         avg_purchase_price              = int(sum_credit_product_amount)/int(sum_credit_product_quantity)
+
+            # debit_product       = order_product_data.objects.filter(product_id=product.id,latest=1,entry_type="Debit",status='Approved')
+            # if debit_product:
+            #     sum_debit_product_quantity      = debit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+            #     sum_debit_product_amount        = debit_product.aggregate(total_debit_amount=Sum('amount'))['total_debit_amount']
+                
+
+            #     if sum_debit_product_amount:
+
+            #         avg_sale_price                  = int(sum_debit_product_amount)/int(sum_debit_product_quantity)
+
+            get_invoices    = order_product_data.objects.filter(product_group=product_group.id,latest=1,status='Approved')
+            if search_branch:
+                get_invoices    = get_invoices.filter(branch_id=search_branch)
+
+            credit_product      = get_invoices.filter(entry_type="Credit")
+            
+            if credit_product:
+                sum_credit_product      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+                csum_free_quantity              = credit_product.aggregate(total_free=Sum('free'))['total_free']
+
+            debit_product       = get_invoices.filter(entry_type="Debit")
+            
+            if debit_product:
+                sum_debit_product               = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']  
+                dsum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
+                    
+
+            balance_quantity  = (sum_credit_product+csum_free_quantity) - (sum_debit_product+dsum_free_quantity)
+
+            data_to_display_child.extend([product_group.name,balance_quantity])
+            data_to_display.extend([data_to_display_child])
+
+        request.session['data_to_display'] = data_to_display
+        request.session['headings']         = headings
+
+        page_number     = request.GET.get("page",1)
+
+        paginator           = Paginator(data_to_display, 10)
+        data_to_display     = paginator.get_page(page_number)
+
+        
+        return render(request,'users/pages/report_stock_summary_category.html',{'headings':headings,'get_data':data_to_display,'products_group_filter':products_group_filter,'search_product_group':search_product_group,'branch_filter':branch_filter,'search_branch':search_branch})
     else:
         return redirect('user-login')
 
@@ -20370,9 +20653,120 @@ def report_account_group(request):
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_account_ledger(request):
     if request.session.has_key('userId'):
+        user_id         = request.session.get('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
+
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity     = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
+            
+        
+        branch_filter       = list_branch.values('pk','name')  
+        branch_pks          = list(list_branch.values_list('pk', flat=True))
+        
+        get_data            = []
+        account_ledger_list = accounting_ledger_data.objects.filter(branch_id__in=branch_pks)
+        
+        data_to_display     = []
+        account_ledger_filter = account_ledger_list.values('pk','name')
+        
+
+        if 'download' in request.POST:
+            if request.session['report_name']:
+                responce        = downloadexcel(request.session['report_name'],request.session['headings'],request.session['data_to_display'])
+                return responce
+        
+        
+        if 'search' in request.POST:
+            search_acc_ledger       = int(request.POST.get('search_acc_ledger',0))
+            search_branch           = int(request.POST.get('search_branch',0))
+        else:
+            search_acc_ledger       = int(request.GET.get('search_acc_ledger',0))
+            search_branch   = int(request.GET.get('search_branch',0))
+
+        
+        if search_branch:
+            account_ledger_list  = account_ledger_list.filter(pk=search_branch)
+            
+
+        
+        
+        headings        = ['Debit Account','Credit Account','Transaction Details','Reference','Amount','Balance']
+        
+        if search_acc_ledger:
+            get_account_ledger  = accounting_ledger_data.objects.get(pk=search_acc_ledger)
+            request.session['report_name']= get_account_ledger.name +"Transaction Report"
+            acc_type            = get_account_ledger.entry_type
+            opening_balance     = get_account_ledger.opening_balance
+            if not opening_balance:
+                opening_balance = 0.0
+            
+            data_to_display.extend([['','','','','opening balance',opening_balance]])
+            print(data_to_display)
+            invoice_data_list   = invoice_data.objects.filter(latest=1,status="Approved")
+            list_invoice_data   = invoice_data_list.filter(
+                (Q(debit_ledger_id=search_acc_ledger) | Q(credit_ledger_id=search_acc_ledger))
+                )
+            balance     = float(opening_balance)
+            for row in list_invoice_data:
+                print(row)
+                data_to_display_child = []
+                description = row.description
+                reference       = row.voucher_number_appended
+                debit_account   = row.debit_ledger_id.name
+                credit_account  = row.credit_ledger_id.name
+                amount          = row.total_amount
+                
+                if not amount:
+                    amount = 0
+
+                if row.debit_ledger_id==search_acc_ledger:
+                    
+                    if acc_type=='Dr':
+                        balance = balance+ float(amount)
+                    else:
+                        balance = balance - float(amount)      
+     
+                else:
+                    if acc_type=='Cr':
+                        balance = balance+ float(amount)
+                    else:
+                        balance = balance - float(amount)  
+
+
+
+                data_to_display_child.extend([debit_account,credit_account,description,reference,amount,balance])
+                data_to_display.extend([data_to_display_child])
+
+
+        print(data_to_display)
+        print("heyyy")
+
+        request.session['data_to_display'] = data_to_display
+        request.session['headings']         = headings
+
+        page_number     = request.GET.get("page",1)
+
+        paginator           = Paginator(data_to_display, 10)
+        data_to_display     = paginator.get_page(page_number)
+
        
 
-        return render(request,'users/pages/report_account_ledger.html',{'get_data':'just'})
+        return render(request,'users/pages/report_account_ledger.html',{'headings':headings,'get_data':data_to_display,'account_ledger_filter':account_ledger_filter,'search_acc_ledger':search_acc_ledger,'branch_filter':branch_filter,'search_branch':search_branch})
     else:
         return redirect('user-login')
 
@@ -20474,29 +20868,38 @@ def get_AccountLedger_balance(request):
         elif end_date:
             list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
 
+        print(list_invoice_data)
        
         if getledger.opening_balance:
             opening_balance     = float(getledger.opening_balance)
         else:
             opening_balance     = 0
 
-        sum_of_credits      = 0
-        sum_of_debits       = 0
+        balance     = opening_balance
+        for row in list_invoice_data:
+            print(row)
+            amount  = row.total_amount
+            if not amount:
+                amount  = 0
 
-        credit_invoices = list_invoice_data.filter(entry_type='Credit')
-        if credit_invoices:
-            sum_of_credits  = credit_invoices.aggregate(total_amount=Sum('total_amount'))['total_amount']
-        debit_invoices  = list_invoice_data.filter(entry_type="Debit")
-        if debit_invoices:
-            sum_of_debits   = debit_invoices.aggregate(total_amount=Sum('total_amount'))['total_amount']
-        print(sum_of_credits)
-        print(sum_of_debits)
-        if getledger.entry_type=='Cr':        
-            current_balance     = opening_balance+(sum_of_credits-sum_of_debits)
-        else:
-            current_balance    = opening_balance+(sum_of_debits-sum_of_credits)
+
+            print(amount)
+            if row.debit_ledger_id==ledger_id:
+                        
+                if getledger.entry_type=='Dr':
+                    balance = balance+ float(amount)
+                else:
+                    balance = balance - float(amount)      
+    
+            else:
+                if getledger.entry_type=='Cr':
+                    balance = balance+ float(amount)
+                else:
+                    balance = balance - float(amount)  
+            print(balance)
+
    
-        return JsonResponse({'balance':current_balance})
+        return JsonResponse({'balance':balance})
 
 
 
@@ -20758,9 +21161,7 @@ def downloadexcel(report_name,labels,row_get_data):
             
             ws.append(row)
         
-        for row in cleaned_list:
-            
-            ws.append(row)
+        
 
         for col in ws.columns:
             max_length = 0
