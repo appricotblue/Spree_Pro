@@ -20746,6 +20746,76 @@ def report_balance_sheet(request):
         return redirect('user-login')
 
 
+
+
+def AccountLedger_balance(ledger_id,start_date,end_date):
+           
+        ledger_id               = ledger_id
+        getledger               = accounting_ledger_data.objects.get(pk=ledger_id)
+        branch_id               = getledger.branch_id 
+        end_date                = end_date
+        start_date              = start_date
+        invoice_data_list       = invoice_data.objects.filter(latest=1,status="Approved")
+        
+
+        list_invoice_data   = invoice_data_list.filter(
+                (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id))
+            )
+        print(list_invoice_data)
+
+        if start_date or end_date:
+            pass
+
+        else:
+            financial    = financial_year_data.objects.filter(active=1,branch_id=branch_id).order_by('-id')
+            if financial:
+                start_date  = financial[0].from_date
+                to_data     = financial[0].to_date
+
+        if  start_date and end_date:   
+                list_invoice_data                = list_invoice_data.filter(date__range=(start_date,end_date))
+                        
+        elif start_date:   
+            list_invoice_data                = list_invoice_data.filter(date__gte=start_date)
+
+        elif end_date:
+            list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
+
+        print(list_invoice_data)
+       
+        if getledger.opening_balance:
+            opening_balance     = float(getledger.opening_balance)
+        else:
+            opening_balance     = 0
+
+        balance     = opening_balance
+        for row in list_invoice_data:
+            print(row)
+            amount  = row.total_amount
+            if not amount:
+                amount  = 0
+
+
+            print(amount)
+            if row.debit_ledger_id==ledger_id:
+                        
+                if getledger.entry_type=='Dr':
+                    balance = balance+ float(amount)
+                else:
+                    balance = balance - float(amount)      
+    
+            else:
+                if getledger.entry_type=='Cr':
+                    balance = balance+ float(amount)
+                else:
+                    balance = balance - float(amount)  
+            print(balance)
+
+   
+        return balance
+
+
+
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_profit_andloss(request):
     if request.session.has_key('userId'):
@@ -20778,10 +20848,55 @@ def report_profit_andloss(request):
             get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True))
             print(get_acc_group_income)
             
+            if get_acc_group_income:
+                total_income = 0
+                parent_account  = list(get_acc_group_income.values('id','name'))
+                print(parent_account)
+                
+                parent_counter = 0
+                
+                parent_balance      = 0
+                for parent_account_group in get_acc_group_income:
+                    
+                    parent_account[parent_counter]['amount'] = 0
+                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group)
+                    if child_acc:
+                        
+                        parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                             
+                        child_counter= 0
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            
+                            if acc_ledgers:
+                                
+                                
+                                parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                                parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            =0 
+                                total_of_child_acc_ledger = 0
+                                for ledger in acc_ledgers:
+                                    balance = AccountLedger_balance(ledger.id,'','')
+                                        
+                                    total_income = float(total_income)+float(balance)
+                      
+                                    parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    
 
-            
+                                parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
 
-       
+                    parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
+                                
+        print(total_income)
+        for i in parent_account:
+            print(parent_account)
+            print("/n")
 
         return render(request,'users/pages/report_profit_andloss.html',{'get_data':'just'})
     else:
@@ -20797,6 +20912,7 @@ def report_account_group(request):
         return render(request,'users/pages/report_account_group.html',{'get_data':'just'})
     else:
         return redirect('user-login')
+
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
