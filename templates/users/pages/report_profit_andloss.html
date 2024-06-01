@@ -64,7 +64,7 @@
                 </div>
             </div> 
             <div class="table-responsive">
-                {% if get_data %}
+               
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -77,7 +77,7 @@
                         <tr>
                             <th colspan="2" style="text-align: left !important;">PROFIT</th>
                         </tr>
-                        {% for data in get_data %}
+                        {% for data in income_accounts %}
 
                             <tr>
                                 <th><b><u>{{data.name}}</u></b></th>
@@ -103,14 +103,40 @@
                         <tr>
                             <th style="text-align: center !important;">Gross Profit</th>
                             <th >{{total_income}}</th>
+                        </tr>   
+                        <tr>
+                            <th colspan="2" style="text-align: left !important;">EXPENSE</th>
+                        </tr>
+                        {% for data in expense_accounts %}
+
+                            <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <th><b>{{data.amount}}</b></th>
+                                
+                            </tr>
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                    </tr>
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            <td>{{ledgers.amount}}</td>
+                                        {%endfor%}
+                                    {%endif%}
+                                {%endfor%}
+                           
+                            {%endif%}
+                        {%endfor%}   
+                        <tr>
+                            <th style="text-align: center !important;">Total Expense</th>
+                            <th >{{total_expense}}</th>
                         </tr>                     
                     </tbody>
                 </table>
-                {% else %}
-                <div style="text-align: center;" class="a">
-                    No Data Found
-                </div>
-                {% endif %}
+                
             </div>
         </div>
     </div>

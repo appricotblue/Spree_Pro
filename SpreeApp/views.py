@@ -20781,14 +20781,15 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
         elif end_date:
             list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
 
-        print(list_invoice_data)
+        
        
         if getledger.opening_balance:
             opening_balance     = float(getledger.opening_balance)
         else:
-            opening_balance     = 0
+            opening_balance     = 0.0
 
         balance     = opening_balance
+        print("balen",balance)
         for row in list_invoice_data:
             print(row)
             amount  = row.total_amount
@@ -20797,11 +20798,18 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
 
 
             print(amount)
-            if row.debit_ledger_id==ledger_id:
+            print(ledger_id)
+            
+            print(getledger.entry_type)
+            row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
+            row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
+            if row_debit_ledger_id==ledger_id:
                         
                 if getledger.entry_type=='Dr':
+                    print("drrrrrrrrr")
                     balance = balance+ float(amount)
                 else:
+                    print("crrrrrrrrrrrr")
                     balance = balance - float(amount)      
     
             else:
@@ -20810,6 +20818,7 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
                 else:
                     balance = balance - float(amount)  
             print(balance)
+            print("hyyyy")
 
    
         return balance
@@ -20929,7 +20938,7 @@ def report_profit_andloss(request):
                                 balance = AccountLedger_balance(ledger.id,'','')
                                     
                                 total_expense = float(total_expense)+float(balance)
-                    
+                                print(balance)
                                 expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
                                 total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
                                 
@@ -20938,11 +20947,11 @@ def report_profit_andloss(request):
                             parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
                             
                         child_counter= child_counter+1
-
+                
                 expense_parent_account[parent_counter]['amount']=parent_balance
                 parent_counter= parent_counter+1
         
-        return render(request,'users/pages/report_profit_andloss.html',{'get_data':parent_account,'total_income':total_income,'expense_parent_account':expense_parent_account,'total_expense':total_expense})
+        return render(request,'users/pages/report_profit_andloss.html',{'income_accounts':parent_account,'expense_accounts':expense_parent_account,'total_income':total_income,'expense_parent_account':expense_parent_account,'total_expense':total_expense})
     else:
         return redirect('user-login')
 
@@ -21193,11 +21202,15 @@ def get_AccountLedger_balance(request):
 
 
             print(amount)
-            if row.debit_ledger_id==ledger_id:
+            row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
+            row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
+            if row_debit_ledger_id==ledger_id:
                         
                 if getledger.entry_type=='Dr':
+                    print("drrrrrrrrr")
                     balance = balance+ float(amount)
                 else:
+                    print("crrrrrrrrrrrr")
                     balance = balance - float(amount)      
     
             else:
@@ -21205,7 +21218,6 @@ def get_AccountLedger_balance(request):
                     balance = balance+ float(amount)
                 else:
                     balance = balance - float(amount)  
-            print(balance)
 
    
         return JsonResponse({'balance':balance})
