@@ -4,32 +4,32 @@
 
 
 
+
 {% include "users/layout/filter.html" %}
-    <form method="post" action="{% url 'report-daybook' %}" >
+    <form method="post" >
         {% csrf_token %}
         <div class="row">
             <div class="col-md-2 col-6">
                 <div class="form-group">
-                    <label for="exampleInputName1">Filter Transaction</label>
-                    <select class="js-example-basic-single w-100 input" name="filter_type" required>
-                        <option value="" disabled selected>Select Transaction Type</option>
-                        <option value="Purchase" {% if filter_type == 'Purchase' %} selected {% endif %}>Purchase</option>
-                        <option value="Sales" {% if filter_type == 'Sales' %} selected {% endif %}>Sales</option>
+                    <label for="exampleInputName1">Branch Name</label>
+                    <select class="js-example-basic-single w-100 input" name="search_branch" required>
+                        <option value="0" selected>Select</option>
+                        {% for branch in branch_filter%}
+                        <option value={{branch.pk}} {% if search_branch|slugify == branch.pk|slugify %} selected {% endif %}>{{branch.name}}</option>
+                        {%endfor%}
                     </select>      
                 </div>
             </div>
-            <div class="col-md-2 col-12 d-flex">
+            
+            <div class="col-md-2 col-6">
                 <div class="form-group mx-auto">
-                <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-filter"></i></button>
+                <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-search"></i></button>
                 </div>
             </div>
+        
         </div>
-
-    </form>
+    
 {% include  "users/layout/filter_end.html" %}
-
-
-
 
 
 

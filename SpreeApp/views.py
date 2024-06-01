@@ -12693,6 +12693,113 @@ def get_latest_voucher_series_number(request):
     return Response(response)
 
 
+
+
+
+@api_view(['POST'])
+def getUserUserPortal(request):
+    if request.session.has_key('userId'):
+        data            = request.data
+        user_id         = data.get('user_id')
+        app_token       = data.get('app_token')
+        get_token       = app_auth_token_tb.objects.first()
+
+
+        # if request.session.has_key('userId') and user_id and app_token == get_token.token:
+        if user_id and app_token == get_token.token:
+            get_user            = user_data.objects.get(id=user_id)
+            list_entity         = entity_data.objects.all()
+            
+            all_entities        = []
+            user_entity         = get_user.entity_id
+            
+
+            if user_entity:
+                user_entities   = get_user.entity_id.split(',')
+                
+                list_entity     = list_entity.filter(pk__in=user_entities)
+            
+                enitity_pks     = list(list_entity.values_list('pk',flat=True))
+                list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+            
+                user_branch         = get_user.branch_id
+                
+                if user_branch:
+                    user_branches   = get_user.branch_id.split(',')
+                    
+                    list_branch     = list_branch.filter(pk__in=user_branches)
+            user_branches = list(list_branch.values('pk','name'))
+            user_entities   = list(list_entity.values('pk','name'))
+                    
+            response ={
+                'name':get_user.name,
+                'role':None if not get_user.user_role_id else get_user.user_role_id.name,
+                'role_id':None if not get_user.user_role_id else get_user.user_role_id.id,
+                'entities':user_entities,
+                'branches':user_branches,
+                'default_entity':None if not get_user.default_entity_id else get_user.default_entity_id.id,
+                'profile_image':request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None
+            }
+                
+
+            
+        else:
+            response    =   {
+                                "success"   : False,
+                                "message"   : "Invalid Token Or User",
+                            }
+    return Response(response)
+
+
+
+
+@api_view(['POST'])
+def updateUserUserPortal(request):
+    if request.session.has_key('userId'):
+        data            = request.data
+        user_id         = data.get('user_id')
+        app_token       = data.get('app_token')
+        get_token       = app_auth_token_tb.objects.first()
+
+
+        # if request.session.has_key('userId') and user_id and app_token == get_token.token:
+        if user_id and app_token == get_token.token:
+            
+            name                = data['name']
+            email               = data.get('email')
+
+            get_user            = user_data.objects.get(id=user_id)
+
+            if 'profile_image' in request.FILES:
+                image_file = request.FILES['profile_image']
+                get_user.profile_image = image_file
+
+            get_user.name   = name
+            if email:
+                get_user.email  = email
+            get_user.save()
+
+            now                 = datetime.now()
+            response ={
+                'Sucess':True,
+                'name':get_user.name,
+                'email':get_user.email,
+                'profile_image': request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None
+                
+            }
+                
+
+            
+        else:
+            response    =   {
+                                "success"   : False,
+                                "message"   : "Invalid Token Or User",
+                            }
+    return Response(response)
+
+
+
+
 @api_view(['POST'])
 def addVoucherTransactionUserPortal(request):
     data            = request.data
@@ -20852,9 +20959,20 @@ def report_profit_andloss(request):
         
         branch_filter       = list_branch.values('pk','name')  
         branch_pks          = list(list_branch.values_list('pk', flat=True))
+        parent_account      = []
+        total_income        = 0
+        expense_parent_account =[]
+        total_expense = 0
+        search_branch = 0
+
+        if 'search' in request.POST:
+            search_branch = request.POST.get('branch_id')
+        else:
+            search_branch = branch_pks[0]
+
+        if search_branch:
         
-        if len(branch_pks)==1:
-            get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True))
+            get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
             
             total_income = 0
             if get_acc_group_income:
@@ -20901,60 +21019,58 @@ def report_profit_andloss(request):
                     parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
                                 
-        print(parent_account)
+        
         # expense
        
-        get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True))
+            get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True))
             
-        total_expense = 0
-        if get_acc_group_expense:
-            
-            expense_parent_account  = list(get_acc_group_expense.values('id','name'))
-            print(expense_parent_account)
-            
-            
-            parent_counter = 0
-            
-            parent_balance      = 0
-            for expense_parent_account_group in get_acc_group_expense:
+            if get_acc_group_expense:
                 
-                expense_parent_account[parent_counter]['amount'] = 0
-                child_acc   = accounting_group_data.objects.filter(under_group=expense_parent_account_group.id)
-                if child_acc:
+                expense_parent_account  = list(get_acc_group_expense.values('id','name'))
+                print(expense_parent_account)
+                
+                
+                parent_counter = 0
+                
+                parent_balance      = 0
+                for expense_parent_account_group in get_acc_group_expense:
                     
-                    expense_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
-                            
-                    child_counter= 0
-                    for child in child_acc:
-                        acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
-                        expense_parent_account[parent_counter]['childs'][child_counter]['amount']=0
-                        if acc_ledgers:
-                                    
-                            expense_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
-                            
-                            ledger_counter            =0 
-                            total_of_child_acc_ledger = 0
-                            for ledger in acc_ledgers:
-                                balance = AccountLedger_balance(ledger.id,'','')
-                                    
-                                total_expense = float(total_expense)+float(balance)
-                                print(balance)
-                                expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
-                                total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                    expense_parent_account[parent_counter]['amount'] = 0
+                    child_acc   = accounting_group_data.objects.filter(under_group=expense_parent_account_group.id)
+                    if child_acc:
+                        
+                        expense_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
                                 
+                        child_counter= 0
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            expense_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            if acc_ledgers:
+                                        
+                                expense_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            =0 
+                                total_of_child_acc_ledger = 0
+                                for ledger in acc_ledgers:
+                                    balance = AccountLedger_balance(ledger.id,'','')
+                                        
+                                    total_expense = float(total_expense)+float(balance)
+                                    print(balance)
+                                    expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    
 
-                            expense_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
-                            parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
-                            
-                        child_counter= child_counter+1
-                
-                expense_parent_account[parent_counter]['amount']=parent_balance
-                parent_counter= parent_counter+1
+                                expense_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
+                    
+                    expense_parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
         
-        return render(request,'users/pages/report_profit_andloss.html',{'income_accounts':parent_account,'expense_accounts':expense_parent_account,'total_income':total_income,'expense_parent_account':expense_parent_account,'total_expense':total_expense})
+        return render(request,'users/pages/report_profit_andloss.html',{'income_accounts':parent_account,'expense_accounts':expense_parent_account,'total_income':total_income,'total_expense':total_expense,'search_branch':search_branch,'branch_filter':branch_filter})
     else:
         return redirect('user-login')
-
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)

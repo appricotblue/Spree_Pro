@@ -481,7 +481,15 @@ urlpatterns = [
     path('update-custom-report',views.updatecustomreport,name='update-custom-report'),
     path('delete-custom-report',views.deletecustomreport,name='delete-custom-report'),
     path('userforgot-password',views.userforgot_password,name='userforgot-password'),
-    path('user-reset-password',views.userreset_password,name='user-reset-password')
+    path('user-reset-password',views.userreset_password,name='user-reset-password'),
+
+
+
+
+    path('get-user-details',views.getUserUserPortal,name='get-user-details'),
+    path('update-user-userportal',views.updateUserUserPortal,name='update-user-userportal')
+
+    
 
 ]    
 
