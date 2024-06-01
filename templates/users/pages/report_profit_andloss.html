@@ -74,17 +74,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for data in get_data %}
                         <tr>
-                            <td>
-                                {{data.credit_ledger_id.name}}
-                            </td>
-                            <td>
-                                {{data.voucher_number_id.voucher_number}}
-                            </td>
-                            
+                            <th colspan="2" style="text-align: left !important;">PROFIT</th>
                         </tr>
-                        {% endfor %}
+                        {% for data in get_data %}
+
+                            <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <th><b>{{data.amount}}</b></th>
+                                
+                            </tr>
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                    </tr>
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            <td>{{ledgers.amount}}</td>
+                                        {%endfor%}
+                                    {%endif%}
+                                {%endfor%}
+                           
+                            {%endif%}
+                        {%endfor%}   
+                        <tr>
+                            <th style="text-align: center !important;">Gross Profit</th>
+                            <th >{{total_income}}</th>
+                        </tr>                     
                     </tbody>
                 </table>
                 {% else %}
@@ -99,46 +118,6 @@
 
 
 
-{% if get_data %}
-<div class="col-lg-12 col-12 grid-margin stretch-card">
-    <div class="card" style="background: #0c0c0c; box-shadow: none;">
-        <div class="card-body">
-            <nav aria-label="..." >
-                <ul class="pagination justify-content-end">
-                        <li class="page-item">
-                                <span class="current page-link">
-                                Page {{ get_data.number }} of {{ get_data.paginator.num_pages }}
-                                </span>
-                        </li> 
-
-                        {% if get_data.has_previous %}
-                            <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ get_data.previous_page_number }}">previous</a>
-                            </li>
-                        {% endif %}
-                
-                  
-                    
-                    {% if get_data.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.next_page_number }}">next</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.paginator.num_pages }}">last &raquo;</a>
-                        </li>
-                    {% endif %}
-                   
-                </ul>
-            </nav>
-        </div>
-    </div>
-</div>
-
-
-{%endif%}
 
 <!-- -----------------Delete model popup------------------ -->
 <!-- Delete Modal -->

@@ -20846,12 +20846,13 @@ def report_profit_andloss(request):
         
         if len(branch_pks)==1:
             get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True))
-            print(get_acc_group_income)
             
+            total_income = 0
             if get_acc_group_income:
-                total_income = 0
+                
                 parent_account  = list(get_acc_group_income.values('id','name'))
                 print(parent_account)
+                
                 
                 parent_counter = 0
                 
@@ -20859,7 +20860,7 @@ def report_profit_andloss(request):
                 for parent_account_group in get_acc_group_income:
                     
                     parent_account[parent_counter]['amount'] = 0
-                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group)
+                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
                     if child_acc:
                         
                         parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
@@ -20867,11 +20868,9 @@ def report_profit_andloss(request):
                         child_counter= 0
                         for child in child_acc:
                             acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
-                            
+                            parent_account[parent_counter]['childs'][child_counter]['amount']=0
                             if acc_ledgers:
-                                
-                                
-                                parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                                        
                                 parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
                                 
                                 ledger_counter            =0 
@@ -20893,12 +20892,57 @@ def report_profit_andloss(request):
                     parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
                                 
-        print(total_income)
-        for i in parent_account:
-            print(parent_account)
-            print("/n")
+        print(parent_account)
+        # expense
+       
+        get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True))
+            
+        total_expense = 0
+        if get_acc_group_expense:
+            
+            expense_parent_account  = list(get_acc_group_expense.values('id','name'))
+            print(expense_parent_account)
+            
+            
+            parent_counter = 0
+            
+            parent_balance      = 0
+            for expense_parent_account_group in get_acc_group_expense:
+                
+                expense_parent_account[parent_counter]['amount'] = 0
+                child_acc   = accounting_group_data.objects.filter(under_group=expense_parent_account_group.id)
+                if child_acc:
+                    
+                    expense_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                            
+                    child_counter= 0
+                    for child in child_acc:
+                        acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                        expense_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                        if acc_ledgers:
+                                    
+                            expense_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                            
+                            ledger_counter            =0 
+                            total_of_child_acc_ledger = 0
+                            for ledger in acc_ledgers:
+                                balance = AccountLedger_balance(ledger.id,'','')
+                                    
+                                total_expense = float(total_expense)+float(balance)
+                    
+                                expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                
 
-        return render(request,'users/pages/report_profit_andloss.html',{'get_data':'just'})
+                            expense_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                            parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                            
+                        child_counter= child_counter+1
+
+                expense_parent_account[parent_counter]['amount']=parent_balance
+                parent_counter= parent_counter+1
+        
+        return render(request,'users/pages/report_profit_andloss.html',{'get_data':parent_account,'total_income':total_income,'expense_parent_account':expense_parent_account,'total_expense':total_expense})
     else:
         return redirect('user-login')
 
