@@ -281,6 +281,8 @@ urlpatterns = [
     path('delete-gst-treatment/', views.deleteGstTreatment,name='delete-gst-treatment'),
 
     path('get-godown-rack/', views.getGodownRacks ,name='get-godown-rack'),
+    path('get-entity-gst/', views.get_entity_gst,name='get-entity-gst'),
+
 
 
 
@@ -318,8 +320,10 @@ urlpatterns = [
     
 
     path('user-portal-list-payment-voucher/', views.listPaymentVoucherUserPortal,name='user-portal-list-payment-voucher'),
+
     
     path('user-portal-get-branch-data/', views.getUserBranchInUserPortal,name='user-portal-get-branch-data'),
+    
     path('user-portal-list-product-units/', views.userPortalListProductUnits,name='user-portal-list-product-units'),
 
 # api filter start

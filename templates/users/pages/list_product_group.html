@@ -142,10 +142,10 @@
 
                         {% if get_groups.has_previous %}
                             <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
+                                    <a class="page-link" href="?page=1&selected_product_grp={{selected_product_grp}}&name={{search_name}}">&laquo; first</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ get_groups.previous_page_number }}">previous</a>
+                                <a class="page-link" href="?page={{ get_groups.previous_page_number }}&selected_product_grp={{selected_product_grp}}&name={{search_name}}">previous</a>
                             </li>
                         {% endif %}
                 
@@ -153,10 +153,10 @@
                     
                     {% if get_groups.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ get_groups.next_page_number }}">next</a>
+                            <a class="page-link" href="?page={{ get_groups.next_page_number }}&selected_product_grp={{selected_product_grp}}&name={{search_name}}">next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ get_groups.paginator.num_pages }}">last &raquo;</a>
+                            <a class="page-link" href="?page={{ get_groups.paginator.num_pages }}&selected_product_grp={{selected_product_grp}}&name={{search_name}}">last &raquo;</a>
                         </li>
                     {% endif %}
                    

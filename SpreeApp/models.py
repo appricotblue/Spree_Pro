@@ -38,6 +38,7 @@ class entity_data(models.Model):
     created_at      = models.DateTimeField(max_length=100,default='')
     location        = models.ForeignKey(location_data,on_delete=models.SET_NULL,null=True)
     updated_at      = models.DateTimeField(max_length=100,default='')
+    gst             = models.CharField(max_length=100,default='')
 
 
 class branch_data(models.Model):
@@ -52,6 +53,7 @@ class branch_data(models.Model):
     created_at      = models.DateTimeField(max_length=100,default='')
     updated_at      = models.DateTimeField(max_length=100,default='')
     gst_treatment       = models.ForeignKey(gst_treatment_data,on_delete=models.SET_NULL,null=True)
+    gst             = models.CharField(max_length=100,default='',null=True)
 
 
 class user_roles(models.Model):
@@ -571,6 +573,8 @@ class invoice_data(models.Model): ###--- All transactions
     branch_gst_treatment_id     = models.ForeignKey(gst_treatment_data,on_delete=models.SET_NULL,null=True,related_name='branch_invoice_treatment')
     additional_subtotal         = models.CharField(max_length=100,default='',null=True)
     tax_value                   = models.TextField(default='',null=True)
+    entry_description           = models.TextField(default='',null=True)
+    index_number                = models.TextField(max_length=100,default='0')
 
 
 class bill_by_bill_data(models.Model):

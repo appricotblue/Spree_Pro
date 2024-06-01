@@ -34,7 +34,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="entity_id" required>
+                                    <select class="js-example-basic-single w-100 entity_id" name="entity_id"  required>
                                         <option value="" disabled selected>Select Entity</option>
                                         {% for x in get_entity %}
                                         <option value="{{x.id}}">{{x.name}}</option>
@@ -103,6 +103,14 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">GST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control gst" id="gst" placeholder="GST Number" name="gst" required>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
@@ -110,4 +118,36 @@
         </div>
     </div>
 </div>
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.entity_id', function(event){
+            var entity_id = $(this).val();
+            console.log(entity_id)
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-entity-gst' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'entity_id': entity_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var gst        = data.gst;
+                    $('.gst').val(gst);    
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+
 {% endblock %}
+

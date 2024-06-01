@@ -582,12 +582,13 @@ def addNewEntity(request):
                 type_id         = request.POST['type_id']
                 description     = request.POST['description']
                 location_id     = request.POST['location_id']
+                gst             = request.POST['gst']
                 location_id     = location_data.objects.get(pk=location_id)
                 now             = datetime.now()
 
                 get_entity_type = entity_type.objects.get(id=type_id)
 
-                insert_data     = entity_data(name=name,entity_type_id=get_entity_type,description=description,created_at=now,updated_at=now,location=location_id)
+                insert_data     = entity_data(name=name,entity_type_id=get_entity_type,description=description,created_at=now,updated_at=now,location=location_id,gst=gst)
                 insert_data.save()
 
                 messages.success(request, 'Successfully added.')
@@ -616,6 +617,7 @@ def updateEntity(request):
                 type_id         = request.POST['type_id']
                 description     = request.POST['description']
                 now             = datetime.now()
+                gst             = request.POST['gst']
 
                 # additional
                 location_id     = request.POST['location_id']
@@ -623,7 +625,7 @@ def updateEntity(request):
 
                 get_entity_type = entity_type.objects.get(id=type_id)
 
-                entity_data.objects.all().filter(id=entity_id).update(name=name,entity_type_id=get_entity_type,description=description,updated_at=now,location_id=location_id)
+                entity_data.objects.all().filter(id=entity_id).update(name=name,entity_type_id=get_entity_type,description=description,updated_at=now,location_id=location_id,gst=gst)
 
                 messages.success(request, 'Changes successfully updated.')
                 return redirect('list-entity')
@@ -699,10 +701,10 @@ def listBanch(request):
 
         if 'search' in request.POST: 
             
-            selected_enitity        = int(request.POST.get('select_entity')) if request.POST.get('select_entity') else None
+            selected_enitity        = int(request.POST.get('select_entity'))
             search_branch_name      = request.POST.get('branch','') 
         else:
-            selected_enitity        = int(request.GET.get('select_entity',0)) if request.GET.get('select_entity')!='None' else None
+            selected_enitity        = int(request.GET.get('select_entity',0))
             search_branch_name      = request.GET.get('branch','')    
 
         if selected_enitity or search_branch_name:    
@@ -737,6 +739,19 @@ def listBanch(request):
         return redirect('user-login')
 
 
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def get_entity_gst(request):
+    entity_id    = request.POST['entity_id']
+    
+    entity     = entity_data.objects.get(pk=entity_id)
+
+    gst        = entity.gst
+    
+
+    return JsonResponse({'gst': gst})
+
+
+
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def get_branch_details(request):
@@ -763,6 +778,7 @@ def addNewBranch(request):
             state           = request.POST['states']
             country         = request.POST['country']
             pincode         = request.POST['pincode']
+            gst             = request.POST['gst']
 
             now             = datetime.now()
 
@@ -772,7 +788,7 @@ def addNewBranch(request):
                 
             gst_treatment   = None if not gst_treatment else gst_treatment_data.objects.get(id=gst_treatment)
 
-            insert_data     = branch_data(name=name,branch_code=branch_code,entity_id=get_entity,address=address,city=city,state=state,country=country,pincode=pincode,created_at=now,updated_at=now,gst_treatment=gst_treatment)
+            insert_data     = branch_data(name=name,branch_code=branch_code,entity_id=get_entity,address=address,city=city,state=state,country=country,pincode=pincode,created_at=now,updated_at=now,gst_treatment=gst_treatment,gst=gst)
             insert_data.save()
 
             messages.success(request, 'Successfully added.')
@@ -805,6 +821,7 @@ def updateBranch(request):
             state           = request.POST['states']
             country         = request.POST['country']
             pincode         = request.POST['pincode']
+            gst             = request.POST['gst']
             now             = datetime.now()
             gst_treatment   = request.POST.get('gst_treatment')
     
@@ -812,7 +829,7 @@ def updateBranch(request):
 
             get_entity      = entity_data.objects.get(id=entity_id)
 
-            branch_data.objects.all().filter(id=branch_id).update(name=name,branch_code=branch_code,entity_id=get_entity,address=address,city=city,state=state,country=country,pincode=pincode,updated_at=now,gst_treatment=gst_treatment)
+            branch_data.objects.all().filter(id=branch_id).update(name=name,branch_code=branch_code,entity_id=get_entity,address=address,city=city,state=state,country=country,pincode=pincode,updated_at=now,gst_treatment=gst_treatment,gst=gst)
 
             messages.success(request, 'Changes successfully updated.')
             return redirect('list-branch')
@@ -821,7 +838,6 @@ def updateBranch(request):
             get_branch_data = branch_data.objects.get(id=entity_id)
             get_entity_data = entity_data.objects.all()
             gst_treatment_list  = gst_treatment_data.objects.all()
-            
             
             return render(request,'users/pages/update_branch.html',{'gst_treatment_list':gst_treatment_list,'entity_data' : get_entity_data,'get_branch_data':get_branch_data,'state_list':state_list})
     else:
@@ -1215,27 +1231,34 @@ def listUsers(request):
                 search_user             = request.POST.get('search_user') 
                 selected_role           = int(request.POST.get('selected_role')) 
                 selected_branch         = int(request.POST.get('selected_branch'))
+            else:
+                selected_enitity        = int(request.GET.get('select_entity',0))
+                search_user             = request.GET.get('search_user','') 
+                selected_role           = int(request.GET.get('selected_role',0)) 
+                selected_branch         = int(request.GET.get('selected_branch',0))
+
+
                 
-                if selected_enitity or search_user or selected_role or selected_branch:    
-                    
-                            
-                    if selected_enitity and search_user:     
-                        user_list             = user_list.filter(entity_id=selected_enitity,name__istartswith=search_user).order_by('-id')
-                            
-                    elif  selected_enitity:   
-                        user_list             = user_list.filter(entity_id=selected_enitity).order_by('-id')
-                            
-                    else:      
-                        user_list             = user_list.filter(name__istartswith=search_user).order_by('-id')
+            if selected_enitity or search_user or selected_role or selected_branch:    
+                
+                        
+                if selected_enitity and search_user:     
+                    user_list             = user_list.filter(entity_id=selected_enitity,name__istartswith=search_user).order_by('-id')
+                        
+                elif  selected_enitity:   
+                    user_list             = user_list.filter(entity_id=selected_enitity).order_by('-id')
+                        
+                else:      
+                    user_list             = user_list.filter(name__istartswith=search_user).order_by('-id')
 
-                    
-                    if selected_role:
-                        user_list               =user_list.filter(user_role_id__id=selected_role)
+                
+                if selected_role:
+                    user_list               =user_list.filter(user_role_id__id=selected_role)
 
-                    if selected_branch:
-                        user_list               =user_list.filter(branch_id=selected_branch)
+                if selected_branch:
+                    user_list               =user_list.filter(branch_id=selected_branch)
 
-                    
+                
 
                     
                                 
@@ -1510,32 +1533,37 @@ def listAccountingGroup(request):
             selected_group          = 0
 
             if 'search' in request.POST:
-                selected_branch         = int(request.POST.get('select_branch')) if request.POST.get('select_branch') else None
+                selected_branch         = int(request.POST.get('select_branch'))
                 search_name             = request.POST.get('name')
-                selected_group          = int(request.POST.get('select_group')) if request.POST.get('select_group') else None  
-                if selected_branch or selected_group or search_name:    
+                selected_group          = int(request.POST.get('select_group'))  
+            else:
+                selected_branch         = int(request.GET.get('select_branch',0))
+                search_name             = request.GET.get('name','')
+                selected_group          = int(request.GET.get('select_group',0))
 
-                    if selected_branch and search_name and selected_group:     
-                        accounts_list             = accounts_list.filter(branch_id=selected_branch,name__istartswith=search_name,under_group=selected_group).order_by('-id')
-                            
-                    elif  selected_branch and search_name:   
-                        accounts_list             = accounts_list.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
+            if selected_branch or selected_group or search_name:    
+
+                if selected_branch and search_name and selected_group:     
+                    accounts_list             = accounts_list.filter(branch_id=selected_branch,name__istartswith=search_name,under_group=selected_group).order_by('-id')
                         
-                    elif  selected_branch and selected_group:   
-                        accounts_list             = accounts_list.filter(branch_id=selected_branch,under_group=selected_group).order_by('-id')
-                            
-                    elif  search_name and selected_group:   
-                        accounts_list             = accounts_list.filter(name__istartswith=search_name,under_group=selected_group).order_by('-id')
+                elif  selected_branch and search_name:   
+                    accounts_list             = accounts_list.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_branch and selected_group:   
+                    accounts_list             = accounts_list.filter(branch_id=selected_branch,under_group=selected_group).order_by('-id')
                         
-                    elif  search_name:   
-                        accounts_list             = accounts_list.filter(name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_group:   
-                        accounts_list             = accounts_list.filter(under_group=selected_group).order_by('-id')
-                        
-                    else:      
-                        accounts_list             = accounts_list.filter(branch_id=selected_branch).order_by('-id')
-                                    
+                elif  search_name and selected_group:   
+                    accounts_list             = accounts_list.filter(name__istartswith=search_name,under_group=selected_group).order_by('-id')
+                    
+                elif  search_name:   
+                    accounts_list             = accounts_list.filter(name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_group:   
+                    accounts_list             = accounts_list.filter(under_group=selected_group).order_by('-id')
+                    
+                else:      
+                    accounts_list             = accounts_list.filter(branch_id=selected_branch).order_by('-id')
+                                
                 #Download Section 
             if 'download' in request.POST:
                 
@@ -1703,28 +1731,35 @@ def listAccountingLedger(request):
                 selected_acc_group      = int(request.POST.get('select_acc_group'))
                 search_name             = request.POST.get('name') 
                 end_date                = request.POST.get('end')
-                start_date              = request.POST.get('start')  
-                if selected_acc_group or search_name or start_date or end_date:    
-                        # we got pk from html post we need to get name to diaplay on popups
-                                
-                    if selected_acc_group and search_name:     
-                        listledger             = listledger.filter(accounting_group_id=selected_acc_group,name__istartswith=search_name).order_by('-id')
+                start_date              = request.POST.get('start') 
+            else:
+                
+                selected_acc_group      = int(request.GET.get('select_acc_group',0))
+                search_name             = request.GET.get('name','') 
+                end_date                = request.GET.get('end','')
+                start_date              = request.GET.get('start','')  
+
+            if selected_acc_group or search_name or start_date or end_date:    
+                    # we got pk from html post we need to get name to diaplay on popups
                             
-                    elif  selected_acc_group:   
-                        listledger             = listledger.filter(accounting_group_id=selected_acc_group).order_by('-id')
+                if selected_acc_group and search_name:     
+                    listledger             = listledger.filter(accounting_group_id=selected_acc_group,name__istartswith=search_name).order_by('-id')
                         
-                    else:      
-                        listledger             = listledger.filter(name__istartswith=search_name).order_by('-id')
+                elif  selected_acc_group:   
+                    listledger             = listledger.filter(accounting_group_id=selected_acc_group).order_by('-id')
+                    
+                else:      
+                    listledger             = listledger.filter(name__istartswith=search_name).order_by('-id')
 
-                    if  start_date and end_date:   
-                        listledger                = listledger.filter(created_at__range=(start_date,end_date))
-                            
-                    elif start_date:   
-                        listledger                = listledger.filter(created_at__gte=start_date)
+                if  start_date and end_date:   
+                    listledger                = listledger.filter(created_at__range=(start_date,end_date))
+                        
+                elif start_date:   
+                    listledger                = listledger.filter(created_at__gte=start_date)
 
-                    elif end_date:
-                        listledger                = listledger.filter(created_at__lte=end_date)
-                                    
+                elif end_date:
+                    listledger                = listledger.filter(created_at__lte=end_date)
+                                
             #Download Section 
             if 'download' in request.POST:
                 
@@ -1829,8 +1864,9 @@ def addNewAccountingLedger(request):
                 name                = request.POST['name']
                 phone               = request.POST.get('phone')
                 email               = request.POST.get('email')
-                location_id         = request.POST['location_id']
-                location_id         = location_data.objects.get(id=location_id)
+                location_id         = request.POST.get('location_id')
+                if location_id:
+                    location_id         = location_data.objects.get(id=location_id)
                 opening_balance     = request.POST.get('opening_balance')
                 entry_type          = request.POST.get('entry_type')
                 bill_by_bill        = request.POST.get('bill_by_bill')
@@ -2770,9 +2806,9 @@ def listCustomer(request):
                 selected_type       = int(request.GET.get('selected_type',0))
                 print(selected_type)
                 print("############")
-                search_name         = request.GET.get('name') 
-                start_date          = request.GET.get('start')
-                end_date            = request.GET.get('end')
+                search_name         = request.GET.get('name','') 
+                start_date          = request.GET.get('start','')
+                end_date            = request.GET.get('end','')
 
 
             if selected_type or search_name or start_date or end_date:    
@@ -2805,7 +2841,7 @@ def listCustomer(request):
             request.session['customer_list']=json.dumps(list(customer_list.values('name','phone','email','customer_code','address','opening_balance','entry_type','bill_by_bill','credit_period','credit_limit','city','state','country','pincode','account_number','branch_name','branch_code')), cls=DjangoJSONEncoder)
             page_number = request.GET.get("page",1)
 
-            paginator = Paginator(customer_list, 3)
+            paginator = Paginator(customer_list, 10)
 
             customer_list = paginator.get_page(page_number)
             write=0
@@ -3250,26 +3286,32 @@ def listSupplier(request):
                 name             = request.POST.get('name') 
                 start_date       = request.POST.get('start') 
                 end_date         = request.POST.get('end')
-                if selected_type or name or start_date or end_date:    
-                                    
-                    if selected_type and name:     
-                        supplier_list             = supplier_list.filter(supplier_type_id=selected_type,name__istartswith=name).order_by('-id')
-                        
-                    elif  selected_type:   
-                        
-                        supplier_list             = supplier_list.filter(supplier_type_id=selected_type).order_by('-id')
-                        
-                    else:      
-                        supplier_list             = supplier_list.filter(name__istartswith=name).order_by('-id')
+            else:
+                selected_type    = int(request.GET.get('selected_type',0))
+                name             = request.GET.get('name','') 
+                start_date       = request.GET.get('start','') 
+                end_date         = request.GET.get('end','')
 
-                    if  start_date and end_date:
-                        supplier_list             = supplier_list.filter(created_at__range=(start_date,end_date))
+            if selected_type or name or start_date or end_date:    
                                 
-                    elif start_date:   
-                        supplier_list             = supplier_list.filter(created_at__gte=start_date)
+                if selected_type and name:     
+                    supplier_list             = supplier_list.filter(supplier_type_id=selected_type,name__istartswith=name).order_by('-id')
+                    
+                elif  selected_type:   
+                    
+                    supplier_list             = supplier_list.filter(supplier_type_id=selected_type).order_by('-id')
+                    
+                else:      
+                    supplier_list             = supplier_list.filter(name__istartswith=name).order_by('-id')
 
-                    elif end_date:
-                        supplier_list             = supplier_list.filter(created_at__lte=end_date)
+                if  start_date and end_date:
+                    supplier_list             = supplier_list.filter(created_at__range=(start_date,end_date))
+                            
+                elif start_date:   
+                    supplier_list             = supplier_list.filter(created_at__gte=start_date)
+
+                elif end_date:
+                    supplier_list             = supplier_list.filter(created_at__lte=end_date)
                                     
             #Download Section 
             if 'download' in request.POST:
@@ -3572,9 +3614,11 @@ def listUnit(request):
             searched_name   =''
             if 'search' in request.POST: 
                 searched_name    = request.POST.get('name')
+            else:
+                searched_name    = request.GET.get('name','')
                 
-                if searched_name:      
-                    get_data             = get_data.filter(unit__istartswith=searched_name).order_by('-id')           
+            if searched_name:      
+                get_data             = get_data.filter(unit__istartswith=searched_name).order_by('-id')           
 
             #Download Section 
             if 'download' in request.POST:
@@ -3699,9 +3743,11 @@ def listSize(request):
             searched_name   =''
             if 'search' in request.POST: 
                 searched_name    = request.POST.get('name')
+            else:
+                searched_name    = request.GET.get('name','')
                 
-                if searched_name:      
-                    get_data             = get_data.filter(size__istartswith=searched_name).order_by('-id')           
+            if searched_name:      
+                get_data             = get_data.filter(size__istartswith=searched_name).order_by('-id')           
 
             #Download Section 
             if 'download' in request.POST:
@@ -3822,8 +3868,10 @@ def listBrand(request):
             searched_name   =''
             if 'search' in request.POST: 
                 searched_name    = request.POST.get('name')   
-                if searched_name:      
-                    get_data             = get_data.filter(name__istartswith=searched_name).order_by('-id')
+            else:
+                searched_name    = request.GET.get('name','')   
+            if searched_name:      
+                get_data             = get_data.filter(name__istartswith=searched_name).order_by('-id')
             #Download Section 
             if 'download' in request.POST:    
                 if json.loads(request.session['get_data']):
@@ -3942,10 +3990,12 @@ def listModelNumber(request):
 
             if 'search' in request.POST: 
                 searched_name    = request.POST.get('name')
+            else:
+                searched_name    = request.GET.get('name','')
                 
-                if searched_name:      
-                    get_data             = get_data.filter(model_number__istartswith=searched_name).order_by('-id')
-                    
+            if searched_name:      
+                get_data             = get_data.filter(model_number__istartswith=searched_name).order_by('-id')
+                
 
             #Download Section 
             if 'download' in request.POST:
@@ -4072,19 +4122,22 @@ def listGodown(request):
             if 'search' in request.POST: 
                 name                        = request.POST.get('name')
                 selected_branch             = int(request.POST.get('selected_branch')) 
+            else:
+                name                        = request.GET.get('name','')
+                selected_branch             = int(request.GET.get('selected_branch',0)) 
                 
                 
-                if selected_branch or name:    
-                                    
-                    if selected_branch and name:     
-                        get_data             = get_data.filter(name__istartswith=name,branch_id=selected_branch).order_by('-id')
-                            
-                    elif  selected_branch:
+            if selected_branch or name:    
+                                
+                if selected_branch and name:     
+                    get_data             = get_data.filter(name__istartswith=name,branch_id=selected_branch).order_by('-id')
                         
-                        get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
-                            
-                    else:      
-                        get_data             = get_data.filter(name__istartswith=name).order_by('-id')
+                elif  selected_branch:
+                    
+                    get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
+                        
+                else:      
+                    get_data             = get_data.filter(name__istartswith=name).order_by('-id')
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -4230,31 +4283,36 @@ def listRack(request):
             if 'search' in request.POST: 
                 selected_branch     = int(request.POST.get('selected_branch'))
                 search_name         = request.POST.get('name') 
-                selected_godown    = int(request.POST.get('selected_godown'))    
-                if selected_branch or selected_godown or search_name:    
-                        # we got pk from html post we need to get name to diaplay on popups
+                selected_godown    = int(request.POST.get('selected_godown'))  
+            else:
+                selected_branch     = int(request.GET.get('selected_branch',0))
+                search_name         = request.GET.get('name','') 
+                selected_godown    = int(request.GET.get('selected_godown',0))  
+                
+            if selected_branch or selected_godown or search_name:    
+                    # we got pk from html post we need to get name to diaplay on popups
+                
+                if selected_branch and search_name and selected_godown:     
+                    get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name,godown_id=selected_godown).order_by('-id')
                     
-                    if selected_branch and search_name and selected_godown:     
-                        get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name,godown_id=selected_godown).order_by('-id')
+                elif  selected_branch and search_name:   
+                    get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_branch and selected_godown:   
+                    get_data             = get_data.filter(branch_id=selected_branch,godown_id=selected_godown).order_by('-id')
                         
-                    elif  selected_branch and search_name:   
-                        get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_branch and selected_godown:   
-                        get_data             = get_data.filter(branch_id=selected_branch,godown_id=selected_godown).order_by('-id')
-                            
-                    elif  search_name and selected_godown:   
-                        get_data             = get_data.filter(name__istartswith=search_name,godown_id=selected_godown).order_by('-id')
-                        
-                    elif  search_name:   
-                        get_data             = get_data.filter(name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_godown:   
-                        get_data             = get_data.filter(godown_id=selected_godown).order_by('-id')     
+                elif  search_name and selected_godown:   
+                    get_data             = get_data.filter(name__istartswith=search_name,godown_id=selected_godown).order_by('-id')
+                    
+                elif  search_name:   
+                    get_data             = get_data.filter(name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_godown:   
+                    get_data             = get_data.filter(godown_id=selected_godown).order_by('-id')     
 
-                    else:   
-                        get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
-                                
+                else:   
+                    get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
+                            
             #Download Section 
             if 'download' in request.POST:
                 
@@ -4459,18 +4517,21 @@ def listProductGroup(request):
             if 'search' in request.POST: 
                 selected_product_grp        = int(request.POST.get('selected_product_grp'))
                 search_name                 = request.POST.get('name') 
+            else:
+                selected_product_grp        = int(request.GET.get('selected_product_grp',0))
+                search_name                 = request.GET.get('name','') 
                     
-                if selected_product_grp or search_name:    
-                        # we got pk from html post we need to get name to diaplay on popups
+            if selected_product_grp or search_name:    
+                    # we got pk from html post we need to get name to diaplay on popups
+                
+                if selected_product_grp and search_name:     
+                    get_groups             = get_groups.filter(name__istartswith=search_name,under_group=selected_product_grp).order_by('-id')
                     
-                    if selected_product_grp and search_name:     
-                        get_groups             = get_groups.filter(name__istartswith=search_name,under_group=selected_product_grp).order_by('-id')
-                        
-                    elif  search_name:   
-                        get_groups             = get_groups.filter(name__istartswith=search_name).order_by('-id')   
+                elif  search_name:   
+                    get_groups             = get_groups.filter(name__istartswith=search_name).order_by('-id')   
 
-                    else:      
-                        get_groups             = get_groups.filter(under_group=selected_product_grp).order_by('-id')
+                else:      
+                    get_groups             = get_groups.filter(under_group=selected_product_grp).order_by('-id')
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -4609,17 +4670,20 @@ def listPricingLevel(request):
             if 'search' in request.POST: 
                 name                        = request.POST.get('name')
                 selected_branch             = int(request.POST.get('selected_branch')) 
+            else:
+                name                        = request.GET.get('name','')
+                selected_branch             = int(request.GET.get('selected_branch',0)) 
                 
-                if selected_branch or name:    
-                                    
-                    if selected_branch and name:     
-                        get_data             = get_data.filter(name__istartswith=name,branch_id=selected_branch).order_by('-id')
-                            
-                    elif  selected_branch:   
-                        get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
-                            
-                    else:      
-                        get_data             = get_data.filter(name__istartswith=name).order_by('-id')
+            if selected_branch or name:    
+                                
+                if selected_branch and name:     
+                    get_data             = get_data.filter(name__istartswith=name,branch_id=selected_branch).order_by('-id')
+                        
+                elif  selected_branch:   
+                    get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
+                        
+                else:      
+                    get_data             = get_data.filter(name__istartswith=name).order_by('-id')
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -4770,24 +4834,30 @@ def listProducts(request):
                 start_date                  =request.POST.get('start')
                 end_date                    =request.POST.get('end')
                 name                        = request.POST.get('name')
-                selected_group              = int(request.POST.get('selected_group')) 
+                selected_group              = int(request.POST.get('selected_group'))
+            else:
+                start_date                  =request.GET.get('start','')
+                end_date                    =request.GET.get('end','')
+                name                        = request.GET.get('name','')
+                selected_group              = int(request.GET.get('selected_group',0))
+
                 
-                if selected_group or name or start_date or end_date:                         
-                    if selected_group:     
-                        get_data             = get_data.filter(product_group_id=selected_group)
-                    
-                    if name:
-                        get_data             = get_data.filter(name__istartswith=name)
+            if selected_group or name or start_date or end_date:                         
+                if selected_group:     
+                    get_data             = get_data.filter(product_group_id=selected_group)
+                
+                if name:
+                    get_data             = get_data.filter(name__istartswith=name)
 
-                    if  start_date and end_date:   
+                if  start_date and end_date:   
 
-                        get_data             = get_data.filter(created_at__range=(start_date,end_date))
-                            
-                    elif start_date:    
-                        get_data             = get_data.filter(created_at__gte=start_date)
+                    get_data             = get_data.filter(created_at__range=(start_date,end_date))
+                        
+                elif start_date:    
+                    get_data             = get_data.filter(created_at__gte=start_date)
 
-                    elif end_date:
-                        get_data             = get_data.filter(created_at__lte=end_date)
+                elif end_date:
+                    get_data             = get_data.filter(created_at__lte=end_date)
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -5125,33 +5195,38 @@ def listVoucherType(request):
             if 'search' in request.POST: 
                 selected_branch     = int(request.POST.get('selected_branch'))
                 search_name         = request.POST.get('name') 
-                selected_voucher    = int(request.POST.get('selected_type'))     
-                if selected_branch or selected_voucher or search_name:    
-                        # we got pk from html post we need to get name to diaplay on popups
+                selected_voucher    = int(request.POST.get('selected_type'))   
+            else:
+                selected_branch     = int(request.POST.get('selected_branch',0))
+                search_name         = request.POST.get('name','') 
+                selected_voucher    = int(request.POST.get('selected_type',0))   
+
+            if selected_branch or selected_voucher or search_name:    
+                    # we got pk from html post we need to get name to diaplay on popups
+                
+
+                if selected_branch and search_name and selected_voucher:     
+                    get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name,type_of_voucher=selected_voucher).order_by('-id')
+                    
+                elif  selected_branch and search_name:   
+                    get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_branch and selected_voucher:   
+                    get_data             = get_data.filter(branch_id=selected_branch,type_of_voucher=selected_voucher).order_by('-id')
+                        
+                elif  search_name and selected_voucher:   
+                    get_data             = get_data.filter(name__istartswith=search_name,type_of_voucher=selected_voucher).order_by('-id')
                     
 
-                    if selected_branch and search_name and selected_voucher:     
-                        get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name,type_of_voucher=selected_voucher).order_by('-id')
-                        
-                    elif  selected_branch and search_name:   
-                        get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_branch and selected_voucher:   
-                        get_data             = get_data.filter(branch_id=selected_branch,type_of_voucher=selected_voucher).order_by('-id')
-                            
-                    elif  search_name and selected_voucher:   
-                        get_data             = get_data.filter(name__istartswith=search_name,type_of_voucher=selected_voucher).order_by('-id')
-                        
+                elif  search_name:   
+                    get_data             = get_data.filter(name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_voucher:   
+                    get_data             = get_data.filter(type_of_voucher=selected_voucher).order_by('-id')
+                    
 
-                    elif  search_name:   
-                        get_data             = get_data.filter(name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_voucher:   
-                        get_data             = get_data.filter(type_of_voucher=selected_voucher).order_by('-id')
-                        
-
-                    else:      
-                        get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
+                else:      
+                    get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -5324,34 +5399,39 @@ def listVoucherSeries(request):
                 selected_branch     = int(request.POST.get('selected_branch'))
                 search_name         = request.POST.get('name') 
                 selected_voucher    = int(request.POST.get('selected_type')) 
-                print(search_name,'helo',search_name)    
-                if selected_branch or selected_voucher or search_name:    
-                        # we got pk from html post we need to get name to diaplay on popups
+                print(search_name,'helo',search_name) 
+            else:
+                selected_branch     = int(request.GET.get('selected_branch',0))
+                search_name         = request.GET.get('name','') 
+                selected_voucher    = int(request.GET.get('selected_type',0)) 
+                
+            if selected_branch or selected_voucher or search_name:    
+                    # we got pk from html post we need to get name to diaplay on popups
+                
+
+                if selected_branch and search_name and selected_voucher:     
+                    get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name,voucher_type_id=selected_voucher).order_by('-id')
+                    
+                elif  selected_branch and search_name:   
+                    get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_branch and selected_voucher:   
+                    get_data             = get_data.filter(branch_id=selected_branch,voucher_type_id=selected_voucher).order_by('-id')
+                        
+                elif  search_name and selected_voucher:   
+                    get_data             = get_data.filter(name__istartswith=search_name,voucher_type_id=selected_voucher).order_by('-id')
                     
 
-                    if selected_branch and search_name and selected_voucher:     
-                        get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name,voucher_type_id=selected_voucher).order_by('-id')
-                        
-                    elif  selected_branch and search_name:   
-                        get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_branch and selected_voucher:   
-                        get_data             = get_data.filter(branch_id=selected_branch,voucher_type_id=selected_voucher).order_by('-id')
-                            
-                    elif  search_name and selected_voucher:   
-                        get_data             = get_data.filter(name__istartswith=search_name,voucher_type_id=selected_voucher).order_by('-id')
-                        
+                elif  search_name:   
+                    
+                    get_data             = get_data.filter(name__istartswith=search_name).order_by('-id')
+                    
+                elif  selected_voucher:   
+                    get_data             = get_data.filter(voucher_type_id=selected_voucher).order_by('-id')
+                    
 
-                    elif  search_name:   
-                        
-                        get_data             = get_data.filter(name__istartswith=search_name).order_by('-id')
-                        
-                    elif  selected_voucher:   
-                        get_data             = get_data.filter(voucher_type_id=selected_voucher).order_by('-id')
-                        
-
-                    else:      
-                        get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
+                else:      
+                    get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -5528,11 +5608,14 @@ def listTaxData(request):
                 name                        = request.POST.get('name')
                 selected_status             = int(request.POST.get('selected_status'))
                 print(selected_status) 
+            else:
+                name                        = request.GET.get('name','')
+                selected_status             = int(request.GET.get('selected_status',1))
                 
-                if  name:   
-                    tax_list                =  tax_data.objects.filter(tax__istartswith=name,active=selected_status).order_by('-id')                
-                else:  
-                    tax_list                =  tax_data.objects.filter(active=selected_status).order_by('-id')
+            if  name:   
+                tax_list                =  tax_data.objects.filter(tax__istartswith=name,active=selected_status).order_by('-id')                
+            else:  
+                tax_list                =  tax_data.objects.filter(active=selected_status).order_by('-id')
                         
                                     
             #Download Section 
@@ -5813,18 +5896,21 @@ def listWareHouse(request):
             if 'search' in request.POST: 
                 name                        = request.POST.get('name')
                 selected_branch             = int(request.POST.get('selected_branch')) 
-                
-                if selected_branch or name:    
-                                    
-                    if selected_branch and name:     
-                        get_data             = get_data.filter(name__istartswith=name,branch_id=selected_branch).order_by('-id')
-                            
-                    elif  selected_branch:
+            else:
+                name                        = request.GET.get('name','')
+                selected_branch             = int(request.GET.get('selected_branch',0)) 
+           
+            if selected_branch or name:    
+                                
+                if selected_branch and name:     
+                    get_data             = get_data.filter(name__istartswith=name,branch_id=selected_branch).order_by('-id')
                         
-                        get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
-                            
-                    else:      
-                        get_data             = get_data.filter(name__istartswith=name).order_by('-id')
+                elif  selected_branch:
+                    
+                    get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
+                        
+                else:      
+                    get_data             = get_data.filter(name__istartswith=name).order_by('-id')
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -5979,17 +6065,21 @@ def listBatch(request):
             if 'search' in request.POST: 
                 name                        = request.POST.get('name')
                 selected_product             = int(request.POST.get('selected_product')) 
+            else:
+                name                        = request.GET.get('name','')
+                selected_product            = int(request.GET.get('selected_product',0))
+
                 
-                if selected_product or name:    
-                                    
-                    if selected_product and name:     
-                        get_data             = get_data.filter(name__istartswith=name,branch_id=selected_product).order_by('-id')
-                            
-                    elif  selected_product:   
-                        get_data             = get_data.filter(product_id=selected_product).order_by('-id')
-                            
-                    else:      
-                        get_data             = get_data.filter(name__istartswith=name).order_by('-id')
+            if selected_product or name:    
+                                
+                if selected_product and name:     
+                    get_data             = get_data.filter(name__istartswith=name,branch_id=selected_product).order_by('-id')
+                        
+                elif  selected_product:   
+                    get_data             = get_data.filter(product_id=selected_product).order_by('-id')
+                        
+                else:      
+                    get_data             = get_data.filter(name__istartswith=name).order_by('-id')
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -11262,9 +11352,11 @@ def listGoldenRules(request):
         searched_name   =''
         if 'search' in request.POST: 
             selected_voucher    = int(request.POST.get('selected_voucher'))
-             
-            if selected_voucher:      
-                get_data             = get_data.filter(voucher_type_id=selected_voucher).order_by('-id')           
+        else:
+            selected_voucher    = int(request.GET.get('selected_voucher',0))
+            
+        if selected_voucher:      
+            get_data             = get_data.filter(voucher_type_id=selected_voucher).order_by('-id')           
 
         #Download Section 
         if 'download' in request.POST:
@@ -12627,6 +12719,7 @@ def addVoucherTransactionUserPortal(request):
         due_date                = data.get('due_date','')
         due_days                = data.get('due_days','')
         description             = data.get('description')
+        entry_description       = data.get('entry_description')
         total_amount            = data.get('total_amount','')
         entry_type              = data.get('entry_type')
         created_by              = user_data.objects.get(id=user_id.id)
@@ -12861,7 +12954,8 @@ def addVoucherTransactionUserPortal(request):
                                 latest                  = 1,
                                 status                  = status,
                                 date                    = date,
-                                pricing_lvl             = pricing_lvl           
+                                pricing_lvl             = pricing_lvl,
+                                entry_description       = entry_description,     
 
                             )
 
@@ -12875,6 +12969,7 @@ def addVoucherTransactionUserPortal(request):
                 c_cheque_number     = credit_ledger['cheque_number']
                 c_cheque_date       = credit_ledger['cheque_date']
                 c_description       = credit_ledger['description']
+                index_number        = credit_ledger.get('index_number',0)
                 
 
                 c_credit_ledger      = None if not c_credit_ledger else accounting_ledger_data.objects.get(id=c_credit_ledger)
@@ -12943,6 +13038,7 @@ def addVoucherTransactionUserPortal(request):
                                         pricing_lvl             = pricing_lvl,
                                         latest                  = 1,
                                         status                  = status,
+                                        index_number            = index_number
                                     )
                 insert_debit_ledger_data.save()
 
@@ -12954,6 +13050,7 @@ def addVoucherTransactionUserPortal(request):
                 d_cheque_number     = debit_ledger['cheque_number']
                 d_cheque_date       = debit_ledger['cheque_date']
                 d_description       = debit_ledger['description']
+                index_number        = debit_ledger.get('index_number',0)
                 
 
 
@@ -13015,6 +13112,7 @@ def addVoucherTransactionUserPortal(request):
                                         pricing_lvl             = pricing_lvl,
                                         latest                  = 1,
                                         status                  = status,
+                                        index_number            = index_number
                                         
                                     )
                 insert_credit_ledger_data.save()
@@ -13394,12 +13492,13 @@ def getVoucherTransactionUserPortal(request):
             child_transaction.append({
                     'id'                : child.id,
                     'entry_type'        : child.entry_type,
-                    'credit_ledger_id'  : child.credit_ledger_id.id,
-                    'debit_ledger_id'   : child.debit_ledger_id.id,
+                    'credit_ledger_id'  : None if not child.credit_ledger_id else child.credit_ledger_id.id,
+                    'debit_ledger_id'   : None if not child.debit_ledger_id else child.debit_ledger_id.id,
                     'total_amount'      : child.total_amount,
                     'cheque_number'     : child.cheque_number,
                     'cheque_date'       : child.cheque_date,
-                    'description'       : child.description
+                    'description'       : child.description,
+                    'index_number'      : child.index_number
                 })
 
 
@@ -13623,7 +13722,8 @@ def getVoucherTransactionUserPortal(request):
                                         'all_additional_charges'    : all_additional_charges,
                                         'voucher_number'            : get_invoice_data.voucher_number_appended,
                                         'pricing_lvl'               : None if not get_invoice_data.pricing_lvl else get_invoice_data.pricing_lvl.id,
-                                        'additional_subtotal'       : get_invoice_data.additional_subtotal
+                                        'additional_subtotal'       : get_invoice_data.additional_subtotal,
+                                        'entry_description'         : get_invoice_data.entry_description
 
                                     }
 
@@ -13658,10 +13758,10 @@ def updateVoucherTransactionUserPortal(request):
         print("----------------")
         invoice_id              = data.get('id')
         invoice_id              = invoice_data.objects.get(id=invoice_id)
-        if invoice_id.parent_id:
-            parent_id           = invoice_id.parent_id
+        if invoice_id.invoice_id:
+            primary_inv           = invoice_id.invoice_id
         else:
-            parent_id           = invoice_id
+            primary_inv           = invoice_id
         user_id                 = user_data.objects.get(id=user_id)
         entity_id               = data.get('entity_id')
         entity_id               = entity_data.objects.get(id=entity_id)
@@ -13681,6 +13781,7 @@ def updateVoucherTransactionUserPortal(request):
         due_date                = data.get('due_date')
         due_days                = data.get('due_days')
         description             = data.get('description')
+        entry_description       = data.get('entry_description')
         total_amount            = data.get('total_amount')
         entry_type              = data.get('entry_type')
         created_by              = user_data.objects.get(id=user_id.id)
@@ -13833,13 +13934,26 @@ def updateVoucherTransactionUserPortal(request):
 
         update_invoice      = invoice_data.objects.filter(Q(pk=invoice_id.id) | Q(invoice_id=invoice_id.id)).update(latest=False,updated_at=now)
         
-        print("######")
+        # child invoice update
+        parent_invoices = invoice_data.objects.filter(Q(pk=invoice_id.id) | Q(invoice_id=invoice_id.id))
+        for parent in parent_invoices:
+            print(parent)
+            print(parent.pk)
+            childs = invoice_data.objects.filter(parent_id=parent.pk)
+            print(childs)
+            childs = invoice_data.objects.filter(parent_id=parent.pk).update(latest=False,updated_at=now)
+            if parent.invoice_id:
+                all_history = invoice_data.objects.filter(Q(invoice_id=parent.invoice_id) | Q(parent_id=parent.invoice_id)).update(latest=False,updated_at=now)
+                break
+
+        
 
         get_order_product   = order_product_data.objects.filter(invoice_id=invoice_id.id).update(latest=False,updated_at=now)
-        print("$$$$$$$$")
+
+        
 
         insert_invoice_data = invoice_data(
-                                invoice_id              = invoice_id,
+                                invoice_id              = primary_inv,
                                 user_id                 = user_id,
                                 entity_id               = entity_id,
                                 branch_id               = branch_id,
@@ -13909,7 +14023,8 @@ def updateVoucherTransactionUserPortal(request):
                                 latest                  = 1,
                                 status                  = status,
                                 date                    = date,
-                                pricing_lvl             =pricing_lvl
+                                pricing_lvl             =pricing_lvl,
+                                entry_description       = entry_description
                             )
         insert_invoice_data.save()
 
@@ -13921,6 +14036,7 @@ def updateVoucherTransactionUserPortal(request):
                 c_cheque_number     = debit_ledger['cheque_number']
                 c_cheque_date       = debit_ledger['cheque_date']
                 c_description       = debit_ledger['description']
+                index_number        = debit_ledger.get('index_number',0)
 
                 c_debit_ledger_id   = None if not c_debit_ledger_id else accounting_ledger_data.objects.get(id=c_debit_ledger_id)
 
@@ -13942,7 +14058,7 @@ def updateVoucherTransactionUserPortal(request):
                                         created_by              = created_by,
                                         debit_ledger_id         = c_debit_ledger_id,
                                         credit_ledger_id        = credit_ledger_id,
-                                        invoice_id              = invoice_id,
+                                        invoice_id              = primary_inv,
                                         order_id                = order_id,
                                         cgst                    = cgst,
                                         sgst                    = sgst,
@@ -14004,6 +14120,7 @@ def updateVoucherTransactionUserPortal(request):
                 d_cheque_number     = credit_ledger['cheque_number']
                 d_cheque_date       = credit_ledger['cheque_date']
                 d_description       = credit_ledger['description']
+                index_number        = credit_ledger.get('index_number',0)
 
 
                 d_credit_ledger     = None if not d_credit_ledger else accounting_ledger_data.objects.get(id=d_credit_ledger)
@@ -14016,7 +14133,7 @@ def updateVoucherTransactionUserPortal(request):
                                         date                    = date,
                                         due_date                = due_date,
                                         exchange_rate           = exchange_rate,
-                                        invoice_id              = invoice_id,
+                                        invoice_id              = primary_inv,
                                         order_id                = order_id,
                                         against                 = against,
                                         due_days                = due_days,
@@ -14065,6 +14182,7 @@ def updateVoucherTransactionUserPortal(request):
                                         pricing_lvl             = pricing_lvl,
                                         latest                  = 1,
                                         status                  = status,
+                                        index_number            = index_number
                                     )
                 insert_credit_ledger_data.save()
 
@@ -20450,7 +20568,7 @@ def report_lowstock_summary(request):
             else:
                 minimum = int(product.minimum_stock)
             if balance_quantity<=minimum:
-                data_to_display_child.extend([product.product_code,product.name,product.product_group_id.name,"No" if not product.unit_id  else product.unit_id.unit,product.minimum_stock,balance_quantity])
+                data_to_display_child.extend([product.product_code,product.name,'Nil' if not product.product_group_id else product.product_group_id.name,"Nil" if not product.unit_id  else product.unit_id.unit,product.minimum_stock,balance_quantity])
                 data_to_display.extend([data_to_display_child])
 
         request.session['data_to_display'] = data_to_display
@@ -20465,7 +20583,6 @@ def report_lowstock_summary(request):
         return render(request,'users/pages/report_lowstock_summary.html',{'headings':headings,'get_data':data_to_display,'products_filter':products_filter,'search_product':search_product,'branch_filter':branch_filter,'search_branch':search_branch})
     else:
         return redirect('user-login')
-
 
 
 
@@ -20632,6 +20749,38 @@ def report_balance_sheet(request):
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_profit_andloss(request):
     if request.session.has_key('userId'):
+        user_id         = request.session.get('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
+
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity     = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
+            
+        
+        branch_filter       = list_branch.values('pk','name')  
+        branch_pks          = list(list_branch.values_list('pk', flat=True))
+        
+        if len(branch_pks)==1:
+            get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True))
+            print(get_acc_group_income)
+            
+
+            
+
        
 
         return render(request,'users/pages/report_profit_andloss.html',{'get_data':'just'})
@@ -20686,7 +20835,7 @@ def report_account_ledger(request):
         
 
         if 'download' in request.POST:
-            if request.session['report_name']:
+            if request.session.get('report_name'):
                 responce        = downloadexcel(request.session['report_name'],request.session['headings'],request.session['data_to_display'])
                 return responce
         
@@ -21180,48 +21329,48 @@ def downloadexcel(report_name,labels,row_get_data):
         wb.save(response)
         return response
 
-# import pdfkit
-# def downloadpdf(report_name,labels,data_to_pass):
-#     html_content =  f"""
-#                     <!DOCTYPE html>
-#                     <html>
-#                     <head>
-#                         <title>HTML to PDF</title>
-#                     </head>
-#                     <body>
-#                         <h1>{report_name}!</h1>
-#                         <table border='1'><tr>
-#                         """
+import pdfkit
+def downloadpdf(report_name,labels,data_to_pass):
+    html_content =  f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>HTML to PDF</title>
+                    </head>
+                    <body>
+                        <h1>{report_name}!</h1>
+                        <table border='1'><tr>
+                        """
 
-#                     # Iterating over the list to include each item in HTML content
-#     for item in labels:
-#         html_content += f"<td>{item}</td>"
+                    # Iterating over the list to include each item in HTML content
+    for item in labels:
+        html_content += f"<td>{item}</td>"
 
-#     html_content += """</tr>"""
+    html_content += """</tr>"""
     
 
 
-#     for row in data_to_pass:
-#         html_content += f"<tr>"
-#         for column in row:
-#             html_content += f"<td>{column}</td>"
-#         html_content += f"</tr>"
-#     # Closing HTML tags
-#     html_content += """
-#     </table>
-#         </body>
-#         </html>
-#         """
+    for row in data_to_pass:
+        html_content += f"<tr>"
+        for column in row:
+            html_content += f"<td>{column}</td>"
+        html_content += f"</tr>"
+    # Closing HTML tags
+    html_content += """
+    </table>
+        </body>
+        </html>
+        """
     
-#     path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 
-#     # Generate PDF from HTML content
-#     pdf = pdfkit.from_string(html_content, False, configuration=pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf))
+    # Generate PDF from HTML content
+    pdf = pdfkit.from_string(html_content, False, configuration=pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf))
 
-#     # Create HTTP response with PDF content
-#     response = HttpResponse(pdf, content_type='application/pdf')
-#     response['Content-Disposition'] = 'attachment; filename=output.pdf'  # Force download
-#     return response
+    # Create HTTP response with PDF content
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=output.pdf'  # Force download
+    return response
 
 
 def view_custom_report(request):

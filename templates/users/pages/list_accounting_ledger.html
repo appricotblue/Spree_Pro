@@ -159,10 +159,10 @@
 
                         {% if listledger.has_previous %}
                             <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
+                                    <a class="page-link" href="?page=1&select_acc_group={{selected_acc_group}}&name={{search_name}}&end={{end_date}}&start={{start_date}}">&laquo; first</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ listledger.previous_page_number }}">previous</a>
+                                <a class="page-link" href="?page={{ listledger.previous_page_number }}&select_acc_group={{selected_acc_group}}&name={{search_name}}&end={{end_date}}&start={{start_date}}">previous</a>
                             </li>
                         {% endif %}
                 
@@ -170,10 +170,10 @@
                     
                     {% if listledger.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ listledger.next_page_number }}">next</a>
+                            <a class="page-link" href="?page={{ listledger.next_page_number }}&select_acc_group={{selected_acc_group}}&name={{search_name}}&end={{end_date}}&start={{start_date}}">next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ listledger.paginator.num_pages }}">last &raquo;</a>
+                            <a class="page-link" href="?page={{ listledger.paginator.num_pages }}&select_acc_group={{selected_acc_group}}&name={{search_name}}&end={{end_date}}&start={{start_date}}">last &raquo;</a>
                         </li>
                     {% endif %}
                    

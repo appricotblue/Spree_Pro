@@ -7,7 +7,7 @@
 {% include "users/layout/filter.html" %}
     <form method="post" id="myForm">
         {% csrf_token %}
-
+ 
             <div class="row">
                 <div class="col-md-2 col-6">
                     <div class="form-group">
@@ -161,10 +161,10 @@
 
                         {% if accounts_list.has_previous %}
                             <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
+                                    <a class="page-link" href="?page=1&select_branch={{selected_branch}}&name={{search_name}}&select_group={{selected_group}}">&laquo; first</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ accounts_list.previous_page_number }}">previous</a>
+                                <a class="page-link" href="?page={{ accounts_list.previous_page_number }}&select_branch={{selected_branch}}&name={{search_name}}&select_group={{selected_group}}">previous</a>
                             </li>
                         {% endif %}
                 
@@ -172,10 +172,10 @@
                     
                     {% if accounts_list.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ accounts_list.next_page_number }}">next</a>
+                            <a class="page-link" href="?page={{ accounts_list.next_page_number }}&select_branch={{selected_branch}}&name={{search_name}}&select_group={{selected_group}}">next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ accounts_list.paginator.num_pages }}">last &raquo;</a>
+                            <a class="page-link" href="?page={{ accounts_list.paginator.num_pages }}&select_branch={{selected_branch}}&name={{search_name}}&select_group={{selected_group}}">last &raquo;</a>
                         </li>
                     {% endif %}
                    

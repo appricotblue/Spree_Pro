@@ -254,8 +254,8 @@
                             <div class="col-sm-9">
                                 <select class="js-example-basic-single w-100" name="entry_type" required>
                                     <option value="" disabled selected>Entry Type</option>
-                                    <option value="Dr" {% if get_data.entry_type == 'Dr' %} selected {% endif %}>Dr</option>
-                                    <option value="Cr" {% if get_data.entry_type == 'Cr' %} selected {% endif %}>Cr</option>
+                                    <option value="Dr">Dr</option>
+                                    <option value="Cr">Cr</option>
                                 </select>
                             </div>
                         </div>
@@ -453,11 +453,11 @@
                             <div class="col-sm-9">
                                 <select id="states" name="states" class="js-example-basic-single w-100">
                                     {% for state in state_list %}
-                                        {% if customer_get_data %}
-                                            <option value="{{state.id}}" {% if state.id|slugify == customer_get_data.state_code|slugify %} selected {% endif %}>{{state.name}}</option>
-                                        {% elif supplier_get_data %}
-                                            <option value="{{state.id}}" {% if state.id|slugify == supplier_get_data.state_code|slugify %} selected {% endif %}>{{state.name}}</option>
-                                        {% endif %}
+                                        
+                                            <option value="{{state.id}}" >{{state.name}}</option>
+                                        
+                                            <option value="{{state.id}}" >{{state.name}}</option>
+                                        
                                     {% endfor%}
                                 </select>
                             </div>

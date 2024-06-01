@@ -122,10 +122,10 @@
 
                         {% if get_data.has_previous %}
                             <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
+                                    <a class="page-link" href="?page=1&name={{searched_name}}">&laquo; first</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ get_data.previous_page_number }}">previous</a>
+                                <a class="page-link" href="?page={{ get_data.previous_page_number }}&name={{searched_name}}">previous</a>
                             </li>
                         {% endif %}
                 
@@ -133,10 +133,10 @@
                     
                     {% if get_data.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.next_page_number }}">next</a>
+                            <a class="page-link" href="?page={{ get_data.next_page_number }}&name={{searched_name}}">next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.paginator.num_pages }}">last &raquo;</a>
+                            <a class="page-link" href="?page={{ get_data.paginator.num_pages }}&name={{searched_name}}">last &raquo;</a>
                         </li>
                     {% endif %}
                    

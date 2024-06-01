@@ -38,7 +38,7 @@
                     <div class="form-group">
                         <label for="exampleInputName1">To Date</label>
                         <div id="map-canvas"></div>
-                        <input type="datetime-local" value="{{end_date}}" class="form-control">
+                        <input type="datetime-local" value="{{end_date}}" name="end" class="form-control">
                     </div>
                 </div>
                 
@@ -163,10 +163,10 @@
 
                         {% if get_data.has_previous %}
                             <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
+                                    <a class="page-link" href="?page=1&start={{start_date}}&end={{end_date}}&name={{name}}&selected_group={{selected_group}}">&laquo; first</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ get_data.previous_page_number }}">previous</a>
+                                <a class="page-link" href="?page={{ get_data.previous_page_number }}&start={{start_date}}&end={{end_date}}&name={{name}}&selected_group={{selected_group}}">previous</a>
                             </li>
                         {% endif %}
                 
@@ -174,10 +174,10 @@
                     
                     {% if get_data.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.next_page_number }}">next</a>
+                            <a class="page-link" href="?page={{ get_data.next_page_number }}&start={{start_date}}&end={{end_date}}&name={{name}}&selected_group={{selected_group}}">next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.paginator.num_pages }}">last &raquo;</a>
+                            <a class="page-link" href="?page={{ get_data.paginator.num_pages }}&start={{start_date}}&end={{end_date}}&name={{name}}&selected_group={{selected_group}}">last &raquo;</a>
                         </li>
                     {% endif %}
                    
