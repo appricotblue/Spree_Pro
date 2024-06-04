@@ -12698,56 +12698,58 @@ def get_latest_voucher_series_number(request):
 
 @api_view(['POST'])
 def getUserUserPortal(request):
-    if request.session.has_key('userId'):
-        data            = request.data
-        user_id         = data.get('user_id')
-        app_token       = data.get('app_token')
-        get_token       = app_auth_token_tb.objects.first()
+   
+    data            = request.data
+    user_id         = data.get('user_id')
+    app_token       = data.get('app_token')
+    get_token       = app_auth_token_tb.objects.first()
 
 
-        # if request.session.has_key('userId') and user_id and app_token == get_token.token:
-        if user_id and app_token == get_token.token:
-            get_user            = user_data.objects.get(id=user_id)
-            list_entity         = entity_data.objects.all()
+    # if request.session.has_key('userId') and user_id and app_token == get_token.token:
+    if user_id and app_token == get_token.token:
+        get_user            = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        
+        all_entities        = []
+        user_entity         = get_user.entity_id
+        
+
+        if user_entity:
+            user_entities   = get_user.entity_id.split(',')
             
-            all_entities        = []
-            user_entity         = get_user.entity_id
+            list_entity     = list_entity.filter(pk__in=user_entities)
+        
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+            user_branch         = get_user.branch_id
             
-
-            if user_entity:
-                user_entities   = get_user.entity_id.split(',')
+            if user_branch:
+                user_branches   = get_user.branch_id.split(',')
                 
-                list_entity     = list_entity.filter(pk__in=user_entities)
-            
-                enitity_pks     = list(list_entity.values_list('pk',flat=True))
-                list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
-            
-                user_branch         = get_user.branch_id
+                list_branch     = list_branch.filter(pk__in=user_branches)
+        user_branches = list(list_branch.values('pk','name'))
+        user_entities   = list(list_entity.values('pk','name'))
                 
-                if user_branch:
-                    user_branches   = get_user.branch_id.split(',')
-                    
-                    list_branch     = list_branch.filter(pk__in=user_branches)
-            user_branches = list(list_branch.values('pk','name'))
-            user_entities   = list(list_entity.values('pk','name'))
-                    
-            response ={
-                'name':get_user.name,
-                'role':None if not get_user.user_role_id else get_user.user_role_id.name,
-                'role_id':None if not get_user.user_role_id else get_user.user_role_id.id,
-                'entities':user_entities,
-                'branches':user_branches,
-                'default_entity':None if not get_user.default_entity_id else get_user.default_entity_id.id,
-                'profile_image':request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None
-            }
-                
+        response ={
+            'name':get_user.name,
+            'role':None if not get_user.user_role_id else get_user.user_role_id.role,
+            'role_id':None if not get_user.user_role_id else get_user.user_role_id.id,
+            'email':get_user.email,
+            'entities':user_entities,
+            'branches':user_branches,
+            'default_entity':None if not get_user.default_entity_id else get_user.default_entity_id.id,
+            'profile_image':request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None
+        }
+            
 
-            
-        else:
-            response    =   {
-                                "success"   : False,
-                                "message"   : "Invalid Token Or User",
+        
+    else:
+        response    =   {
+                            "success"   : False,
+                            "message"   : "Invalid Token Or User",
                             }
+        
     return Response(response)
 
 
@@ -12755,48 +12757,46 @@ def getUserUserPortal(request):
 
 @api_view(['POST'])
 def updateUserUserPortal(request):
-    if request.session.has_key('userId'):
-        data            = request.data
-        user_id         = data.get('user_id')
-        app_token       = data.get('app_token')
-        get_token       = app_auth_token_tb.objects.first()
+    data            = request.data
+    user_id         = data.get('user_id')
+    app_token       = data.get('app_token')
+    get_token       = app_auth_token_tb.objects.first()
 
 
-        # if request.session.has_key('userId') and user_id and app_token == get_token.token:
-        if user_id and app_token == get_token.token:
+    # if request.session.has_key('userId') and user_id and app_token == get_token.token:
+    if user_id and app_token == get_token.token:
+        
+        name                = data['name']
+        email               = data.get('email')
+
+        get_user            = user_data.objects.get(id=user_id)
+
+        if 'profile_image' in request.FILES:
+            image_file = request.FILES['profile_image']
+            get_user.profile_image = image_file
+
+        get_user.name   = name
+        if email:
+            get_user.email  = email
+        get_user.save()
+
+        now                 = datetime.now()
+        response ={
+            'Sucess':True,
+            'name':get_user.name,
+            'email':get_user.email,
+            'profile_image': request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None
             
-            name                = data['name']
-            email               = data.get('email')
-
-            get_user            = user_data.objects.get(id=user_id)
-
-            if 'profile_image' in request.FILES:
-                image_file = request.FILES['profile_image']
-                get_user.profile_image = image_file
-
-            get_user.name   = name
-            if email:
-                get_user.email  = email
-            get_user.save()
-
-            now                 = datetime.now()
-            response ={
-                'Sucess':True,
-                'name':get_user.name,
-                'email':get_user.email,
-                'profile_image': request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None
-                
-            }
-                
-
+        }
             
-        else:
-            response    =   {
-                                "success"   : False,
-                                "message"   : "Invalid Token Or User",
-                            }
+
+        
+    else:
+        response    =   {
+                            "success"   : False,
+                            "message"   : "Invalid Token Or User",
+                        }
     return Response(response)
-
 
 
 
@@ -12817,7 +12817,7 @@ def addVoucherTransactionUserPortal(request):
         branch_id               = branch_data.objects.get(id=branch_id)
         entity_id               = branch_id.entity_id
         branch_gst_state_id     = branch_id.state
-        branch_gst_treatment_id = None if not branch_id.gst_treatment else branch_id.gst_treatment.id
+        branch_gst_treatment_id = None if not branch_id.gst_treatment else branch_id.gst_treatment
         # voucher_type_id         = data.get('voucher_type_id','')
         # voucher_type_id         = voucher_type_data.objects.get(id=voucher_type_id)
         voucher_series_id       = data.get('voucher_series_id','')
@@ -13876,7 +13876,7 @@ def updateVoucherTransactionUserPortal(request):
         branch_id               = branch_data.objects.get(id=branch_id)
         entity_id               = branch_id.entity_id
         branch_gst_state_id     = branch_id.state
-        branch_gst_treatment_id = None if not branch_id.gst_treatment else branch_id.gst_treatment.id
+        branch_gst_treatment_id = None if not branch_id.gst_treatment else branch_id.gst_treatment
         # voucher_type_id         = data.get('voucher_type_id','')
         # voucher_type_id         = voucher_type_data.objects.get(id=voucher_type_id)
         voucher_series_id       = data.get('voucher_series_id','')
@@ -13980,7 +13980,7 @@ def updateVoucherTransactionUserPortal(request):
         gstin                   = data.get('gstin','')
         gst_state_id            = data.get('gst_state_id',''),
         gst_treatment_id        = data.get('gst_treatment_id','')
-        gst_treatment_id        = None if not bill_by_bill_id else gst_treatment_data.objects.get(id=gst_treatment_id)
+        gst_treatment_id        = None if not gst_treatment_id else gst_treatment_data.objects.get(id=gst_treatment_id)
 
         get_credit_ledgers      = data.get('credit_ledgers')
         get_debit_ledgers       = data.get('debit_ledgers')
@@ -20887,8 +20887,7 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
 
         elif end_date:
             list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
-
-        
+   
        
         if getledger.opening_balance:
             opening_balance     = float(getledger.opening_balance)
@@ -20896,40 +20895,91 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
             opening_balance     = 0.0
 
         balance     = opening_balance
-        print("balen",balance)
+       
         for row in list_invoice_data:
-            print(row)
             amount  = row.total_amount
             if not amount:
                 amount  = 0
 
-
-            print(amount)
-            print(ledger_id)
-            
-            print(getledger.entry_type)
             row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
             row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
+            
             if row_debit_ledger_id==ledger_id:
-                        
+                
                 if getledger.entry_type=='Dr':
-                    print("drrrrrrrrr")
                     balance = balance+ float(amount)
                 else:
-                    print("crrrrrrrrrrrr")
                     balance = balance - float(amount)      
     
             else:
-                if getledger.entry_type=='Cr':
+                if row_debit_ledger_id and row.is_child:
+                    pass 
+                elif getledger.entry_type=='Cr':
                     balance = balance+ float(amount)
                 else:
                     balance = balance - float(amount)  
-            print(balance)
-            print("hyyyy")
+            
 
    
         return balance
 
+
+
+
+def plgetProduct_balance(product_id,start_date,end_date,batch_id):
+          
+    product_id                       = product_id
+    start_date                       = start_date
+    end_date                         = end_date
+    batch_id                         = batch_id
+    print(":::::::::::::::::::::::::::::::::::::")
+    
+    get_product_transactions        = order_product_data.objects.filter(product_id=product_id,batch_id=batch_id,latest=1,status='Approved')
+
+    if  start_date and end_date:   
+            get_product_transactions            = get_product_transactions.filter(date__range=(start_date,end_date))
+                    
+    elif start_date:   
+        get_product_transactions                = get_product_transactions.filter(date__gt=start_date)
+
+    elif end_date:
+        get_product_transactions                = get_product_transactions.filter(date__lt=end_date)
+
+
+    print(get_product_transactions)
+
+    sum_credit_product_quantity = 0
+    sum_debit_product_quantity  = 0  
+    sum_credit_product_amount   = 0
+    csum_free_quantity          = 0
+    dsum_free_quantity          = 0
+    avg_purchase_price          = 0
+    credit_product              = get_product_transactions.filter(entry_type="Credit")
+    print(credit_product)
+    if credit_product:
+        print("5555555555555555555555555555555555555555555")
+        sum_credit_product_quantity      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
+        csum_free_quantity               = credit_product.aggregate(total_free=Sum('free'))['total_free']
+        sum_credit_product_amount        = credit_product.aggregate(total_credit_amount=Sum('amount'))['total_credit_amount']
+        
+        if sum_credit_product_amount:
+            avg_purchase_price              = float(sum_credit_product_amount)/float(sum_credit_product_quantity)
+        print(sum_credit_product_quantity)
+        print(sum_credit_product_amount)
+        
+    debit_product               = get_product_transactions.filter(entry_type="Debit")
+    if debit_product:
+        sum_debit_product_quantity   = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']  
+        dsum_free_quantity      = debit_product.aggregate(total_free=Sum('free'))['total_free']    
+        
+    print(sum_debit_product_quantity)
+    balance_quantity    = (sum_credit_product_quantity+csum_free_quantity) - (sum_debit_product_quantity+dsum_free_quantity)
+    print("balance_quantity",balance_quantity)
+    current_stock_value = balance_quantity*avg_purchase_price
+
+    purchase_amount     = sum_credit_product_amount
+    print("current stock",current_stock_value)
+    return (current_stock_value,purchase_amount)
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -20966,12 +21016,25 @@ def report_profit_andloss(request):
         search_branch = 0
 
         if 'search' in request.POST:
-            search_branch = request.POST.get('branch_id')
+            search_branch   = request.POST.get('search_branch')
+            from_date       = request.POST.get('from_date') 
+            to_date         = request.POST.get('to_date')
+
         else:
-            search_branch = branch_pks[0]
+            from_date       = ''
+            to_date         = ''
+            search_branch   = branch_pks[0]
+            print(search_branch)
+            financial    = financial_year_data.objects.filter(active=1,branch_id=search_branch).order_by('-id')
+            if financial:
+                
+                from_date  = financial[0].from_date
+                to_date     = financial[0].to_date
+        
+            
 
         if search_branch:
-        
+          
             get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
             
             total_income = 0
@@ -20988,8 +21051,7 @@ def report_profit_andloss(request):
                     
                     parent_account[parent_counter]['amount'] = 0
                     child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
-                    if child_acc:
-                        
+                    if child_acc: 
                         parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
                              
                         child_counter= 0
@@ -21003,7 +21065,7 @@ def report_profit_andloss(request):
                                 ledger_counter            =0 
                                 total_of_child_acc_ledger = 0
                                 for ledger in acc_ledgers:
-                                    balance = AccountLedger_balance(ledger.id,'','')
+                                    balance = AccountLedger_balance(ledger.id,from_date,to_date)
                                         
                                     total_income = float(total_income)+float(balance)
                       
@@ -21019,7 +21081,7 @@ def report_profit_andloss(request):
                     parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
                                 
-        
+            
         # expense
        
             get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True))
@@ -21052,7 +21114,7 @@ def report_profit_andloss(request):
                                 ledger_counter            =0 
                                 total_of_child_acc_ledger = 0
                                 for ledger in acc_ledgers:
-                                    balance = AccountLedger_balance(ledger.id,'','')
+                                    balance = AccountLedger_balance(ledger.id,from_date,to_date)
                                         
                                     total_expense = float(total_expense)+float(balance)
                                     print(balance)
@@ -21068,7 +21130,48 @@ def report_profit_andloss(request):
                     expense_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
         
-        return render(request,'users/pages/report_profit_andloss.html',{'income_accounts':parent_account,'expense_accounts':expense_parent_account,'total_income':total_income,'total_expense':total_expense,'search_branch':search_branch,'branch_filter':branch_filter})
+
+
+
+        income_before_stock = total_income - total_expense
+        # stock value
+
+        product_list    = product_data.objects.filter(branch_id=search_branch)
+        # opening stcok balance
+        
+        opening_stock   = 0
+
+        # stock value = balance(purchase-sell) * avg_purchase
+        for product in product_list:
+            batch_list                          = batch_data.objects.filter(product_id=product.id)
+            if batch_list:
+                for batch in batch_list:
+                    stock_value,purchase_amount         = plgetProduct_balance(product.id,'',from_date,batch.id)
+                    opening_stock                       = float(opening_stock) + float(stock_value)
+                
+
+        # current stock balance  
+        purchase_total      = 0
+        closing_stock        = 0
+        product_list        = [6]
+        for product in product_list: 
+            batch_list                          = batch_data.objects.filter(product_id=product) 
+            if batch_list:
+                for batch in batch_list: 
+                    stock_value,purchase_amount         = plgetProduct_balance(product,from_date,to_date,batch.id)
+                    closing_stock                       = float(closing_stock) + float(stock_value)
+                    purchase_total                      = purchase_total+purchase_amount
+
+
+        print("opening :",opening_stock)
+        print("purchase_total : ",purchase_total)
+        print("closing_stock : ",closing_stock)
+        gross_profit    = opening_stock + purchase_total - closing_stock
+
+        cogs    = opening_stock+purchase_total-closing_stock
+
+        gross_profit    = income_before_stock - cogs
+        return render(request,'users/pages/report_profit_andloss.html',{'income_accounts':parent_account,'expense_accounts':expense_parent_account,'total_income':total_income,'total_expense':total_expense,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'income_before_stock':income_before_stock,'opening_stock':opening_stock,'closing_stock':closing_stock,'cogs':cogs,'gross_profit':gross_profit})
     else:
         return redirect('user-login')
 
@@ -21311,35 +21414,31 @@ def get_AccountLedger_balance(request):
 
         balance     = opening_balance
         for row in list_invoice_data:
-            print(row)
             amount  = row.total_amount
             if not amount:
                 amount  = 0
 
-
-            print(amount)
             row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
             row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
+            
             if row_debit_ledger_id==ledger_id:
-                        
+                
                 if getledger.entry_type=='Dr':
-                    print("drrrrrrrrr")
                     balance = balance+ float(amount)
                 else:
-                    print("crrrrrrrrrrrr")
                     balance = balance - float(amount)      
     
             else:
-                if getledger.entry_type=='Cr':
+                if row_debit_ledger_id and row.is_child:
+                    pass 
+                elif getledger.entry_type=='Cr':
                     balance = balance+ float(amount)
                 else:
                     balance = balance - float(amount)  
+            
 
    
         return JsonResponse({'balance':balance})
-
-
-
 
 
 
