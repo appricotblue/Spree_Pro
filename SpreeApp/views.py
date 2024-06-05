@@ -20932,7 +20932,6 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
     start_date                       = start_date
     end_date                         = end_date
     batch_id                         = batch_id
-    print(":::::::::::::::::::::::::::::::::::::")
     
     get_product_transactions        = order_product_data.objects.filter(product_id=product_id,batch_id=batch_id,latest=1,status='Approved')
 
@@ -20946,7 +20945,6 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
         get_product_transactions                = get_product_transactions.filter(date__lt=end_date)
 
 
-    print(get_product_transactions)
 
     sum_credit_product_quantity = 0
     sum_debit_product_quantity  = 0  
@@ -20955,17 +20953,14 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
     dsum_free_quantity          = 0
     avg_purchase_price          = 0
     credit_product              = get_product_transactions.filter(entry_type="Credit")
-    print(credit_product)
     if credit_product:
-        print("5555555555555555555555555555555555555555555")
         sum_credit_product_quantity      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
         csum_free_quantity               = credit_product.aggregate(total_free=Sum('free'))['total_free']
         sum_credit_product_amount        = credit_product.aggregate(total_credit_amount=Sum('amount'))['total_credit_amount']
         
         if sum_credit_product_amount:
             avg_purchase_price              = float(sum_credit_product_amount)/float(sum_credit_product_quantity)
-        print(sum_credit_product_quantity)
-        print(sum_credit_product_amount)
+       
         
     debit_product               = get_product_transactions.filter(entry_type="Debit")
     if debit_product:
@@ -20974,11 +20969,9 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
         
     print(sum_debit_product_quantity)
     balance_quantity    = (sum_credit_product_quantity+csum_free_quantity) - (sum_debit_product_quantity+dsum_free_quantity)
-    print("balance_quantity",balance_quantity)
     current_stock_value = balance_quantity*avg_purchase_price
 
     purchase_amount     = sum_credit_product_amount
-    print("current stock",current_stock_value)
     return (current_stock_value,purchase_amount)
 
 
@@ -21024,7 +21017,6 @@ def report_profit_andloss(request):
             from_date       = ''
             to_date         = ''
             search_branch   = branch_pks[0]
-            print(search_branch)
             financial    = financial_year_data.objects.filter(active=1,branch_id=search_branch).order_by('-id')
             if financial:
                 
@@ -21171,6 +21163,9 @@ def report_profit_andloss(request):
         cogs    = opening_stock+purchase_total-closing_stock
 
         gross_profit    = income_before_stock - cogs
+        print(parent_account)
+        
+
         return render(request,'users/pages/report_profit_andloss.html',{'income_accounts':parent_account,'expense_accounts':expense_parent_account,'total_income':total_income,'total_expense':total_expense,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'income_before_stock':income_before_stock,'opening_stock':opening_stock,'closing_stock':closing_stock,'cogs':cogs,'gross_profit':gross_profit})
     else:
         return redirect('user-login')
