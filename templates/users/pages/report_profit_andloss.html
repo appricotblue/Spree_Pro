@@ -24,7 +24,7 @@
             <div class="col-md-2 col-6">
                 <div class="form-group">
                     <label for="exampleInputName1">From Date </label>
-                    <input  class="form-control" type="date" name="start" id="from_date" value="{{from_date}}">                               
+                    <input  class="form-control" type="date" name="from_date" id="from_date" value="{{from_date}}">                               
                 </div>
             </div>
             <div class="col-md-2 col-6">
@@ -114,7 +114,7 @@
                             {%endif%}
                         {%endfor%}   
                         <tr>
-                            <th style="text-align: center !important;">Gross Profit</th>
+                            <th style="text-align: center !important;">Total Income</th>
                             <th >{{total_income}}</th>
                         </tr>   
                         <tr>
@@ -135,8 +135,10 @@
                                     </tr>
                                     {% if child.accledgers %}
                                         {% for ledgers in child.accledgers %}
+                                        <tr>
                                             <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
                                             <td>{{ledgers.amount}}</td>
+                                        </tr>
                                         {%endfor%}
                                     {%endif%}
                                 {%endfor%}

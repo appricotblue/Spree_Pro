@@ -3,38 +3,46 @@
 
 
 
-<style>
-    td,th{
-        border: 1px solid #515151 !important;  
-    }
-</style>
+
 
 {% include "users/layout/filter.html" %}
-    <form method="post" action="{% url 'report-daybook' %}" >
+    <form method="post" >
         {% csrf_token %}
         <div class="row">
             <div class="col-md-2 col-6">
                 <div class="form-group">
-                    <label for="exampleInputName1">Filter Transaction</label>
-                    <select class="js-example-basic-single w-100 input" name="filter_type" required>
-                        <option value="" disabled selected>Select Transaction Type</option>
-                        <option value="Purchase" {% if filter_type == 'Purchase' %} selected {% endif %}>Purchase</option>
-                        <option value="Sales" {% if filter_type == 'Sales' %} selected {% endif %}>Sales</option>
+                    <label for="exampleInputName1">Branch Name</label>
+                    <select class="js-example-basic-single w-100 input" name="search_branch" required>
+                        <option value="0" selected>Select</option>
+                        {% for branch in branch_filter%}
+                        <option value={{branch.pk}} {% if search_branch|slugify == branch.pk|slugify %} selected {% endif %}>{{branch.name}}</option>
+                        {%endfor%}
                     </select>      
                 </div>
             </div>
-            <div class="col-md-2 col-12 d-flex">
-                <div class="form-group mx-auto">
-                <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-filter"></i></button>
+
+            <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">From Date </label>
+                    <input  class="form-control" type="date" name="from_date" id="from_date" value="{{from_date}}">                               
                 </div>
             </div>
+            <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">To Date</label>
+                    <div id="map-canvas"></div>
+                    <input type="date" class="form-control" id="date" name="to_date" value="{{to_date}}"> 
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="form-group mx-auto">
+                <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        
         </div>
-
     </form>
 {% include  "users/layout/filter_end.html" %}
-
-
-
 
 
 
@@ -55,43 +63,6 @@
                 {% endif %}
             </div>
 
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="form-group row">
-                        <div class="col-sm-9">
-                            <select class="js-example-basic-single w-100" name="entity_id" required>
-                                <option value="" disabled selected>Select Entity</option>
-                                {% for x in get_entity %}
-                                <option value="{{x.id}}" {% if x.id|slugify == common_user_data.default_entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group row">
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control" placeholder="Address">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group row">
-                        <div class="col-sm-9">
-                            <input type="email" class="form-control" placeholder="Email">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group row">
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control" placeholder="GSTIN No">
-                        </div>
-                    </div>
-                </div>
-                
-            </div>
-
             <div class="d-flex flex-column flex-md-row align-items-center" style="padding-top: 15px;">
                 <div class="col-md" style="margin-left: 10px;">
                     <h4 class="card-title div-title mb-0">Trail Balance</h4>
@@ -106,42 +77,205 @@
                 </div>
             </div> 
             <div class="table-responsive">
-                {% if get_data %}
-                <table class="table table-striped" >
+               
+                <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th rowspan="2">Account</th>
-                            <th colspan="2">Closing Balance</th>
-  
-                        </tr>
-                        <tr>
-                            <th>Debit</th>
+                            <th>Account</th>
                             <th>Credit</th>
-  
+                            <th>Debit</th>  
                         </tr>
                     </thead>
                     <tbody>
-                        {% for data in get_data %}
+                       
+
                         <tr>
-                            <td>
-                                {{data.credit_ledger_id.name}}
-                            </td>
-                            <td>
-                                {{data.voucher_number_id.voucher_number}}
-                            </td>
-                            <td>
-                                {{data.voucher_number_id.voucher_number}}
-                            </td>
+                            <th colspan="2" style="text-align: left !important;">ASSET</th>
+                            <th></th>
                             
                         </tr>
-                        {% endfor %}
+                        {% for data in asset_parent_account %}
+
+                            <!-- <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <td></td>
+                                <td></td>
+                                <th><b>{{data.amount}}</b></th>
+                            </tr> -->
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <!-- <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                       <td></td>
+                                       <td></td>
+                                    </tr> -->
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                        <tr>
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            {% if ledgers.type == 'Cr' %}
+                                                <td>{{ledgers.amount}}</td>
+                                                <td></td>
+                                            {% else %}
+                                                <td></td>
+                                                <td>{{ledgers.amount}}</td>
+                                            {% endif %}
+                                        </tr>
+                                        {%endfor%}
+                                    {%endif%}
+                                {%endfor%} 
+                            {%endif%}
+                        {%endfor%}   
+                        <!-- <tr>
+                            <th style="text-align: center !important;">Total Asset</th>
+                            <th >{{total_asset}}</th>
+                            <th></th>
+                            <th></th>
+                        </tr>   -->
+
+                        <tr>
+                            <th colspan="2" style="text-align: left !important;">LIABILITIES</th>
+                            <th></th>
+                            
+                        </tr>
+                        {% for data in liability_parent_account %}
+
+                            <!-- <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <th><b>{{data.amount}}</b></th>
+                                <th></th>
+                                <th></th>                                
+                            </tr> -->
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <!-- <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                       <td></td>
+                                       <td></td>
+                                    </tr> -->
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                        <tr>
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            {% if ledgers.type == 'Cr' %}
+                                                <td>{{ledgers.amount}}</td>
+                                                <td></td>
+                                            {% else %}
+                                                <td></td>
+                                                <td>{{ledgers.amount}}</td>
+                                            {% endif %}
+                                        </tr>
+                                        {%endfor%}
+                                    {%endif%}
+                                {%endfor%}
+                           
+                            {%endif%}
+                        {%endfor%}   
+                        <!-- <tr>
+                            <th style="text-align: center !important;">Total Liabilities</th>
+                            <th >{{total_liability}}</th>
+                        </tr>    -->
+                        <tr>
+                            <th colspan="2" style="text-align: left !important;">INCOME</th>
+                            <th></th>
+                           
+                        </tr>
+                        {% for data in income_accounts %}
+
+                            <!-- <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <th><b>{{data.amount}}</b></th>
+                                <th></th> 
+                                <th></th>                               
+                            </tr> -->
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <!-- <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                       <td></td>
+                                       <td></td>
+                                    </tr> -->
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                        <tr>
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            {% if ledgers.type == 'Cr' %}
+                                                <td>{{ledgers.amount}}</td>
+                                                <td></td>
+                                            {% else %}
+                                                <td></td>
+                                                <td>{{ledgers.amount}}</td>
+                                            {% endif %}
+                                        </tr>
+                                        {%endfor%}
+                                    {%endif%}
+                                {%endfor%}
+                           
+                            {%endif%}
+                        {%endfor%}   
+                        <!-- <tr>
+                            <th style="text-align: center !important;">Gross Profit</th>
+                            <th >{{total_income}}</th>
+                        </tr>    -->
+                        <tr>
+                            <th colspan="2" style="text-align: left !important;">EXPENSE</th>
+                            <th></th>
+                            
+                        </tr>
+                        {% for data in expense_accounts %}
+
+                            <!-- <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <th><b>{{data.amount}}</b></th>                               
+                                <th></th>
+                                <th></th>
+                            </tr> -->
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <!-- <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                       <td></td>
+                                       <td></td>
+                                    </tr> -->
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                        <tr>
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            {% if ledgers.type == 'Cr' %}
+                                                <td>{{ledgers.amount}}</td>
+                                                <td></td>
+                                            {% else %}
+                                                <td></td>
+                                                <td>{{ledgers.amount}}</td>
+                                            {% endif %}
+                                        {%endfor%}
+                                        </tr>
+                                    {%endif%}
+                                {%endfor%}
+                           
+                            {%endif%}
+                        {%endfor%}   
+                        <!-- <tr>
+                            <th style="text-align: center !important;">Total Expense</th>
+                            <th >{{total_expense}}</th>
+                        </tr>   -->
+                        <tr>
+                            <th style="text-align: center !important;">Total</th>
+                            <th>{{credit_total}}</th>
+                            <th >{{debit_total}}</th>
+                        </tr>  
+
+
+                        
+                         
+
                     </tbody>
                 </table>
-                {% else %}
-                <div style="text-align: center;" class="a">
-                    No Data Found
-                </div>
-                {% endif %}
+                
             </div>
         </div>
     </div>
@@ -149,46 +283,6 @@
 
 
 
-{% if get_data %}
-<div class="col-lg-12 col-12 grid-margin stretch-card">
-    <div class="card" style="background: #0c0c0c; box-shadow: none;">
-        <div class="card-body">
-            <nav aria-label="..." >
-                <ul class="pagination justify-content-end">
-                        <li class="page-item">
-                                <span class="current page-link">
-                                Page {{ get_data.number }} of {{ get_data.paginator.num_pages }}
-                                </span>
-                        </li> 
-
-                        {% if get_data.has_previous %}
-                            <li class="page-item">  
-                                    <a class="page-link" href="?page=1">&laquo; first</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ get_data.previous_page_number }}">previous</a>
-                            </li>
-                        {% endif %}
-                
-                  
-                    
-                    {% if get_data.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.next_page_number }}">next</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ get_data.paginator.num_pages }}">last &raquo;</a>
-                        </li>
-                    {% endif %}
-                   
-                </ul>
-            </nav>
-        </div>
-    </div>
-</div>
-
-
-{%endif%}
 
 <!-- -----------------Delete model popup------------------ -->
 <!-- Delete Modal -->

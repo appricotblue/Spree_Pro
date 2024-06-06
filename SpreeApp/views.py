@@ -12,6 +12,8 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from .forms import imgForm
 import openpyxl
+from openpyxl.styles import Font
+from openpyxl.styles import Font, Alignment
 
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
@@ -690,21 +692,36 @@ def deleteEntity(request):
 # @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def listBanch(request):
     if request.session.has_key('userId'):
-        
-
+    
         branch_list             = branch_data.objects.all().order_by('-id')
 
         listEntity              = entity_data.objects.all().order_by('-id')
         selected_enitity        = 0
         search_branch_name      = ''
-        
+        user_details            = user_data.objects.get(id=request.session.get('userId'))
 
+        user_entity             = user_details.entity_id
+        if user_entity:
+            user_entities       = user_details.entity_id.split(',')
+            
+            listEntity         = listEntity.filter(pk__in=user_entities)
+           
+            enitity_pks         = list(listEntity.values_list('pk',flat=True))
+            branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch             = user_details.branch_id
+        
+        if user_branch:
+            user_branches       = user_details.branch_id.split(',')
+            branch_list         = branch_list.filter(pk__in=user_branches)
+            
+        
         if 'search' in request.POST: 
             
-            selected_enitity        = int(request.POST.get('select_entity'))
+            selected_enitity        = int(request.POST.get('select_entity')) if request.POST.get('select_entity') else None
             search_branch_name      = request.POST.get('branch','') 
         else:
-            selected_enitity        = int(request.GET.get('select_entity',0))
+            selected_enitity        = int(request.GET.get('select_entity',0)) if request.GET.get('select_entity')!='None' else None
             search_branch_name      = request.GET.get('branch','')    
 
         if selected_enitity or search_branch_name:    
@@ -737,6 +754,7 @@ def listBanch(request):
         return render(request,'users/pages/list_branch.html',{'branch_list' : branch_list,'list_entity':listEntity,'selected_enitity':selected_enitity,'search_branch_name':search_branch_name})
     else:
         return redirect('user-login')
+
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -12837,6 +12855,8 @@ def addVoucherTransactionUserPortal(request):
         credit_ledger_id        = None if not credit_ledger_id else accounting_ledger_data.objects.get(id=credit_ledger_id)
         get_product_data        = data.get('product_data')
         status                  = data.get('status',"Approved")
+
+        
         
         # additional check for quantity available
         if voucher_series_id.voucher_type_id.name == 'Sales':
@@ -17319,6 +17339,8 @@ def userPortalgetProductData(request):
                 'selected'  : selected
             })
         ##--
+
+        voucher_type_ids    = voucher_type_data.objects.filter(name__in=['Sales','Purchase']).values_list('id', flat=True)
         sum_credit_product_quantity = 0
         sum_debit_product_quantity  = 0  
         sum_credit_product_amount   = 0
@@ -17327,24 +17349,24 @@ def userPortalgetProductData(request):
         avg_purchase_price  = 0
         
         get_product_data    = product_data.objects.get(pk=product_id)
-        credit_product      = order_product_data.objects.filter(product_id=get_product_data.id,latest=1,entry_type="Credit",status='Approved')
-        print(credit_product)
+        get_orders          = order_product_data.objects.filter(product_id=get_product_data.id,latest=1,status='Approved')
+        credit_product      = get_orders.filter(entry_type="Credit")
+        if voucher_type_ids:
+            credit_product      = credit_product.filter(voucher_type_id__in=voucher_type_ids)
         if credit_product:
             sum_credit_product_quantity     = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
             sum_credit_product_amount       = credit_product.aggregate(total_credit_amount=Sum('amount'))['total_credit_amount']
-            print(sum_credit_product_quantity,sum_credit_product_amount)
-            print("@@@@@@@22")
-            print(sum_credit_product_amount)
+            
             if sum_credit_product_amount:
                 avg_purchase_price              = int(sum_credit_product_amount)/int(sum_credit_product_quantity)
         
-        debit_product       = order_product_data.objects.filter(product_id=get_product_data.id,latest=1,entry_type="Debit",status='Approved')
+        debit_product       = get_orders.filter(entry_type="Debit")
+        if voucher_type_ids:
+            debit_product       = debit_product.filter(voucher_type_id__in=voucher_type_ids)
         if debit_product:
             sum_debit_product_quantity      = debit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
             sum_debit_product_amount        = debit_product.aggregate(total_debit_amount=Sum('amount'))['total_debit_amount']
             
-
-            print(sum_debit_product_amount)
             if sum_debit_product_amount:
 
                 avg_sale_price                  = int(sum_debit_product_amount)/int(sum_debit_product_quantity)
@@ -19196,13 +19218,7 @@ def filterProductUserPortal(request):
 
         elif end_date:
             product_list             = product_list.filter(created_at__lte=end_date)
-
-        
-
-        
-
-        
-                            
+                   
         #Download Section 
         if 'download' in data:
             
@@ -19217,29 +19233,33 @@ def filterProductUserPortal(request):
         products                  =list(product_list.values('pk','name', 'branch_id__id', 'product_code','product_group_id','product_group_id__name','purchase_rate','mrp','sales_rate','reorder_level','minimum_stock','maximum_stock','bom','bar_code','unit_id','created_at','rack_id','godown_id'))
         
         product_list                = []
+        voucher_type_ids    = voucher_type_data.objects.filter(name__in=['Sales','Purchase']).values_list('id', flat=True)
+        
         for product in products:
 
             sum_credit_product_quantity = 0
             sum_debit_product_quantity  = 0  
             sum_credit_product_amount   = 0
             sum_debit_product_amount    = 0
-            avg_sale_price      = 0
-            avg_purchase_price  = 0
+            avg_sale_price              = 0
+            avg_purchase_price          = 0
             
             get_product_data    = product_data.objects.get(pk=product['pk'])
             print(get_product_data)
             credit_product      = order_product_data.objects.filter(product_id=get_product_data.id,latest=1,entry_type="Credit",status='Approved')
+            if voucher_type_ids:
+                credit_product  = credit_product.filter(voucher_type_id__in=voucher_type_ids)
             print(credit_product)
             if credit_product:
                 sum_credit_product_quantity     = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
                 sum_credit_product_amount       = credit_product.aggregate(total_credit_amount=Sum('amount'))['total_credit_amount']
-                print(sum_credit_product_quantity,sum_credit_product_amount)
-                print("@@@@@@@22")
-                print(sum_credit_product_amount)
+                
                 if sum_credit_product_amount:
                     avg_purchase_price              = int(sum_credit_product_amount)/int(sum_credit_product_quantity)
             
             debit_product       = order_product_data.objects.filter(product_id=get_product_data.id,latest=1,entry_type="Debit",status='Approved')
+            if voucher_type_ids:
+                debit_product   = debit_product.filter(voucher_type_id__in=voucher_type_ids)
             if debit_product:
                 sum_debit_product_quantity      = debit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
                 sum_debit_product_amount        = debit_product.aggregate(total_debit_amount=Sum('amount'))['total_debit_amount']
@@ -19300,8 +19320,7 @@ def filterProductUserPortal(request):
                             'rack_id':rack_id,
                             'mrp':product['mrp'],
                             'rack_name':rack.name,
-                            'avg_sale_price':avg_sale_price,
-                            'avg_purchase_price':avg_purchase_price
+                            
                     })
             else:
                 product_list.append({
@@ -19309,6 +19328,8 @@ def filterProductUserPortal(request):
                             'name':product['name'],          
                             'branch_id':product['branch_id__id'],
                             'mrp':product['mrp'],
+                            'avg_sale_price':avg_sale_price,
+                            'avg_purchase_price':avg_purchase_price
                     })
 
                     
@@ -20486,7 +20507,9 @@ def report_stock_summary(request):
             product_list = product_list.filter(branch_id=search_branch) 
 
         print(product_list)
-        
+
+        voucher_type_ids    = voucher_type_data.objects.filter(name__in=['Sales','Purchase']).values_list('id', flat=True)
+
         headings        = ['Product Name','Sale Price','Purchase Price','Stock Quantity']
         for product in product_list:
            
@@ -20526,8 +20549,14 @@ def report_stock_summary(request):
 
             #         avg_sale_price                  = int(sum_debit_product_amount)/int(sum_debit_product_quantity)
 
-            get_invoices    = order_product_data.objects.filter(product_id=product.id,latest=1,status='Approved')
+            
+            
+            get_invoices        = order_product_data.objects.filter(product_id=product.id,latest=1,status='Approved')
+
+            if voucher_type_ids:
+                get_invoices    = get_invoices.filter(voucher_type_id__in=voucher_type_ids)
                 
+
             credit_product      = get_invoices.filter(entry_type="Credit")
             
             if credit_product:
@@ -20615,6 +20644,7 @@ def report_lowstock_summary(request):
 
         print(product_list)
         
+        voucher_type_ids    = voucher_type_data.objects.filter(name__in=['Sales','Purchase']).values_list('id', flat=True)
         headings        = ['Product Code','Product Name','Product Group','Unit','Minimum Stock','Stock Quantity']
         for product in product_list:
            
@@ -20654,8 +20684,13 @@ def report_lowstock_summary(request):
 
             #         avg_sale_price                  = int(sum_debit_product_amount)/int(sum_debit_product_quantity)
 
+            
+
             get_invoices    = order_product_data.objects.filter(product_id=product.id,latest=1,status='Approved')
-                
+            
+            if voucher_type_ids:
+                get_invoices    = get_invoices.filter(voucher_type_id__in=voucher_type_ids)
+
             credit_product      = get_invoices.filter(entry_type="Credit")
             
             if credit_product:
@@ -20745,6 +20780,7 @@ def report_stock_summary_category(request):
         
         
         headings        = ['Product Group','Stock Quantity']
+        voucher_type_ids    = voucher_type_data.objects.filter(name__in=['Sales','Purchase']).values_list('id', flat=True)
         for product_group in product_group_list:
            
             data_to_display_child       = []
@@ -20783,7 +20819,13 @@ def report_stock_summary_category(request):
 
             #         avg_sale_price                  = int(sum_debit_product_amount)/int(sum_debit_product_quantity)
 
+              
+
             get_invoices    = order_product_data.objects.filter(product_group=product_group.id,latest=1,status='Approved')
+
+            if voucher_type_ids:
+                get_invoices    = get_invoices.filter(voucher_type_id__in=voucher_type_ids)
+
             if search_branch:
                 get_invoices    = get_invoices.filter(branch_id=search_branch)
 
@@ -20830,27 +20872,566 @@ def report_daybook(request):
 
 
 
+def AccountLedger_trail_bal(ledger_id,start_date,end_date):
+           
+        ledger_id               = ledger_id
+        getledger               = accounting_ledger_data.objects.get(pk=ledger_id)
+        branch_id               = getledger.branch_id 
+        end_date                = end_date
+        start_date              = start_date
+        voucher_type_ids        = voucher_type_data.objects.filter(name__in=['Proforma Invoice','Sales Quotation','Purchase Order','Sales Order','Purchase Quotation']).values_list('id', flat=True)
+        
+        invoice_data_list       = invoice_data.objects.filter(latest=1,status="Approved")
+
+        if voucher_type_ids:
+            invoice_data_list   = invoice_data_list.exclude(voucher_type_id__in=voucher_type_ids)
+        
+        list_invoice_data   = invoice_data_list.filter(
+                (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id))
+            )
+        print(list_invoice_data)
+
+        if start_date or end_date:
+            pass
+
+        else:
+            financial    = financial_year_data.objects.filter(active=1,branch_id=branch_id).order_by('-id')
+            if financial:
+                start_date  = financial[0].from_date
+                to_data     = financial[0].to_date
+
+        if  start_date and end_date:   
+                list_invoice_data                = list_invoice_data.filter(date__range=(start_date,end_date))
+                        
+        elif start_date:   
+            list_invoice_data                = list_invoice_data.filter(date__gte=start_date)
+
+        elif end_date:
+            list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
+   
+       
+        # if getledger.opening_balance:
+        #     opening_balance     = float(getledger.opening_balance)
+        # else:
+        #     opening_balance     = 0.0
+        opening_balance     = 0.0
+
+        balance     = opening_balance
+       
+        for row in list_invoice_data:
+            amount  = row.total_amount
+            if not amount:
+                amount  = 0
+
+            row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
+            row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
+            
+            if row_debit_ledger_id==ledger_id:
+                
+                if getledger.entry_type=='Dr':
+                    balance = balance+ float(amount)
+                     
+    
+            else:
+                if row_debit_ledger_id and row.is_child:
+                    pass 
+                elif getledger.entry_type=='Cr':
+                    balance = balance+ float(amount)
+                
+   
+        return balance
+
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_trail_balance(request):
     if request.session.has_key('userId'):
-        get_entity = entity_data.objects.all()
         user_id         = request.session.get('userId')
-        get_user_data   = user_data.objects.get(id=user_id)
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
 
-        return render(request,'users/pages/report_trail_balance.html',{'get_data':'just','get_entity':get_entity})
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity     = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
+            
+        
+        branch_filter       = list_branch.values('pk','name')  
+        branch_pks          = list(list_branch.values_list('pk', flat=True))
+        parent_account      = []
+        total_income        = 0
+        expense_parent_account =[]
+        total_expense = 0
+        search_branch = 0
+
+        if 'search' in request.POST:
+            search_branch   = request.POST.get('search_branch')
+            from_date       = request.POST.get('from_date') 
+            to_date         = request.POST.get('to_date')
+
+        else:
+            from_date       = ''
+            to_date         = ''
+            search_branch   = branch_pks[0]
+            financial    = financial_year_data.objects.filter(active=1,branch_id=search_branch).order_by('-id')
+            if financial:
+                
+                from_date  = financial[0].from_date
+                to_date     = financial[0].to_date
+        
+            
+        credit_total    = 0.0
+        debit_total     = 0.0
+        if search_branch:
+            # asset
+            get_acc_group_asset   = accounting_group_data.objects.filter(Q(nature="Assets") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            
+            total_asset = 0
+
+            if get_acc_group_asset:
+                
+                asset_parent_account  = list(get_acc_group_asset.values('id','name'))
+                
+                parent_counter = 0
+                
+                
+                for parent_account_group in get_acc_group_asset:
+                    parent_balance      = 0
+                    asset_parent_account[parent_counter]['amount'] = 0.0
+                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
+                    if child_acc: 
+                        asset_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                             
+                        child_counter= 0
+                        
+                        
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            asset_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            
+                            if acc_ledgers:
+                                        
+                                asset_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            = 0 
+                                total_of_child_acc_ledger = 0
+                                
+                                
+                                for ledger in acc_ledgers:
+                                    balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                                    if ledger.entry_type=='Cr':
+                                        credit_total    = credit_total+balance
+                                        asset_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Cr'
+                                    else:
+                                        debit_total     = debit_total+balance
+                                        asset_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Dr'
+                                    
+                                    
+                                        
+                                    total_asset = float(total_asset)+float(balance)
+
+                                    
+                      
+                                    asset_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    ledger_counter = ledger_counter+1
+                                    
+
+                                asset_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
+
+                    asset_parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
+                    
+            # liability
+
+            get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            liability_parent_account= []
+            total_liability = 0
+            if get_acc_group_liability:
+                
+                liability_parent_account  = list(get_acc_group_liability.values('id','name'))
+                print(liability_parent_account)
+                
+                
+                parent_counter = 0
+                
+                
+                for parent_account_group in get_acc_group_liability:
+                    parent_balance      = 0
+                    liability_parent_account[parent_counter]['amount'] = 0
+                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
+                    if child_acc: 
+                        liability_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                             
+                        child_counter= 0
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            liability_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            if acc_ledgers:
+                                        
+                                liability_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            =0 
+                                total_of_child_acc_ledger = 0
+                                for ledger in acc_ledgers:
+                                    balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    if ledger.entry_type=='Cr':
+                                        credit_total    = credit_total+balance
+                                        liability_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Cr'
+                                    else:
+                                        debit_total = debit_total+1
+                                        liability_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Dr'
+                                        
+                                    total_liability = float(total_liability)+float(balance)
+                      
+                                    liability_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    
+                                    ledger_counter  = ledger_counter+1
+                                liability_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
+
+                    liability_parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
+                        
+            # income
+          
+            get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            
+            total_income = 0
+            if get_acc_group_income:
+                
+                income_parent_account  = list(get_acc_group_income.values('id','name'))
+                print(income_parent_account)
+                
+                
+                parent_counter = 0
+                
+                
+                for parent_account_group in get_acc_group_income:
+                    parent_balance      = 0
+                    
+                    income_parent_account[parent_counter]['amount'] = 0
+                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
+                    if child_acc: 
+                        income_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                             
+                        child_counter= 0
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            income_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            if acc_ledgers:
+                                        
+                                income_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            =0 
+                                total_of_child_acc_ledger = 0
+                                for ledger in acc_ledgers:
+
+                                    
+                                    balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+
+                                    if ledger.entry_type=='Cr':
+                                        credit_total    = credit_total+balance
+                                        income_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Cr'
+                                    else:
+                                        debit_total     = debit_total+balance
+                                        income_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Dr'
+                                        
+                                        
+                                    total_income = float(total_income)+float(balance)
+                      
+                                    income_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    ledger_counter = ledger_counter+1
+
+                                income_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
+
+                    income_parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
+                                
+            
+        # expense
+       
+            get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True))
+            
+            if get_acc_group_expense:
+                
+                expense_parent_account  = list(get_acc_group_expense.values('id','name'))
+                print(expense_parent_account)
+                
+                
+                parent_counter = 0
+                
+                
+                for expense_parent_account_group in get_acc_group_expense:
+                    parent_balance      = 0
+                    
+                    expense_parent_account[parent_counter]['amount'] = 0
+                    child_acc   = accounting_group_data.objects.filter(under_group=expense_parent_account_group.id)
+                    if child_acc:
+                        
+                        expense_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                                
+                        child_counter= 0
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            expense_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            if acc_ledgers:
+                                        
+                                expense_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            =0 
+                                total_of_child_acc_ledger = 0
+                                for ledger in acc_ledgers:
+                                    balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                                        
+                                    total_expense = float(total_expense)+float(balance)
+                                    if ledger.entry_type=='Cr':
+                                        credit_total    = credit_total+balance
+                                        expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Cr'
+                                    else:
+                                        debit_total = debit_total+balance
+                                        expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Dr'
+                                        
+                                    expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    ledger_counter = ledger_counter+1
+
+                                expense_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
+                    
+                    expense_parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
+        
+
+        
+        if 'download' in request.POST:
+            wb      = openpyxl.Workbook()
+            ws      = wb.active
+            ws.append(['Account','Credit','Debit'])
+            current_row = ws.max_row
+
+            # Apply bold font to the cells in the current row
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+            row     = ['Asset']
+            # row = [income['name'], income['amount']]
+            ws.append(row)
+            current_row = ws.max_row
+
+            # Apply bold font to the cells in the current row
+            ws[f'A{current_row}'].font = Font(bold=True)
+            
+            for asset in request.session['asset_parent_account']:
+                
+
+                # Get the current row number
+                # current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+                # ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                if asset.get('childs'):
+                    for child in asset['childs']:
+                        # row = [child['name'],child['amount']]
+                        # ws.append(row)
+                        # current_row = ws.max_row
+
+                        # Apply bold font to the cells in the current row
+                        # ws[f'A{current_row}'].font = Font(bold=True)
+                        if child.get('accledgers'):
+                            for accledger in child['accledgers']:
+                                if accledger['type']=='Cr':
+                                    row     = [accledger['name'],accledger['amount'],'']
+                                    
+                                else:
+                                    row     = [accledger['name'],'',accledger['amount']]
+                                ws.append(row)
+                                
+
+            # liabilities
+            row     = ['liability']
+            # row = [income['name'], income['amount']]
+            ws.append(row)
+            current_row = ws.max_row
+
+            # Apply bold font to the cells in the current row
+            ws[f'A{current_row}'].font = Font(bold=True)
+            for liability in request.session['liability_parent_account']:
+                
+
+                # Get the current row number
+                # current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+                # ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                if liability.get('childs'):
+                    for child in liability['childs']:
+                        # row = [child['name'],child['amount']]
+                        # ws.append(row)
+                        # current_row = ws.max_row
+
+                        # Apply bold font to the cells in the current row
+                        # ws[f'A{current_row}'].font = Font(bold=True)
+                        if child.get('accledgers'):
+                            for accledger in child['accledgers']:
+                                if accledger['type']=='Cr':
+                                    row     = [accledger['name'],accledger['amount'],'']
+                                    
+                                else:
+                                    row     = [accledger['name'],'',accledger['amount']]
+                                ws.append(row)
+                                
+            # ws.append(['Gross Profit',request.session['total_income']])
+
+            # Income
+            row     = ['Income']
+            # row = [income['name'], income['amount']]
+            ws.append(row)
+            current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+            ws[f'A{current_row}'].font = Font(bold=True)
+            for income in request.session['income_account']:
+                
+
+                # Get the current row number
+                # current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+                # ws[f'A{current_row}'].font = Font(bold=True,size=14)
+                
+                if income.get('childs'):
+                    for child in income['childs']:
+                        # row = [child['name'],child['amount']]
+                        # ws.append(row)
+                        # current_row = ws.max_row
+
+                        # Apply bold font to the cells in the current row
+                        # ws[f'A{current_row}'].font = Font(bold=True)
+                        if child.get('accledgers'):
+                            for accledger in child['accledgers']:
+                                if accledger['type']=='Cr':
+                                    row     = [accledger['name'],accledger['amount'],'']
+                                    
+                                else:
+                                    row     = [accledger['name'],'',accledger['amount']]
+                                ws.append(row)
+                                
+            # ws.append(['Gross Profit',request.session['total_income']])
+
+            # Expense
+            row     = ['Expense']
+            # row = [income['name'], income['amount']]
+            ws.append(row)
+            current_row = ws.max_row
+
+            # Apply bold font to the cells in the current row
+            ws[f'A{current_row}'].font = Font(bold=True)
+            for expense in request.session['expense_parent_account']:
+                
+
+                # Get the current row number
+                # current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+                # ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                if expense.get('childs'):
+                    for child in expense['childs']:
+                        # row = [child['name'],child['amount']]
+                        # ws.append(row)
+                        # current_row = ws.max_row
+
+                        # Apply bold font to the cells in the current row
+                        # ws[f'A{current_row}'].font = Font(bold=True)
+                        if child.get('accledgers'):
+                            for accledger in child['accledgers']:
+                                if accledger['type']=='Cr':
+                                    row     = [accledger['name'],accledger['amount'],'']
+                                    
+                                else:
+                                    row     = [accledger['name'],'',accledger['amount']]
+                                ws.append(row)
+                
+            row     = ['Total',request.session['credit_total'],request.session['debit_total']]              
+            # ws.append(['Gross Profit',request.session['total_income']])
+            ws.append(row)
+            current_row = ws.max_row
+            ws[f'A{current_row}'].font = Font(bold=True)
+
+            for col in ws.columns:
+                max_length = 0
+                column = col[0].column_letter  # Get the column name
+                for cell in col:
+                    try:  # Necessary to avoid error on empty cells
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = (max_length + 2) * 3  # Adjusting width
+                ws.column_dimensions[column].width = adjusted_width
+
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            report_name            = str(request.session['search_branch'])+" "+str(request.session['from_date'])+str(request.session['to_date'])
+            response['Content-Disposition'] = f'attachment; filename={report_name}.xlsx'
+            wb.save(response)
+            return response
+
+        request.session['liability_parent_account'] = liability_parent_account
+        request.session['asset_parent_account']     = asset_parent_account
+        request.session['income_account']           = income_parent_account
+        request.session['expense_parent_account']   = expense_parent_account
+        request.session['total_income']             = total_income
+        request.session['total_expense']            = total_expense
+        request.session['total_liability']          = total_liability
+        request.session['total_asset']              = total_asset
+        request.session['search_branch']            = branch_data.objects.get(pk=search_branch).name
+        request.session['from_date']                = from_date
+        request.session['to_date']                  = to_date
+        request.session['debit_total']              = debit_total
+        request.session['credit_total']             = credit_total
+        
+        print(asset_parent_account)
+
+        return render(request,'users/pages/report_trail_balance.html',{'income_accounts':income_parent_account,'asset_parent_account':asset_parent_account,'total_asset':total_asset,'liability_parent_account':liability_parent_account,'total_liability':total_liability,'expense_accounts':expense_parent_account,'total_income':total_income,'total_expense':total_expense,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'debit_total':debit_total,'credit_total':credit_total})
     else:
         return redirect('user-login')
 
 
-@cache_control(no_cache=True,must_revalidate=True,no_store=True)
-def report_balance_sheet(request):
-    if request.session.has_key('userId'):
+# @cache_control(no_cache=True,must_revalidate=True,no_store=True)
+# def report_balance_sheet(request):
+#     if request.session.has_key('userId'):
        
 
-        return render(request,'users/pages/report_balance_sheet.html',{'get_data':'just'})
-    else:
-        return redirect('user-login')
+#         return render(request,'users/pages/report_balance_sheet.html',{'get_data':'just'})
+#     else:
+#         return redirect('user-login')
 
 
 
@@ -20862,9 +21443,13 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
         branch_id               = getledger.branch_id 
         end_date                = end_date
         start_date              = start_date
-        invoice_data_list       = invoice_data.objects.filter(latest=1,status="Approved")
+        voucher_type_ids        = voucher_type_data.objects.filter(name__in=['Proforma Invoice','Sales Quotation','Purchase Order','Sales Order','Purchase Quotation']).values_list('id', flat=True)
         
+        invoice_data_list       = invoice_data.objects.filter(latest=1,status="Approved")
 
+        if voucher_type_ids:
+            invoice_data_list   = invoice_data_list.exclude(voucher_type_id__in=voucher_type_ids)
+        
         list_invoice_data   = invoice_data_list.filter(
                 (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id))
             )
@@ -20933,7 +21518,11 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
     end_date                         = end_date
     batch_id                         = batch_id
     
+    voucher_type_ids    = voucher_type_data.objects.filter(name__in=['Sales','Purchase']).values_list('id', flat=True)
     get_product_transactions        = order_product_data.objects.filter(product_id=product_id,batch_id=batch_id,latest=1,status='Approved')
+    
+    if voucher_type_ids:
+        get_product_transactions    = get_product_transactions.filter(voucher_type_id__in=voucher_type_ids)
 
     if  start_date and end_date:   
             get_product_transactions            = get_product_transactions.filter(date__range=(start_date,end_date))
@@ -20943,7 +21532,6 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
 
     elif end_date:
         get_product_transactions                = get_product_transactions.filter(date__lt=end_date)
-
 
 
     sum_credit_product_quantity = 0
@@ -21007,6 +21595,7 @@ def report_profit_andloss(request):
         expense_parent_account =[]
         total_expense = 0
         search_branch = 0
+        
 
         if 'search' in request.POST:
             search_branch   = request.POST.get('search_branch')
@@ -21038,9 +21627,9 @@ def report_profit_andloss(request):
                 
                 parent_counter = 0
                 
-                parent_balance      = 0
+                
                 for parent_account_group in get_acc_group_income:
-                    
+                    parent_balance = 0
                     parent_account[parent_counter]['amount'] = 0
                     child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
                     if child_acc: 
@@ -21063,7 +21652,7 @@ def report_profit_andloss(request):
                       
                                     parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
                                     total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
-                                    
+                                    ledger_counter = ledger_counter+1
 
                                 parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
                                 parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
@@ -21076,7 +21665,7 @@ def report_profit_andloss(request):
             
         # expense
        
-            get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True))
+            get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
             
             if get_acc_group_expense:
                 
@@ -21086,8 +21675,9 @@ def report_profit_andloss(request):
                 
                 parent_counter = 0
                 
-                parent_balance      = 0
+                
                 for expense_parent_account_group in get_acc_group_expense:
+                    parent_balance      = 0
                     
                     expense_parent_account[parent_counter]['amount'] = 0
                     child_acc   = accounting_group_data.objects.filter(under_group=expense_parent_account_group.id)
@@ -21113,7 +21703,7 @@ def report_profit_andloss(request):
                                     expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
                                     total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
                                     
-
+                                    ledger_counter = ledger_counter+1
                                 expense_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
                                 parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
                                 
@@ -21122,6 +21712,313 @@ def report_profit_andloss(request):
                     expense_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
         
+
+
+
+            income_before_stock = total_income - total_expense
+            # stock value
+
+            product_list    = product_data.objects.filter(branch_id=search_branch)
+            # opening stcok balance
+            
+            opening_stock   = 0
+
+            # stock value = balance(purchase-sell) * avg_purchase
+            for product in product_list:
+                batch_list                          = batch_data.objects.filter(product_id=product.id)
+                if batch_list:
+                    for batch in batch_list:
+                        stock_value,purchase_amount         = plgetProduct_balance(product.id,'',from_date,batch.id)
+                        opening_stock                       = float(opening_stock) + float(stock_value)
+                    
+
+            # current stock balance  
+            purchase_total      = 0
+            closing_stock        = 0
+            for product in product_list: 
+                batch_list                          = batch_data.objects.filter(product_id=product) 
+                if batch_list:
+                    for batch in batch_list: 
+                        stock_value,purchase_amount         = plgetProduct_balance(product,from_date,to_date,batch.id)
+                        closing_stock                       = float(closing_stock) + float(stock_value)
+                        purchase_total                      = purchase_total+purchase_amount
+
+
+            print("opening :",opening_stock)
+            print("purchase_total : ",purchase_total)
+            print("closing_stock : ",closing_stock)
+            gross_profit    = opening_stock + purchase_total - closing_stock
+
+            cogs    = opening_stock+purchase_total-closing_stock
+
+            gross_profit    = income_before_stock - cogs
+            print(parent_account)
+
+
+            request.session['parent_account']           = parent_account
+            request.session['expense_parent_account']   = expense_parent_account
+            request.session['total_income']             = total_income
+            request.session['total_expense']            = total_expense
+            request.session['search_branch']            = branch_data.objects.get(pk=search_branch).name
+            request.session['from_date']                = from_date
+            request.session['to_date']                  = to_date
+            request.session['income_before_stock']      = income_before_stock
+            request.session['closing_stock']            = closing_stock
+            request.session['opening_stock']            = opening_stock
+            request.session['cogs']                     = cogs
+            request.session['gross_profit']             = gross_profit
+            
+        
+        if 'download' in request.POST:
+            wb      = openpyxl.Workbook()
+            ws      = wb.active
+            ws.append(['Account','Amount'])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'B{current_row}'].font = Font(bold=True,size=14)
+            
+
+            ws.append(['Income',''])
+            
+            current_row = ws.max_row
+
+            alignment = Alignment(horizontal='center')
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+            for income in request.session['parent_account']:
+                
+                row = [income['name'], income['amount']]
+                ws.append(row)
+                current_row = ws.max_row
+        
+                # Apply bold font to the cells in the current row
+                ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                # Get the current row number
+                current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+                ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                if income.get('childs'):
+                    for child in income['childs']:
+                        row = [child['name'],child['amount']]
+                        ws.append(row)
+                        current_row = ws.max_row
+
+                        # Apply bold font to the cells in the current row
+                        ws[f'A{current_row}'].font = Font(bold=True)
+                        if child.get('accledgers'):
+                            for accledger in child['accledgers']:
+                                row     = [accledger['name'],accledger['amount']]
+                                ws.append(row)
+                                current_row = ws.max_row
+            
+            ws.append(['Total Income',request.session['total_income']])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+
+
+            ws.append(['Expense',''])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+            for expense in request.session['expense_parent_account']:
+                
+                row = [expense['name'], expense['amount']]
+                ws.append(row)
+
+                # Get the current row number
+                current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+                ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                if expense.get('childs'):
+                    for child in expense['childs']:
+                        row = [child['name'],child['amount']]
+                        ws.append(row)
+                        current_row = ws.max_row
+
+                        # Apply bold font to the cells in the current row
+                        ws[f'A{current_row}'].font = Font(bold=True)
+                        if child.get('accledgers'):
+                            for accledger in child['accledgers']:
+                                row     = [accledger['name'],accledger['amount']]
+                                ws.append(row)
+                                current_row = ws.max_row
+            
+            ws.append(['Total Expense',request.session['total_expense']])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+
+            ws.append(['Income Before Stock Adjustment',request.session['income_before_stock']])
+            current_row = ws.max_row
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+            ws.append(['Opening Stock',request.session['opening_stock']])
+            
+            ws.append(['Closing Stock',request.session['closing_stock']])
+            
+            ws.append(['Cost of Goods Sold (COGS)',request.session['cogs']])
+            current_row = ws.max_row
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+            
+            ws.append(['Gross Profit',request.session['gross_profit']])
+            current_row = ws.max_row
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+
+            for col in ws.columns:
+                max_length = 0
+                column = col[0].column_letter  # Get the column name
+                for cell in col:
+                    try:  # Necessary to avoid error on empty cells
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = (max_length + 2) * 3  # Adjusting width
+                ws.column_dimensions[column].width = adjusted_width
+
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            report_name            = str(request.session['search_branch'])+" "+str(request.session['from_date'])+str(request.session['to_date'])
+            response['Content-Disposition'] = f'attachment; filename={report_name}.xlsx'
+            wb.save(response)
+            return response
+
+
+        
+
+        
+        return render(request,'users/pages/report_profit_andloss.html',{'income_accounts':parent_account,'expense_accounts':expense_parent_account,'total_income':total_income,'total_expense':total_expense,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'income_before_stock':income_before_stock,'opening_stock':opening_stock,'closing_stock':closing_stock,'cogs':cogs,'gross_profit':gross_profit})
+    else:
+        return redirect('user-login')
+
+
+
+
+def p_and_l_balancesheet(search_branch,from_date,to_date):
+    parent_account      = []
+    total_income        = 0
+    expense_parent_account =[]
+    total_expense = 0
+    
+    
+    search_branch   = search_branch
+    from_date       = from_date
+    to_date         = to_date
+
+    if search_branch:
+        
+        get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+        
+        total_income = 0
+        if get_acc_group_income:
+            
+            parent_account  = list(get_acc_group_income.values('id','name'))
+            print(parent_account)
+            
+            
+            parent_counter = 0
+                  
+            for parent_account_group in get_acc_group_income:
+                parent_balance = 0
+                parent_account[parent_counter]['amount'] = 0
+                child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
+                if child_acc: 
+                    parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                            
+                    child_counter= 0
+                    for child in child_acc:
+                        acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                        parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                        if acc_ledgers:
+                                    
+                            parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                            
+                            ledger_counter            =0 
+                            total_of_child_acc_ledger = 0
+                            for ledger in acc_ledgers:
+                                balance = AccountLedger_balance(ledger.id,from_date,to_date)
+                                    
+                                total_income = float(total_income)+float(balance)
+                    
+                                parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                ledger_counter = ledger_counter+1
+
+                            parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                            parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                            
+                        child_counter= child_counter+1
+
+                parent_account[parent_counter]['amount']=parent_balance
+                parent_counter= parent_counter+1
+                            
+        
+    # expense
+    
+        get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+        
+        if get_acc_group_expense:
+            
+            expense_parent_account  = list(get_acc_group_expense.values('id','name'))
+            print(expense_parent_account)
+            
+            
+            parent_counter = 0
+            
+            
+            for expense_parent_account_group in get_acc_group_expense:
+                parent_balance      = 0
+                
+                expense_parent_account[parent_counter]['amount'] = 0
+                child_acc   = accounting_group_data.objects.filter(under_group=expense_parent_account_group.id)
+                if child_acc:
+                    
+                    expense_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                            
+                    child_counter= 0
+                    for child in child_acc:
+                        acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                        expense_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                        if acc_ledgers:
+                                    
+                            expense_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                            
+                            ledger_counter            =0 
+                            total_of_child_acc_ledger = 0
+                            for ledger in acc_ledgers:
+                                balance = AccountLedger_balance(ledger.id,from_date,to_date)
+                                    
+                                total_expense = float(total_expense)+float(balance)
+                                print(balance)
+                                expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                
+                                ledger_counter = ledger_counter+1
+                            expense_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                            parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                            
+                        child_counter= child_counter+1
+                
+                expense_parent_account[parent_counter]['amount']=parent_balance
+                parent_counter= parent_counter+1
+    
 
 
 
@@ -21145,7 +22042,6 @@ def report_profit_andloss(request):
         # current stock balance  
         purchase_total      = 0
         closing_stock        = 0
-        product_list        = [6]
         for product in product_list: 
             batch_list                          = batch_data.objects.filter(product_id=product) 
             if batch_list:
@@ -21163,10 +22059,292 @@ def report_profit_andloss(request):
         cogs    = opening_stock+purchase_total-closing_stock
 
         gross_profit    = income_before_stock - cogs
-        print(parent_account)
+        return gross_profit
+
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def report_balance_sheet(request):
+    if request.session.has_key('userId'):
+        user_id         = request.session.get('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
+
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity     = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
+            
+        
+        branch_filter       = list_branch.values('pk','name')  
+        branch_pks          = list(list_branch.values_list('pk', flat=True))
+        parent_account      = []
+        total_income        = 0
+        expense_parent_account =[]
+        total_expense = 0
+        search_branch = 0
         
 
-        return render(request,'users/pages/report_profit_andloss.html',{'income_accounts':parent_account,'expense_accounts':expense_parent_account,'total_income':total_income,'total_expense':total_expense,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'income_before_stock':income_before_stock,'opening_stock':opening_stock,'closing_stock':closing_stock,'cogs':cogs,'gross_profit':gross_profit})
+        if 'search' in request.POST:
+            search_branch   = request.POST.get('search_branch')
+            from_date       = request.POST.get('from_date') 
+            to_date         = request.POST.get('to_date')
+
+        else:
+            from_date       = ''
+            to_date         = ''
+            search_branch   = branch_pks[0]
+            financial    = financial_year_data.objects.filter(active=1,branch_id=search_branch).order_by('-id')
+            if financial:
+                
+                from_date  = financial[0].from_date
+                to_date     = financial[0].to_date
+        
+            
+        if search_branch:
+          
+            get_acc_group_asset   = accounting_group_data.objects.filter(Q(nature="Assets") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            
+            total_asset = 0
+            if get_acc_group_asset:
+                
+                parent_account  = list(get_acc_group_asset.values('id','name'))
+                print(parent_account)
+                
+                
+                parent_counter = 0
+                
+                
+                for parent_account_group in get_acc_group_asset:
+                    parent_balance = 0
+                    parent_account[parent_counter]['amount'] = 0
+                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
+                    if child_acc: 
+                        parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                             
+                        child_counter= 0
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            if acc_ledgers:
+                                        
+                                parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            =0 
+                                total_of_child_acc_ledger = 0
+                                for ledger in acc_ledgers:
+                                    balance = AccountLedger_balance(ledger.id,from_date,to_date)
+                                        
+                                    total_asset = float(total_asset)+float(balance)
+                      
+                                    parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    ledger_counter = ledger_counter+1
+
+                                parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
+
+                    parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
+                                
+            
+        # liabilities
+            total_liability = 0
+            get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            
+            if get_acc_group_liability:
+                
+                liability_parent_account  = list(get_acc_group_liability.values('id','name'))
+                print(liability_parent_account)
+                
+                
+                parent_counter = 0
+                
+                
+                for liability_parent_account_group in get_acc_group_liability:
+                    parent_balance      = 0
+                    
+                    liability_parent_account[parent_counter]['amount'] = 0
+                    child_acc   = accounting_group_data.objects.filter(under_group=liability_parent_account_group.id)
+                    if child_acc:
+                        
+                        liability_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                                
+                        child_counter= 0
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            liability_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            if acc_ledgers:
+                                        
+                                liability_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            =0 
+                                total_of_child_acc_ledger = 0
+                                for ledger in acc_ledgers:
+                                    balance = AccountLedger_balance(ledger.id,from_date,to_date)          
+                                    total_liability = float(total_liability)+float(balance)
+                                   
+                                    liability_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    
+                                    ledger_counter = ledger_counter+1
+                                liability_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
+                    
+                    liability_parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
+        
+
+            pandl   =   p_and_l_balancesheet(search_branch,from_date,to_date)
+            
+            
+
+            request.session['parent_account']           = parent_account
+            request.session['liability_parent_account'] = liability_parent_account
+            request.session['total_asset']              = total_asset
+            request.session['total_liability']          = total_liability
+            request.session['search_branch']            = branch_data.objects.get(pk=search_branch).name
+            request.session['from_date']                = from_date
+            request.session['to_date']                  = to_date
+            request.session['pandl']                    = pandl
+            
+
+            
+        
+        if 'download' in request.POST:
+            wb      = openpyxl.Workbook()
+            ws      = wb.active
+            ws.append(['Account','Amount'])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'B{current_row}'].font = Font(bold=True,size=14)
+            
+
+            ws.append(['Assets',''])
+            
+            current_row = ws.max_row
+
+            alignment = Alignment(horizontal='center')
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+            for asset in request.session['parent_account']:
+                
+                row = [asset['name'], asset['amount']]
+                ws.append(row)
+                current_row = ws.max_row
+        
+                # Apply bold font to the cells in the current row
+                ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                # Get the current row number
+                current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+                ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                if asset.get('childs'):
+                    for child in asset['childs']:
+                        row = [child['name'],child['amount']]
+                        ws.append(row)
+                        current_row = ws.max_row
+
+                        # Apply bold font to the cells in the current row
+                        ws[f'A{current_row}'].font = Font(bold=True)
+                        if child.get('accledgers'):
+                            for accledger in child['accledgers']:
+                                row     = [accledger['name'],accledger['amount']]
+                                ws.append(row)
+                                current_row = ws.max_row
+            
+            ws.append(['Total Asset',request.session['total_asset']])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+
+
+            ws.append(['Liabilities',''])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+            for liability in request.session['liability_parent_account']:
+                
+                row = [liability['name'], liability['amount']]
+                ws.append(row)
+
+                # Get the current row number
+                current_row = ws.max_row
+
+                # Apply bold font to the cells in the current row
+                ws[f'A{current_row}'].font = Font(bold=True,size=14)
+
+                if liability.get('childs'):
+                    for child in liability['childs']:
+                        row = [child['name'],child['amount']]
+                        ws.append(row)
+                        current_row = ws.max_row
+
+                        # Apply bold font to the cells in the current row
+                        ws[f'A{current_row}'].font = Font(bold=True)
+                        if child.get('accledgers'):
+                            for accledger in child['accledgers']:
+                                row     = [accledger['name'],accledger['amount']]
+                                ws.append(row)
+                                current_row = ws.max_row
+            
+            ws.append(['Total Liabilities',request.session['total_liability']])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+
+            ws.append(['Reseve and Surplus',request.session['pandl']])
+            current_row = ws.max_row
+        
+            ws[f'A{current_row}'].font = Font(bold=True,size=14)
+            ws[f'A{current_row}'].alignment = alignment
+            
+
+            for col in ws.columns:
+                max_length = 0
+                column = col[0].column_letter  # Get the column name
+                for cell in col:
+                    try:  # Necessary to avoid error on empty cells
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = (max_length + 2) * 3  # Adjusting width
+                ws.column_dimensions[column].width = adjusted_width
+
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            report_name            = str(request.session['search_branch'])+" "+str(request.session['from_date'])+str(request.session['to_date'])
+            response['Content-Disposition'] = f'attachment; filename={report_name}.xlsx'
+            wb.save(response)
+            return response
+
+        
+        return render(request,'users/pages/report_balance_sheet.html',{'parent_account':parent_account,'liability_parent_account':liability_parent_account,'total_asset':total_asset,'total_liability':total_liability,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'pandl':pandl})
     else:
         return redirect('user-login')
 
@@ -21285,9 +22463,6 @@ def report_account_ledger(request):
                 data_to_display.extend([data_to_display_child])
 
 
-        print(data_to_display)
-        print("heyyy")
-
         request.session['data_to_display'] = data_to_display
         request.session['headings']         = headings
 
@@ -21374,7 +22549,13 @@ def get_AccountLedger_balance(request):
         branch_id               = getledger.branch_id 
         end_date                = request.POST.get('end','')
         start_date              = request.POST.get('start','')
+
+        voucher_type_ids        = voucher_type_data.objects.filter(name__in=['Proforma Invoice','Sales Quotation','Purchase Order','Sales Order','Purchase Quotation']).values_list('id', flat=True)
+        
         invoice_data_list       = invoice_data.objects.filter(latest=1,status="Approved")
+
+        if voucher_type_ids:
+            invoice_data_list   = invoice_data_list.exclude(voucher_type_id__in=voucher_type_ids)
         
 
         list_invoice_data   = invoice_data_list.filter(
