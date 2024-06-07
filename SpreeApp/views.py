@@ -37,9 +37,6 @@ from django.db.models import Q
 
 
 
-
-
-
 def download(session_query):
         
         wb      = openpyxl.Workbook()
@@ -1241,8 +1238,27 @@ def listUsers(request):
             selected_role       = 0
             selected_enitity    = 0
             search_user         = ''
+
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
             
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
             
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+            
+            branch_pks        = list(branch_list.values_list('pk',flat=True))
+            
+            user_list   = user_list.filter(branch_id__in=branch_pks)
 
             if 'search' in request.POST: 
                 selected_enitity        = int(request.POST.get('select_entity'))
@@ -1550,6 +1566,29 @@ def listAccountingGroup(request):
             search_name             = ''
             selected_group          = 0
 
+            listEntity              = entity_data.objects.all()
+            list_branch             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                list_branch         = branch_data.objects.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                list_branch         = list_branch.filter(pk__in=user_branches)
+                
+            branch_pks          = list(list_branch.values_list('pk',flat=True))
+            print("brachhh",branch_pks)
+            accounts_list       = accounts_list.filter(branch_id__in=branch_pks)
+            get_groups          = get_groups.filter(branch_id__in=branch_pks)
+
             if 'search' in request.POST:
                 selected_branch         = int(request.POST.get('select_branch'))
                 search_name             = request.POST.get('name')
@@ -1729,7 +1768,6 @@ def deleteAccountingGroup(request):
         return redirect('user-login')
 
 
-
 # @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def listAccountingLedger(request):
     if request.session.has_key('userId'):
@@ -1743,7 +1781,29 @@ def listAccountingLedger(request):
             search_name             = ''
             start_date              = ''
             end_date                = ''
+
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
             
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            listledger          = listledger.filter(branch_id__in=branch_pks)
+            
+            list_account_group  = list_account_group.filter(branch_id__in=branch_pks) 
 
             if 'search' in request.POST: 
                 selected_acc_group      = int(request.POST.get('select_acc_group'))
@@ -1804,6 +1864,7 @@ def listAccountingLedger(request):
 
     else:
         return redirect('user-login')
+
 
 
 
@@ -2289,6 +2350,29 @@ def listFinancialYear(request):
 
             selected_branch =0
             selected_status =1
+
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            get_data            = get_data.filter(branch_id__in=branch_pks)
+
+            
             
 
             if 'search' in request.POST: 
@@ -2802,15 +2886,34 @@ def listCustomer(request):
         
             customer_list           = customer_data.objects.all().order_by('-id')
             
-            customer_type_list      =customer_type.objects.all().order_by('id')
+            customer_type_list      = customer_type.objects.all().order_by('id')
             
-            selected_type           =0
-            search_name             =''
-            start_date              =''
-            end_date                =''
+            selected_type           = 0
+            search_name             = ''
+            start_date              = ''
+            end_date                = ''
 
+
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
             
-                    
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks        = list(branch_list.values_list('pk',flat=True))
+            customer_list   = customer_list.filter(branch_id__in=branch_pks)    
 
             if 'search' in request.POST: 
                 selected_type       = int(request.POST.get('selected_type'))
@@ -2822,12 +2925,9 @@ def listCustomer(request):
                         
             else:
                 selected_type       = int(request.GET.get('selected_type',0))
-                print(selected_type)
-                print("############")
                 search_name         = request.GET.get('name','') 
                 start_date          = request.GET.get('start','')
                 end_date            = request.GET.get('end','')
-
 
             if selected_type or search_name or start_date or end_date:    
                 if selected_type and search_name:     
@@ -2871,7 +2971,6 @@ def listCustomer(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
-
 
 
 
@@ -3297,6 +3396,27 @@ def listSupplier(request):
             name                =''
             start_date          =''
             end_date            =''
+
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            supplier_list       = supplier_list.filter(branch_id__in=branch_pks)
             
 
             if 'search' in request.POST: 
@@ -3355,7 +3475,6 @@ def listSupplier(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
-
 
 
 
@@ -4136,6 +4255,27 @@ def listGodown(request):
             branch_list         = branch_data.objects.all().order_by('-id')
             name                = ''
             selected_branch     = 0
+
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            get_data            = get_data.filter(branch_id__in=branch_pks)
             
             if 'search' in request.POST: 
                 name                        = request.POST.get('name')
@@ -4182,8 +4322,6 @@ def listGodown(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
-
-
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def addNewGodown(request):
@@ -4284,6 +4422,8 @@ def deleteGodown(request):
         return redirect('user-login')
 
 
+
+
 # @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def listRack(request):
     if request.session.has_key('userId'):
@@ -4297,6 +4437,27 @@ def listRack(request):
             search_name             =''
             selected_branch         =0
             selected_godown         =0
+
+            listEntity              = entity_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_list.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            get_data            = get_data.filter(branch_id__in=branch_pks)
+            godown_list         = godown_list.filter(branch_id__in=branch_pks)
 
             if 'search' in request.POST: 
                 selected_branch     = int(request.POST.get('selected_branch'))
@@ -4683,6 +4844,26 @@ def listPricingLevel(request):
             branch_list         = branch_data.objects.all().order_by('-id')
             name                =''
             selected_branch     =0
+
+            listEntity              = entity_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_list.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            get_data            = get_data.filter(branch_id__in=branch_pks)
             
 
             if 'search' in request.POST: 
@@ -4728,6 +4909,7 @@ def listPricingLevel(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def addNewPricingLevel(request):
@@ -4841,11 +5023,31 @@ def listProducts(request):
         if (role_permission['invendory_read'] or role_permission['invendory_write']):
             get_data            =  product_data.objects.all().order_by('-id')
             group_list          =  product_group_data.objects.all().order_by('-id')
-            branch_list         = branch_data.objects.all().order_by('-id')
             name                =''
             selected_group      =0
             start_date          =''
             end_date            =''
+
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_list.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            get_data            = get_data.filter(branch_id__in=branch_pks)
             
 
             if 'search' in request.POST:
@@ -4901,6 +5103,7 @@ def listProducts(request):
         
     else:
         return redirect('user-login')
+
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -5408,16 +5611,35 @@ def listVoucherSeries(request):
         if (role_permission['general_read'] or role_permission['general_write']):
             get_data            = voucher_series_data.objects.all().order_by('-id')
             voucher_type_list   =voucher_type_data.objects.filter(type_of_voucher=None).order_by('id')  
-            branch_list         =branch_data.objects.all().order_by('-id')
             search_name         =''
             selected_branch     =0
             selected_voucher    =0
+
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_list.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            get_data            = get_data.filter(branch_id__in=branch_pks)
 
             if 'search' in request.POST: 
                 selected_branch     = int(request.POST.get('selected_branch'))
                 search_name         = request.POST.get('name') 
                 selected_voucher    = int(request.POST.get('selected_type')) 
-                print(search_name,'helo',search_name) 
             else:
                 selected_branch     = int(request.GET.get('selected_branch',0))
                 search_name         = request.GET.get('name','') 
@@ -5447,7 +5669,6 @@ def listVoucherSeries(request):
                 elif  selected_voucher:   
                     get_data             = get_data.filter(voucher_type_id=selected_voucher).order_by('-id')
                     
-
                 else:      
                     get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
                                 
@@ -5910,6 +6131,27 @@ def listWareHouse(request):
             branch_list         = branch_data.objects.all().order_by('-id')
             name                = ''
             selected_branch     = 0
+
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            get_data            = get_data.filter(branch_id__in=branch_pks)
             
             if 'search' in request.POST: 
                 name                        = request.POST.get('name')
@@ -5955,7 +6197,6 @@ def listWareHouse(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
-
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -6079,7 +6320,27 @@ def listBatch(request):
             product_list    = product_data.objects.all()
             selected_product= 0
             name            = ''
-
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_list.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+            product_list        = product_list.filter(branch_id__in=branch_pks)
+            get_data            = get_data.filter(branch_id__in=branch_pks)
             if 'search' in request.POST: 
                 name                        = request.POST.get('name')
                 selected_product             = int(request.POST.get('selected_product')) 
@@ -6125,7 +6386,6 @@ def listBatch(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
-
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -22437,8 +22697,8 @@ def report_account_ledger(request):
                 data_to_display_child = []
                 description = row.description
                 reference       = row.voucher_number_appended
-                debit_account   = row.debit_ledger_id.name
-                credit_account  = row.credit_ledger_id.name
+                debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.name
+                credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.name
                 amount          = row.total_amount
                 
                 if not amount:
@@ -22894,15 +23154,33 @@ def downloadexcel(report_name,labels,row_get_data):
 
 import pdfkit
 def downloadpdf(report_name,labels,data_to_pass):
+    import os
+    css_path = os.path.join(os.path.dirname(__file__), 'style.css')
+    
+    # Read the CSS file content
+    with open(css_path) as css_file:
+        css_content = css_file.read()
     html_content =  f"""
                     <!DOCTYPE html>
                     <html>
                     <head>
                         <title>HTML to PDF</title>
+                        <style>
+                            {css_content}
+                        </style>
+                        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+        <style>
+            body {{
+                font-family: 'Playfair Display', serif;
+            }}
+        </style>
+
                     </head>
-                    <body>
+                    <body >
                         <h1>{report_name}!</h1>
-                        <table border='1'><tr>
+                        <table class="border" border="1"><tr>
                         """
 
                     # Iterating over the list to include each item in HTML content
