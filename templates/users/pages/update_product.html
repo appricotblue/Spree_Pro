@@ -292,7 +292,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Tax</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="tax_id">
+                                    <select class="js-example-basic-single w-100 tax" name="tax_id">
                                         <option value="" disabled selected>Select Tax</option>
                                         {% for x in list_tax %}
                                         <option value="{{x.id}}" {% if x.id|slugify == get_data.tax_id.id|slugify %} selected {% endif %}>{{x.tax}}</option>
@@ -380,6 +380,57 @@
                 }
             });
         });
+
+        $(document).on('change', '.branch', function(event){
+            var branch_id = $(this).val();
+            console.log(branch_id)
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-Godowns' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch_id': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var godwons        = data.godowns;
+                    console.log(godwons)
+                    var rackSelect    = $('.rack');
+                    rackSelect.empty();  // Clear previous options
+                    var godwonSelect    = $('.godown_data');
+                    godwonSelect.empty();  // Clear previous options
+                    $.each(godwons, function (index, godwon) {
+                        godwonSelect.append('<option value="' + godwon.id + '">' + godwon.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-tax-data' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch_id': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var tax        = data.tax;
+                    var taxSelect    = $('.tax');
+                    taxSelect.empty();  // Clear previous options
+                    $.each(tax, function (index, tax) {
+                        taxSelect.append('<option value="' + tax.id + '">' + tax.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+
+        });
+
+
     });
 </script>
 

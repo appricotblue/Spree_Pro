@@ -34,10 +34,7 @@ def getCommonData(request):
                     })
                 
 
-                    
-
-
-
+                
     return {'common_user_data':common_user_data,'common_entities':all_entities}       
 
 

@@ -6,6 +6,7 @@ from django.conf import settings
 urlpatterns = [
     path('', views.userLogin ,name='user-login'),
     path('user-logout/', views.userLogout ,name='user-logout'),
+    path('update-user-profile',views.updateUserProfile,name='update-user-profile'),
 
     path('user-dashboard/', views.userDashboard ,name='user-dashboard'),
     
@@ -44,6 +45,7 @@ urlpatterns = [
     path('add-user/', views.addNewUser ,name='add-user'),
     path('update-user/', views.updateUser ,name='update-user'),
     path('delete-user/', views.deleteUser ,name='delete-user'),
+    
 
     path('list-user-role-permissions/', views.listUserRolePermissions ,name='list-user-role-permissions'),
     path('update-user-role-permission/', views.updateUserRolePermission ,name='update-user-role-permission'),
@@ -57,6 +59,7 @@ urlpatterns = [
     path('add-accounting-group/', views.addNewAccountingGroup ,name='add-accounting-group'),
     path('update-accounting-group/', views.updateAccountingGroup ,name='update-accounting-group'),
     path('delete-accounting-group/', views.deleteAccountingGroup ,name='delete-accounting-group'),
+    path('get-accounting-group',views.getAccountingGroup,name='get-accounting-group'),
 
     path('list-accounting-ledger/', views.listAccountingLedger ,name='list-accounting-ledger'),
     path('add-accounting-ledger/', views.addNewAccountingLedger ,name='add-accounting-ledger'),
@@ -137,6 +140,7 @@ urlpatterns = [
     path('update-godown/', views.updateGodown ,name='update-godown'),
     path('delete-godown/', views.deleteGodown ,name='delete-godown'),
     path('get-godowns/',views.get_godowns,name='get-godowns'),
+    path('get-Godowns',views.getGodowns,name='get-Godowns'),
 
 
 
@@ -163,11 +167,14 @@ urlpatterns = [
     path('update-tax-data/', views.updateTaxData ,name='update-tax-data'),
     path('delete-tax-data/', views.deleteTaxData ,name='delete-tax-data'),
 
+    path('get-tax-data/', views.gettax ,name='get-tax-data'),
 
     path('list-product/', views.listProducts ,name='list-product'),
     path('add-product/', views.addNewProduct ,name='add-product'),
     path('update-product/', views.updateProduct ,name='update-product'),
     path('delete-product/', views.deleteProduct ,name='delete-product'),
+    path('get-product',views.getproducts,name='get-product'),
+
 
 
     path('list-voucher-type/', views.listVoucherType ,name='list-voucher-type'),

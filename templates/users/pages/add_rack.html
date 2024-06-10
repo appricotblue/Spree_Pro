@@ -44,7 +44,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Godown</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="godown_id" required>
+                                    <select class="js-example-basic-single w-100 godwons" name="godown_id" required>
                                         <option value="" disabled selected>Select Godown</option>
                                         {% for x in godown_list %}
                                         <option value="{{x.id}}">{{x.name}}</option>
@@ -105,6 +105,39 @@
                 }
             });
         });
+
+        $(document).on('change', '.branch', function(event){
+            var branch_id = $(this).val();
+            console.log(branch_id)
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-Godowns' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch_id': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var godwons        = data.godowns;
+                    console.log(godwons)
+                    var godwonSelect    = $('.godwons');
+
+                    godwonSelect.empty();  // Clear previous options
+                    godwonSelect.append('<option value="" disabled selected>Select Godwon</option>');
+                    $.each(godwons, function (index, godwon) {
+                        godwonSelect.append('<option value="' + godwon.id + '">' + godwon.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+
+
+
+
+
     });
 </script>
 {% endblock %}

@@ -1,0 +1,151 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+<style>
+    .input-group-append{
+        margin-top: -36px;
+        margin-left: 250px !important;
+    }
+    .select2-selection__choice{
+        color: black;
+    }
+
+    
+    
+
+</style>
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <div>
+                    {% if messages %}
+                        {% for message in messages %}
+                            {% if message.tags == 'error' %}
+                            <div class="alert {% if message.tags %}alert-danger{% endif %}" role="alert">{{ message }}</div>
+                            {% else %}
+                            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+
+                <h4 class="card-title">Update User</h4>
+                <p class="card-description">
+                Update user from here
+                </p>
+                <form class="forms-sample" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="id" value="{{get_user_data.id}}">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{get_user_data.name}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Email</label>
+                                <div class="col-sm-9">
+                                    <input type="email" class="form-control" id="exampleInputName1" placeholder="Email" name="email" value="{{get_user_data.email}}" required readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">User Role</label>
+                                <div class="col-sm-9">
+                                    <input type="text" {%if get_user_data.user_role_id %} value="{{get_user_data.user_role_id.role}}" {% else %} value="Spree Admin" {% endif %} readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-multiple w-100 entity_data" name="entity_ids[]" multiple  >
+                                        <option value="" disabled>Select Entity</option>
+                                        {% for x in list_entity %}
+                                        <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Branch</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-multiple w-100 branch"  name="branch_ids[]" multiple >
+                                        <option value="" disabled>Select Branch</option>
+                                        {% for x in list_branch %}
+                                        <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <p class="mb-3">
+                                    {% if get_user_data.profile_image %}
+                                    <img src="{{get_user_data.profile_image.url}}" height="auto" data-enlargeable width="100" style="cursor: zoom-in">
+                                    {% endif %}
+                                </p>
+                                <label class="col-sm-3 col-form-label">Profile Image</label>
+                                <div class="col-sm-9">
+                                    <input type="file" name="image" class="file-upload-default" id="image">
+                                    <div class="input-group col-xs-12">
+                                        <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Profile Image" style="height: 45px;">
+                                        <span class="input-group-append">
+                                        <button class="file-upload-browse btn btn-primary btn-sm" type="button">Upload</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary me-2">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.entity_data', function(event){
+            var entity_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-entity-branch' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'entity_id': entity_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var branches        = data.branches;
+                    var branchSelect    = $('.branch');
+                    branchSelect.empty();  // Clear previous options
+                    branchSelect.append('<option value="" disabled>Select Branch</option>');
+                    $.each(branches, function (index, branch) {
+                        branchSelect.append('<option value="' + branch.id + '">' + branch.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

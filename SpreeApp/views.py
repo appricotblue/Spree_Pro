@@ -107,6 +107,8 @@ state_list=[
       {"name": "Puducherry", "id": "34"}
     ]
 
+
+
 # Create your views here.
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def userLogin(request): ##admin users
@@ -179,6 +181,80 @@ def userforgot_password(request): ##admin users
             return redirect('user-dashboard')
         else:
             return render(request,'users/pages/forgot_password.html')
+
+
+
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def updateUserProfile(request):
+    if request.session.has_key('userId'):
+        get_role_permission     = getUserPermissions(request)
+        role_permission         = get_role_permission['all_user_role_permission']
+
+        if (role_permission['users_write']):
+            if request.method=="POST":
+                user_id             = request.POST['id']
+                name                = request.POST['name']
+                email               = request.POST['email']
+                
+                image_file          = imgForm(request.POST,request.FILES)
+                now                 = datetime.now()
+                
+                if image_file.is_valid():
+                    image                   = image_file.cleaned_data['image']
+                    mymodel                 = user_data.objects.get(id=user_id)
+                    mymodel.profile_image   = image
+                    mymodel.save()
+
+
+                user_data.objects.all().filter(id=request.session.get('userId')).update(name=name,email=email,updated_at=now)
+
+                messages.success(request, 'Changes successfully updated.')
+                return redirect('update-user-profile')
+            else:
+                
+                
+                get_user_data       = user_data.objects.get(id=request.session.get('userId'))
+
+                list_branch         = branch_data.objects.all()
+                list_entity         = entity_data.objects.all()
+
+                all_entities        = []
+                if get_user_data.entity_id:
+                    get_entity_ids      = get_user_data.entity_id.split(',')
+                
+                    for entity in list_entity:
+                        selected        = ''
+                        if  str(entity.id) in get_entity_ids:
+                            selected    = 'selected'
+                        
+                            all_entities.append({
+                                'id'        : entity.id,
+                                'name'      : entity.name,
+                                'selected'  : selected
+                            })
+
+
+                all_branches        = []
+                if get_user_data.branch_id:
+                    get_branch_ids      = get_user_data.branch_id.split(',')
+                
+                for branch in list_branch:
+                    selected        = ''
+                    if  str(branch.id) in get_branch_ids:
+                        selected    = 'selected'
+                    
+                        all_branches.append({
+                            'id'        : branch.id,
+                            'name'      : branch.name,
+                            'selected'  : selected
+                        })
+
+                return render(request,'users/pages/update_userprofile.html',{'list_branch' : all_branches,'get_user_data':get_user_data,'list_entity':all_entities})
+        else:
+            raise Http404("Access to this is not permitted")
+    else:
+        return redirect('user-login')
+
 
 
 # Create your views here.
@@ -685,6 +761,31 @@ def deleteEntity(request):
 
 
 
+def userdetail(id):
+    list_entity              = entity_data.objects.all()
+    list_branch             = branch_data.objects.all()
+    user_details            = user_data.objects.get(id=id)
+    user_entity             = user_details.entity_id
+    if user_entity:
+        user_entities       = user_details.entity_id.split(',')  
+        list_entity         = list_entity.filter(pk__in=user_entities)
+        enitity_pks         = list(list_entity.values_list('pk',flat=True))
+        list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+    
+    user_branch             = user_details.branch_id
+    
+    if user_branch:
+        user_branches       = user_details.branch_id.split(',')
+        list_branch         = list_branch.filter(pk__in=user_branches)
+
+    
+    if user_details.default_entity_id:
+        list_branch     = list_branch.filter(entity_id=user_details.default_entity_id.id)
+
+    branch_pks          = list(list_branch.values_list('pk',flat=True))
+    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+
+    return (list_branch,list_entity,enitity_pks,branch_pks)
 
 # @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def listBanch(request):
@@ -697,6 +798,9 @@ def listBanch(request):
         search_branch_name      = ''
         user_details            = user_data.objects.get(id=request.session.get('userId'))
 
+        # list_branch,list_entity,enitity_pks,branch_pks            = userdetail(request.session.get('userId'))  
+        # print(branch_pks)
+       
         user_entity             = user_details.entity_id
         if user_entity:
             user_entities       = user_details.entity_id.split(',')
@@ -762,7 +866,6 @@ def get_entity_gst(request):
 
     gst        = entity.gst
     
-
     return JsonResponse({'gst': gst})
 
 
@@ -809,7 +912,13 @@ def addNewBranch(request):
             messages.success(request, 'Successfully added.')
             return redirect('list-branch')
         else:
-            get_entity      = entity_data.objects.all()
+            get_entity              = entity_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',') 
+                get_entity         = get_entity.filter(pk__in=user_entities)
+  
 
             latest_id       = 1 if not branch_data.objects.all().exists() else int(branch_data.objects.latest('id').id) + 1
             get_series      = series_data.objects.get(type="Branch")
@@ -851,12 +960,21 @@ def updateBranch(request):
         else:
             entity_id       = request.GET['id']
             get_branch_data = branch_data.objects.get(id=entity_id)
-            get_entity_data = entity_data.objects.all()
+
+            get_entity_data         = entity_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities           = user_details.entity_id.split(',') 
+                get_entity_data         = get_entity_data.filter(pk__in=user_entities)
+
+
             gst_treatment_list  = gst_treatment_data.objects.all()
             
             return render(request,'users/pages/update_branch.html',{'gst_treatment_list':gst_treatment_list,'entity_data' : get_entity_data,'get_branch_data':get_branch_data,'state_list':state_list})
     else:
         return redirect('user-login')
+
 
 
 
@@ -1329,7 +1447,6 @@ def addNewUser(request):
 
         if (role_permission['users_write']):
             if request.method=="POST":
-                
                 name                = request.POST['name']
                 email               = request.POST['email']
                 user_role_id        = request.POST['user_role_id']
@@ -1353,8 +1470,8 @@ def addNewUser(request):
                 random_string       = ''.join(secrets.choice(characters) for _ in range(8))
 
                 password            = random_string
-
                 hash_password       = make_password(password)
+                
                 profile_image       = None
 
                 if image_file.is_valid():
@@ -1370,8 +1487,25 @@ def addNewUser(request):
                 messages.success(request, 'Successfully added.')
                 return redirect('list-user')
             else:
-                list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all()
+                list_entity              = entity_data.objects.all()
+                list_branch             = branch_data.objects.all()
+                user_details            = user_data.objects.get(id=request.session.get('userId'))
+                user_entity             = user_details.entity_id
+                if user_entity:
+                    user_entities       = user_details.entity_id.split(',')
+                    
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = user_details.branch_id
+                
+                if user_branch:
+                    user_branches       = user_details.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+                    
+
                 get_user_roles      = user_roles.objects.all().exclude(role="Super Admin")
                 return render(request,'users/pages/add_user.html',{'list_branch' : list_branch,'get_user_roles':get_user_roles,'list_entity':list_entity})
         else:
@@ -1460,9 +1594,32 @@ def updateUser(request):
                 user_id             = request.GET['id']
                 list_entity         = entity_data.objects.all()
                 list_branch         = branch_data.objects.all()
+
+                user_details            = user_data.objects.get(id=request.session.get('userId'))
+                user_entity             = user_details.entity_id
+                if user_entity:
+                    user_entities       = user_details.entity_id.split(',')
+                    
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = user_details.branch_id
+                
+                if user_branch:
+                    user_branches       = user_details.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+
+
                 get_user_roles      = user_roles.objects.all().exclude(role="Super Admin")
 
                 get_user_data       = user_data.objects.get(id=user_id)
+
+                list_branch         = list_branch.filter(entity_id=get_user_data.entity_id)
+
 
                 get_entity_ids      = get_user_data.entity_id.split(',')
                 get_branch_ids      = get_user_data.branch_id.split(',')
@@ -1497,6 +1654,7 @@ def updateUser(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 
@@ -1658,6 +1816,7 @@ def listAccountingGroup(request):
 
 
 
+
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def addNewAccountingGroup(request):
     if request.session.has_key('userId'):
@@ -1665,7 +1824,6 @@ def addNewAccountingGroup(request):
         role_permission         = get_role_permission['all_user_role_permission']
 
         if (role_permission['accounting_write']):
-
             if request.method=="POST":
                 entity_id           = request.POST['entity_id']
                 entity_id           = entity_data.objects.get(id=entity_id)
@@ -1675,29 +1833,52 @@ def addNewAccountingGroup(request):
                 nature              = request.POST.get('nature')
                 description         = request.POST.get('description')
                 affect_gross_profit = request.POST.get('affect_gross_profit')
+                default             = True if request.POST.get('default') == 'true' else False
                 now                 = datetime.now()
 
                 branch_id           = None if not branch_id else branch_data.objects.get(id=branch_id)
                 
 
-                insert_data         = accounting_group_data(entity_id=entity_id,branch_id=branch_id,name=name,under_group=under_group,nature=nature,description=description,affect_gross_profit=affect_gross_profit,created_at=now,updated_at=now)
+                insert_data         = accounting_group_data(entity_id=entity_id,branch_id=branch_id,name=name,under_group=under_group,nature=nature,description=description,affect_gross_profit=affect_gross_profit,is_default=default,created_at=now,updated_at=now)
                 insert_data.save()
 
                 messages.success(request, 'Successfully added.')
                 return redirect('list-accounting-group')
             else:
+                
                 list_entity         = entity_data.objects.all()
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
+                list_branch             = branch_data.objects.all()
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+                list_pricing_level  =[]
+
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
 
-                list_all_group  = accounting_group_data.objects.all()
+                branch_pks        = list(list_branch.values_list('pk',flat=True))
 
-                return render(request,'users/pages/add_accounting_group.html',{'list_entity':list_entity,'list_branch':list_branch,'list_all_group':list_all_group})
+                list_all_group      = accounting_group_data.objects.filter(branch_id__in=branch_pks)
+
+                return render(request,'users/pages/add_accounting_group.html',{'list_entity':list_entity,'list_branch':list_branch,'list_all_group':list_all_group,'get_user_data':get_user_data})
         else:
             raise Http404("Access to this is not permitted") 
     else:
@@ -1723,9 +1904,10 @@ def updateAccountingGroup(request):
                 nature              = request.POST.get('nature')
                 description         = request.POST.get('description')
                 affect_gross_profit = request.POST.get('affect_gross_profit')
+                default             = True if request.POST.get('default') == 'true' else False
                 now                 = datetime.now()
             
-                accounting_group_data.objects.filter(id=group_id).update(entity_id=entity_id,branch_id=branch_id,name=name,under_group=under_group,nature=nature,description=description,affect_gross_profit=affect_gross_profit,updated_at=now)
+                accounting_group_data.objects.filter(id=group_id).update(entity_id=entity_id,branch_id=branch_id,name=name,under_group=under_group,nature=nature,description=description,affect_gross_profit=affect_gross_profit,is_default=default,updated_at=now)
 
                 messages.success(request, 'Changes successfully updated.')
                 return redirect('list-accounting-group')
@@ -1734,16 +1916,64 @@ def updateAccountingGroup(request):
                 group_data          = accounting_group_data.objects.get(id=group_id)
                 print(group_data.entity_id)
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=group_data.entity_id)
-                list_all_group      = accounting_group_data.objects.all().exclude(id=group_id)
+
+                list_entity         = entity_data.objects.all()
+                list_branch         = branch_data.objects.all()
                 
-                return render(request,'users/pages/update_accounting_group.html',{'group_data' : group_data,'list_entity':list_entity,'list_branch':list_branch,'list_all_group':list_all_group})
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+                list_branch         = list_branch.filter(entity_id=group_data.entity_id)
+
+                branch_pks        = list(list_branch.values_list('pk',flat=True))
+
+                list_all_group      = accounting_group_data.objects.filter(branch_id__in=branch_pks)
+                list_all_group      = accounting_group_data.objects.all().exclude(id=group_id)
+
+                
+                return render(request,'users/pages/update_accounting_group.html',{'group_data' : group_data,'list_entity':list_entity,'list_branch':list_branch,'list_all_group':list_all_group,'get_user_data':get_user_data})
         else:
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
 
 
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def getAccountingGroup(request):
+    if request.session.has_key('userId'):
+
+        branch_id   = request.POST['branch']
+
+        list_all_group      = accounting_group_data.objects.filter(Q(branch_id=branch_id) | Q(is_default=1) )
+
+        group_list  = []
+        if list_all_group:
+            for group in list_all_group:
+                group_list.append({
+                    "id":group.id,
+                    "name":group.name
+                })
+        return JsonResponse({'group_list':group_list})
+
+    else:
+        return redirect('admin-login')
+        
+    
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def deleteAccountingGroup(request):
@@ -2090,15 +2320,35 @@ def addNewAccountingLedger(request):
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
-                if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                    if list_branch:
-                        list_branch_ids     = list_branch.values_list('id', flat=True)
-                        list_pricing_level  =  pricing_level_data.objects.filter(branch_id__in=list_branch_ids)
-                else:
-                    list_branch         = branch_data.objects.all()
-                    list_pricing_level  = pricing_level_data.objects.all()
+                list_branch             = branch_data.objects.all()
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
 
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+                list_pricing_level  =[]
+
+                if get_user_data.default_entity_id:
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+
+                if list_branch:
+                    list_branch_ids     = list_branch.values_list('id', flat=True)
+                    list_pricing_level  =  pricing_level_data.objects.filter(branch_id__in=list_branch_ids)
+
+        
 
                 list_customer_type  = customer_type.objects.all()
                 list_location       = location_data.objects.all()
@@ -2108,7 +2358,7 @@ def addNewAccountingLedger(request):
 
                 # customer_code       = get_series.pre_text+str(latest_id)+get_series.post_text
 
-                list_all_group      = accounting_group_data.objects.all()
+                list_all_group      = accounting_group_data.objects.filter(Q(branch_id__in=list_branch_ids) | Q(is_default=1) )
 
                 # additional
                 list_supplier_type  = supplier_type.objects.all()
@@ -2279,28 +2529,50 @@ def updateAccountingLedger(request):
                 get_data            = accounting_ledger_data.objects.get(id=get_id)
                 customer_get_data   = None
                 supplier_get_data   = None
+
+                list_entity         = entity_data.objects.all()
                 list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+
+
+
                 commondata          = None
                 if get_data.customer_id:
                     customer_get_data   = customer_data.objects.get(id=get_data.customer_id.id)
-                    list_branch         = branch_data.objects.filter(entity_id=get_data.customer_id.entity_id)
                     commondata          = customer_get_data
                 
                 if get_data.supplier_id:
                     supplier_get_data   = supplier_data.objects.get(id=get_data.supplier_id.id)
-                    list_branch         = branch_data.objects.filter(entity_id=get_data.supplier_id.entity_id)
                     commondata          = supplier_get_data
                 
 
 
-                list_entity         = entity_data.objects.all()
                 list_customer_type      = customer_type.objects.all()
                 list_supplier_type      = supplier_type.objects.all()
 
                 list_location           = location_data.objects.all()
 
-                list_all_group          = accounting_group_data.objects.all()
+                list_all_group      = accounting_group_data.objects.filter(Q(branch_id=get_data.branch_id) | Q(is_default=1) )
 
+                list_pricing_level  =[]
                 # additional
                 if list_branch:
                     list_pricing_level  =  pricing_level_data.objects.filter(branch_id=get_data.branch_id)
@@ -2312,6 +2584,7 @@ def updateAccountingLedger(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -2408,6 +2681,7 @@ def listFinancialYear(request):
 
 
 
+
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def addNewFinancialYear(request):
     if request.session.has_key('userId'):
@@ -2432,15 +2706,33 @@ def addNewFinancialYear(request):
                 messages.success(request, 'Successfully added.')
                 return redirect('list-financial-year')
             else:
-                list_branch     = branch_data.objects.all()
+
                 list_entity         = entity_data.objects.all()
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
+                list_branch             = branch_data.objects.all()
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+
+                
                 return render(request,'users/pages/add_financial_year.html',{'list_entity':list_entity,'list_branch':list_branch})
         else:
             raise Http404("Access to this is not permitted")
@@ -2455,7 +2747,7 @@ def updateFinancialYear(request):
         get_role_permission     = getUserPermissions(request)
         role_permission         = get_role_permission['all_user_role_permission']
 
-        if (role_permission['accounting_write']):    
+        if (role_permission['accounting_write']): 
             if request.method=="POST":
                 entity_id           = request.POST['entity_id']
                 entity_id           = entity_data.objects.get(id=entity_id)
@@ -2477,9 +2769,30 @@ def updateFinancialYear(request):
             else:
                 get_id          = request.GET['id']
                 get_data        = financial_year_data.objects.get(id=get_id)
+
+
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
-                print(list_branch)
+
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch         = list_branch.filter(entity_id=get_data.entity_id)
                 
                 return render(request,'users/pages/update_financial_year.html',{'get_data' : get_data,'list_branch':list_branch,'list_entity':list_entity})
         else:
@@ -2487,7 +2800,6 @@ def updateFinancialYear(request):
     
     else:
         return redirect('user-login')
-
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -3064,20 +3376,39 @@ def addNewCustomer(request):
                 messages.success(request, 'Successfully added.')
                 return redirect('list-customer')
             else:
-                list_entity         = entity_data.objects.all()
+                list_entity             = entity_data.objects.all()
+                list_branch             = branch_data.objects.all()
+                user_details            = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = user_details.entity_id
+                if user_entity:
+                    user_entities       = user_details.entity_id.split(',')
+                    
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = user_details.branch_id
+                
+                if user_branch:
+                    user_branches       = user_details.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
 
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                    if list_branch:
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+
+                if list_branch:
                         list_branch_ids     = list_branch.values_list('id', flat=True)
                         list_pricing_level  =  pricing_level_data.objects.filter(branch_id__in=list_branch_ids)
-
                 else:
-                    list_branch     = branch_data.objects.all()
-                    list_pricing_level  = pricing_level_data.objects.all()
+                    list_pricing_level  =  []
+
 
                 list_customer_type  = customer_type.objects.all()
                 list_location       = location_data.objects.all()
@@ -3089,11 +3420,15 @@ def addNewCustomer(request):
 
                 gst_treatment_list  = gst_treatment_data.objects.all()
 
+
+
                 return render(request,'users/pages/add_customer.html',{'gst_treatment_list':gst_treatment_list,'list_pricing_level':list_pricing_level,'list_entity':list_entity,'list_branch':list_branch,'list_customer_type':list_customer_type,'list_location':list_location,'customer_code':customer_code,'state_list':state_list})
         else:
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
+
 
 
 
@@ -3146,8 +3481,6 @@ def updateCustomer(request):
 
                 
                 gst_treatment   = None if not gst_treatment else gst_treatment_data.objects.get(id=gst_treatment)
-                print("&&&&&&&&&&")
-                print(gst_treatment)
 
                 update_data         = customer_data.objects.all().filter(id=get_id).update(
                                             entity_id           = entity_id,
@@ -3189,18 +3522,33 @@ def updateCustomer(request):
             else:
                 get_id              = request.GET['id']
                 get_data            = customer_data.objects.get(id=get_id)
-                list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+
+                list_entity             = entity_data.objects.all()
+                list_branch             = branch_data.objects.all()
+                user_details            = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = user_details.entity_id
+                if user_entity:
+                    user_entities       = user_details.entity_id.split(',')
+                    
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = user_details.branch_id
+                
+                if user_branch:
+                    user_branches       = user_details.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch             = list_branch.filter(entity_id=get_data.entity_id)
                 list_customer_type  = customer_type.objects.all()
                 list_location       = location_data.objects.all()
-
-                user_id             = request.session.get('userId')
-                get_user_data       = user_data.objects.get(id=user_id)
-
                 
                 # additional
-                if list_branch:
-                    list_pricing_level  =  pricing_level_data.objects.filter(branch_id=get_data.branch_id)
+                
+                list_pricing_level  =  pricing_level_data.objects.filter(branch_id=get_data.branch_id)
                 
                 account_ledger          = None
                 account_ledger          = accounting_ledger_data.objects.filter(customer_id=get_id)
@@ -3215,7 +3563,6 @@ def updateCustomer(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
-
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -3478,6 +3825,7 @@ def listSupplier(request):
 
 
 
+
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def addNewSupplier(request):
     if request.session.has_key('userId'):
@@ -3568,18 +3916,36 @@ def addNewSupplier(request):
             else:
                 list_entity         = entity_data.objects.all()
 
-                user_id             = request.session.get('userId')
-                get_user_data       = user_data.objects.get(id=user_id)
+                list_branch             = branch_data.objects.all()
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+
+                list_pricing_level  =[]
 
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                    if list_branch:
-                        list_branch_ids     = list_branch.values_list('id', flat=True)
-                        list_pricing_level  =  pricing_level_data.objects.filter(branch_id__in=list_branch_ids)
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
 
-                else:
-                    list_branch     = branch_data.objects.all()
-                    list_pricing_level  = pricing_level_data.objects.all()
+                if list_branch:
+                    list_branch_ids     = list_branch.values_list('id', flat=True)
+                    list_pricing_level  =  pricing_level_data.objects.filter(branch_id__in=list_branch_ids)
+
+                
 
                 list_supplier_type  = supplier_type.objects.all()
                 list_location       = location_data.objects.all()
@@ -3690,8 +4056,32 @@ def updateSupplier(request):
             else:
                 get_id              = request.GET['id']
                 get_data            = supplier_data.objects.get(id=get_id)
+
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id_id)
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+                list_pricing_level  =[]
+
+                list_branch             = list_branch.filter(entity_id=get_data.entity_id)
+
                 list_supplier_type  = supplier_type.objects.all()
                 list_location       = location_data.objects.all()
 
@@ -3712,6 +4102,7 @@ def updateSupplier(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 
@@ -4323,6 +4714,8 @@ def listGodown(request):
     else:
         return redirect('user-login')
 
+
+
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def addNewGodown(request):
     if request.session.has_key('userId'):
@@ -4350,10 +4743,28 @@ def addNewGodown(request):
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
+                list_branch             = branch_data.objects.all()
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+
+
 
                 return render(request,'users/pages/add_godown.html',{'list_branch':list_branch,'list_entity':list_entity})
         else:
@@ -4387,15 +4798,36 @@ def updateGodown(request):
             else:
                 get_id      = request.GET['id']
                 get_data    = godown_data.objects.get(id=get_id)
+
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+
+                list_branch         = branch_data.objects.all()
                 
-                list_branch = branch_data.objects.all()
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch             = list_branch.filter(entity_id=get_data.entity_id)
+
                 return render(request,'users/pages/update_godown.html',{'get_data' : get_data,'list_branch':list_branch,'list_entity':list_entity})
         else:
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 
@@ -4600,17 +5032,36 @@ def addNewRack(request):
                 messages.success(request, 'Successfully added.')
                 return redirect('list-rack')
             else:
-                list_branch     = branch_data.objects.all()
-                godown_list     = godown_data.objects.all()
-                list_entity         = entity_data.objects.all()
-
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
-                if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                
+                list_branch             = branch_data.objects.all()
 
+                list_entity             = entity_data.objects.all()
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+                if get_user_data.default_entity_id:
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+
+                branch_pks          = list(list_branch.values_list('pk', flat=True))
+                godown_list     = godown_data.objects.filter(branch_id__in=branch_pks)
+
+            
                 return render(request,'users/pages/add_rack.html',{'list_branch':list_branch,'godown_list':godown_list,'list_entity':list_entity})
         else:
             raise Http404("Access to this is not permitted")
@@ -4644,10 +5095,32 @@ def updateRack(request):
             else:
                 get_id      = request.GET['id']
                 get_data    = rack_data.objects.get(id=get_id)
-                
-                list_godown = godown_data.objects.all()
+
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch             = list_branch.filter(entity_id=get_data.entity_id)
+
+                list_godown             = godown_data.objects.filter(branch_id=get_data.branch_id)
+
 
                 return render(request,'users/pages/update_rack.html',{'get_data' : get_data,'list_branch':list_branch,'list_godown':list_godown,'list_entity':list_entity})
         else:
@@ -4941,10 +5414,25 @@ def addNewPricingLevel(request):
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
+                list_branch             = branch_data.objects.all()
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
 
                 return render(request,'users/pages/add_pricing_level.html',{'list_branch':list_branch,'list_entity':list_entity})
         else:
@@ -4980,14 +5468,38 @@ def updatePricingLevel(request):
             else:
                 get_id              = request.GET['id']
                 get_data            = pricing_level_data.objects.get(id=get_id)
+
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch             = list_branch.filter(entity_id=get_data.entity_id)
+
+
 
                 return render(request,'users/pages/update_pricing_level.html',{'get_data' : get_data,'list_branch':list_branch,'list_entity':list_entity})
         else:
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -5199,28 +5711,48 @@ def addNewProduct(request):
                 messages.success(request, 'Successfully added.')
                 return redirect('list-product')
             else:
-                list_branch         = branch_data.objects.all()
                 list_product_group  = product_group_data.objects.all()
                 list_brand          = brand_data.objects.all()
                 list_unit           = unit_data.objects.all()
                 list_size           = size_data.objects.all()
                 list_model_numbers  = model_number_data.objects.all()
-                list_godown         = godown_data.objects.all()
-                list_rack           = rack_data.objects.all()
-                list_warehouse      = warehouse_data.objects.all()
-                list_tax            = tax_data.objects.all()
+                
 
                 latest_id           = 1 if not product_data.objects.all().exists() else int(product_data.objects.latest('id').id)+1
                 get_series          = series_data.objects.get(type="Product")
 
                 product_code        = get_series.pre_text+str(latest_id)+get_series.post_text
-                list_entity         = entity_data.objects.all()
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
-                if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                
 
+                list_branch             = branch_data.objects.all()
+                list_entity             = entity_data.objects.all()
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+                if get_user_data.default_entity_id:
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+                
+                branch_pks          = list(list_branch.values_list('pk',flat=True))
+
+                list_rack           = rack_data.objects.filter(branch_id__in=branch_pks)
+                list_godown         = godown_data.objects.filter(branch_id__in=branch_pks)
+                list_warehouse      = warehouse_data.objects.filter(branch_id__in=branch_pks)
+                list_tax            = tax_data.objects.filter(branch_id__in=branch_pks)
+                
                 return render(request,'users/pages/add_product.html',{'list_entity':list_entity,'list_branch':list_branch,'list_brand':list_brand,'list_product_group':list_product_group,'list_unit':list_unit,'list_size':list_size,'list_model_numbers':list_model_numbers,'list_godown':list_godown,'list_rack':list_rack,'list_warehouse':list_warehouse,'product_code':product_code,'list_tax':list_tax})
         else:
             raise Http404("Access to this is not permitted")
@@ -5284,9 +5816,7 @@ def updateProduct(request):
                 product_type        = request.POST.get('product_type')
                 hsn                 = request.POST.get('hsn')
                 sac                 = request.POST.get('sac')
-                print(hsn)
-                print(sac)
-                print("*******")
+                
 
                 update_data         = product_data.objects.all().filter(id=get_id).update(
                                         entity_id       = entity_id,
@@ -5330,16 +5860,52 @@ def updateProduct(request):
                 list_unit           = unit_data.objects.all()
                 list_size           = size_data.objects.all()
                 list_model_numbers  = model_number_data.objects.all()
-                list_warehouse      = warehouse_data.objects.all()
-                list_tax            = tax_data.objects.all()
+                
+
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
 
-                list_godown         = godown_data.objects.all()
-                list_rack           = rack_data.objects.all()
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
 
-                get_godown_ids      = get_data.godown_id.split(',')
-                get_rack_ids        = get_data.rack_id.split(',')
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch             = list_branch.filter(entity_id=get_data.entity_id)
+
+                branch_pks          = list(list_branch.values_list('pk',flat=True))
+
+                list_rack           = rack_data.objects.filter(branch_id__in=branch_pks)
+                list_godown         = godown_data.objects.filter(branch_id__in=branch_pks)
+                list_warehouse      = warehouse_data.objects.filter(branch_id__in=branch_pks)
+                list_tax            = tax_data.objects.filter(branch_id__in=branch_pks)
+
+
+
+
+                get_godown_ids      = get_data.godown_id
+                if get_godown_ids:
+                    get_godown_ids= get_godown_ids.split(',')
+                else:
+                    get_godown_ids  = []
+                get_rack_ids        = get_data.rack_id
+                if get_rack_ids:
+                    get_rack_ids    = get_rack_ids.split(',')
+                else:
+                    get_rack_ids    =[]
+
 
                 all_godown          = []
                 for godown in list_godown:
@@ -5483,6 +6049,56 @@ def listVoucherType(request):
         return redirect('user-login')
 
 
+
+
+
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def getGodowns(request):
+    branch_id       = request.POST.get('branch_id')
+    godown_list     = godown_data.objects.filter(branch_id=branch_id)
+    all_godown       = []
+    
+    for godown in godown_list:   
+        all_godown.append({
+                'id'    : godown.id,
+                'name'  : godown.name
+            })
+    
+    
+    return JsonResponse({'godowns': all_godown})
+
+
+
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def getproducts(request):
+    branch_id           = request.POST.get('branch_id')
+    product_list        = product_data.objects.filter(branch_id=branch_id)
+    all_product          = []
+    
+    for product in product_list:   
+        all_product.append({
+                'id'    : product.id,
+                'name'  : product.name
+            })
+    
+    
+    return JsonResponse({'products': all_product})
+
+
+
+
+def gettax(request):
+    branch_id       = request.POST.get('branch_id')
+    tax_list     = tax_data.objects.filter(branch_id=branch_id)
+    all_tax       = []
+    
+    for tax in tax_list:   
+        all_tax.append({
+                'id'    : tax.id,
+                'name'  : tax.tax
+            })
+   
+    return JsonResponse({'tax': all_tax})
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def getGodownRacks(request):
@@ -5752,10 +6368,26 @@ def addNewVoucherSeries(request):
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
+                list_branch             = branch_data.objects.all()
+                list_entity         = entity_data.objects.all()
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
 
                 return render(request,'users/pages/add_voucher_series.html',{'list_entity':list_entity,'list_branch':list_branch,'list_voucher_types':list_voucher_types})
         else:
@@ -5796,15 +6428,37 @@ def updateVoucherSeries(request):
                 get_id              = request.GET['id']
                 get_data            = voucher_series_data.objects.get(id=get_id) 
                 
-                list_voucher_types  = voucher_type_data.objects.all()
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch             = list_branch.filter(entity_id=get_data.entity_id)
+                list_voucher_types      = voucher_type_data.objects.all()
+
 
                 return render(request,'users/pages/update_voucher_series.html',{'list_entity':list_entity,'get_data' : get_data,'list_branch':list_branch,'list_voucher_types':list_voucher_types})
         else:
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 
@@ -5884,43 +6538,43 @@ def listTaxData(request):
         return redirect('user-login')
 
 
-@cache_control(no_cache=True,must_revalidate=True,no_store=True)
-def addNewTaxData(request):
-    if request.session.has_key('userId'):
-        get_role_permission     = getUserPermissions(request)
-        role_permission         = get_role_permission['all_user_role_permission']
+# @cache_control(no_cache=True,must_revalidate=True,no_store=True)
+# def addNewTaxData(request):
+#     if request.session.has_key('userId'):
+#         get_role_permission     = getUserPermissions(request)
+#         role_permission         = get_role_permission['all_user_role_permission']
 
-        if (role_permission['general_write']):
-            if request.method=="POST":
-                branch_id           = request.POST['branch_id']
-                branch_id           = branch_data.objects.get(id=branch_id)
-                tax                 = request.POST['tax']
-                rate_perc           = request.POST.get('rate_perc')
-                description         = request.POST['description']
-                now                 = datetime.now()
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
-                insert_data         = tax_data(entity_id=entity_id,branch_id=branch_id,tax=tax,rate_perc=rate_perc,description=description,created_at=now,updated_at=now)
-                insert_data.save()
+#         if (role_permission['general_write']):
+#             if request.method=="POST":
+#                 branch_id           = request.POST['branch_id']
+#                 branch_id           = branch_data.objects.get(id=branch_id)
+#                 tax                 = request.POST['tax']
+#                 rate_perc           = request.POST.get('rate_perc')
+#                 description         = request.POST['description']
+#                 now                 = datetime.now()
+#                 entity_id           = request.POST['entity_id']
+#                 entity_id           = entity_data.objects.get(id=entity_id)
+#                 insert_data         = tax_data(entity_id=entity_id,branch_id=branch_id,tax=tax,rate_perc=rate_perc,description=description,created_at=now,updated_at=now)
+#                 insert_data.save()
 
-                messages.success(request, 'Successfully added.')
-                return redirect('list-tax-data')
-            else:
-                list_entity         = entity_data.objects.all()
+#                 messages.success(request, 'Successfully added.')
+#                 return redirect('list-tax-data')
+#             else:
+#                 list_entity         = entity_data.objects.all()
 
-                user_id             = request.session.get('userId')
-                get_user_data       = user_data.objects.get(id=user_id)
+#                 user_id             = request.session.get('userId')
+#                 get_user_data       = user_data.objects.get(id=user_id)
 
-                if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+#                 if get_user_data.default_entity_id:
+#                     list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
+#                 else:
+#                     list_branch     = branch_data.objects.all()
 
-                return render(request,'users/pages/add_tax_data.html',{'list_branch':list_branch,'list_entity':list_entity})
-        else:
-            raise Http404("Access to this is not permitted")
-    else:
-        return redirect('user-login')
+#                 return render(request,'users/pages/add_tax_data.html',{'list_branch':list_branch,'list_entity':list_entity})
+#         else:
+#             raise Http404("Access to this is not permitted")
+#     else:
+#         return redirect('user-login')
 
 
 
@@ -6020,6 +6674,7 @@ def updateGstTreatment(request):
         return redirect('user-login')
 
 
+
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def addNewTaxData(request):
     if request.session.has_key('userId'):
@@ -6036,7 +6691,12 @@ def addNewTaxData(request):
                 now                 = datetime.now()
                 entity_id           = request.POST['entity_id']
                 entity_id           = entity_data.objects.get(id=entity_id)
-                insert_data         = tax_data(entity_id=entity_id,branch_id=branch_id,tax=tax,rate_perc=rate_perc,description=description,created_at=now,updated_at=now)
+                cgst                = request.POST['cgst']
+                sgst                = request.POST['sgst']
+                igst                = request.POST['igst']
+                cess                = request.POST['cess']
+                default             = True if request.POST.get('default') == 'true' else False
+                insert_data         = tax_data(entity_id=entity_id,branch_id=branch_id,tax=tax,rate_perc=rate_perc,description=description,cgst=cgst,sgst=sgst,igst=igst,cess=cess,default=default,created_at=now,updated_at=now)
                 insert_data.save()
 
                 messages.success(request, 'Successfully added.')
@@ -6047,12 +6707,27 @@ def addNewTaxData(request):
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
-                if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                list_branch             = branch_data.objects.all()
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
 
-                return render(request,'users/pages/add_tax_data.html',{'list_branch':list_branch,'list_entity':list_entity})
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
+                if get_user_data.default_entity_id:
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+
+                return render(request,'users/pages/add_tax_data.html',{'list_branch':list_branch,'list_entity':list_entity,'get_user_data':get_user_data})
         else:
             raise Http404("Access to this is not permitted")
     else:
@@ -6076,9 +6751,14 @@ def updateTaxData(request):
                 description         = request.POST['description']
                 rate_perc           = request.POST.get('rate_perc')
                 active              = True if request.POST.get('active') == 'true' else False
+                cgst                 = request.POST['cgst']
+                sgst                = request.POST['sgst']
+                igst                = request.POST['igst']
+                cess                = request.POST['cess']
+                default             = True if request.POST.get('default') == 'true' else False
                 now                 = datetime.now()
 
-                tax_data.objects.all().filter(id=get_id).update(entity_id=entity_id,branch_id=branch_id,tax=tax,rate_perc=rate_perc,description=description,active=active,updated_at=now)
+                tax_data.objects.all().filter(id=get_id).update(entity_id=entity_id,branch_id=branch_id,tax=tax,rate_perc=rate_perc,description=description,cgst=cgst,sgst=sgst,igst=igst,cess=cess,active=active,default=default,updated_at=now)
 
                 messages.success(request, 'Changes successfully updated.')
                 return redirect('list-tax-data')
@@ -6087,7 +6767,28 @@ def updateTaxData(request):
                 get_data            = tax_data.objects.get(id=get_id)
                 
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch             = list_branch.filter(entity_id=get_data.entity_id)
+
 
                 return render(request,'users/pages/update_tax_data.html',{'list_entity':list_entity,'get_data' : get_data,'list_branch':list_branch})
         else:
@@ -6232,16 +6933,35 @@ def addNewWarehouse(request):
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
+            
+                list_branch             = branch_data.objects.all()
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+
 
                 return render(request,'users/pages/add_warehouse.html',{'list_branch':list_branch,'list_entity':list_entity})
         else:
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 
@@ -6274,14 +6994,36 @@ def updateWarehouse(request):
             else:
                 get_id          = request.GET['id']
                 get_data        = warehouse_data.objects.get(id=get_id)
-                list_entity     = entity_data.objects.all()
-                list_branch     = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+
+                list_entity         = entity_data.objects.all()
+
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
+                list_branch     = list_branch.filter(entity_id=get_data.entity_id)
                 
                 return render(request,'users/pages/update_warehouse.html',{'get_data':get_data,'list_branch':list_branch,'list_entity':list_entity})
         else:
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 
@@ -6416,14 +7158,34 @@ def addNewBatch(request):
                 return redirect('list-batch')
             else:
                 list_product    = product_data.objects.all()
-                list_entity         = entity_data.objects.all()
                 user_id             = request.session.get('userId')
+
                 get_user_data       = user_data.objects.get(id=user_id)
 
+                list_branch             = branch_data.objects.all()
+                list_entity         = entity_data.objects.all()
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+
                 if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                    list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
+
+                branch_pks  = list(list_branch.values_list('pk',flat=True))
+
+                list_product    = list_product.filter(branch_id__in=branch_pks)
+
                 return render(request,'users/pages/add_batch.html',{'list_branch':list_branch,'list_product':list_product,'list_entity':list_entity})
         else:
             raise Http404("Access to this is not permitted")
@@ -6439,7 +7201,6 @@ def updateBatch(request):
         role_permission         = get_role_permission['all_user_role_permission']
 
         if (role_permission['invendory_write']):
-
             if request.method=="POST":
                 get_id          = request.POST['id']
                 entity_id       = request.POST['entity_id']
@@ -6462,16 +7223,40 @@ def updateBatch(request):
             else:
                 get_id          = request.GET['id']
                 get_data        = batch_data.objects.get(id=get_id)
-                list_branch     = branch_data.objects.all()
-                list_product    = product_data.objects.all()
+
                 list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+
+                list_branch         = branch_data.objects.all()
+                
+                get_user_data           = user_data.objects.get(id=request.session.get('userId'))
+
+                user_entity             = get_user_data.entity_id
+                if user_entity:
+                    user_entities       = get_user_data.entity_id.split(',')
+
+                    list_entity         = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(list_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+                
+                user_branch             = get_user_data.branch_id
+                
+                if user_branch:
+                    user_branches       = get_user_data.branch_id.split(',')
+                    list_branch         = list_branch.filter(pk__in=user_branches)
+   
+                list_branch         = list_branch.filter(entity_id=get_data.entity_id)
+                
+                print(get_data.entity_id)
+                list_product        = product_data.objects.filter(branch_id=get_data.branch_id)
+
                 
                 return render(request,'users/pages/update_batch.html',{'get_data':get_data,'list_entity':list_entity,'list_branch':list_branch,'list_product':list_product})
         else:
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 

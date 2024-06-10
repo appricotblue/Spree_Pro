@@ -197,7 +197,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Accounting Group</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="accounting_group_id" required>
+                                    <select class="js-example-basic-single w-100 accounting_group_id" name="accounting_group_id" required>
                                         <option value="" disabled selected>Select Accounting Group</option>
                                         {% for x in list_all_group %}
                                         <option value="{{x.id}}" {% if x.id|slugify == get_data.accounting_group_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -509,6 +509,7 @@
 
 <script>
     $(document).ready(function() {
+
         // balance check
         var value = $('#acid').val();
         console.log(value);
@@ -520,20 +521,15 @@
                     'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
                 },
                 success: function (data) {
-                    var balance        = data.balance
-                    console.log(balance)
-                    
-
-                    $('#current_bal').val(balance)   
+                    var balance        = data
+                    $('#current_bal').val = balance   
                 },
                 error: function (xhr, status, error) {
                     console.error(xhr.responseText);
                 }
             });
 
-
-
-        
+            
         $('#additional').hide()
        
         function checkConditions() {
@@ -645,6 +641,31 @@
                     console.error(xhr.responseText);
                 }
             });
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-accounting-group' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var accgroup        = data.group_list;
+                    var accgroup_select    = $('.accounting_group_id');
+                    accgroup_select.empty();  // Clear previous options
+                    accgroup_select.append('<option value="" disabled selected>Select Accounting Group</option>');
+                    $.each(accgroup, function (index, accgroup) {
+                        accgroup_select.append('<option value="' + accgroup.id + '">' + accgroup.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+
+
+
+
         });
 
         // additional end

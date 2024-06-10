@@ -357,7 +357,7 @@ window.addEventListener('DOMContentLoaded', function() {
                                 <p class="mb-1 mt-3 font-weight-semibold">{{common_user_data.name}}</p>
                                 <p class="fw-light text-muted mb-0">{{common_user_data.email}}</p>
                             </div>
-                            <a class="dropdown-item"><i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> My Profile 
+                            <a class="dropdown-item" href="{% url 'update-user-profile' %}"><i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> My Profile 
                             </a>
                             <a class="dropdown-item" href="{% url 'user-logout' %}">
                                 <i class="dropdown-item-icon mdi mdi-power text-primary me-2"></i>Sign Out
@@ -586,6 +586,8 @@ window.addEventListener('DOMContentLoaded', function() {
                             <ul class="nav flex-column sub-menu">
                                 <li class="nav-item"> <a class="nav-link" href="{% url 'list-golden-rule' %}">Golden Rule</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'user-reset-password' %}">Reset Password</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'update-user-profile' %}">Update Profile</a></li>
+
                             </ul>
                         </div>
                     </li>
