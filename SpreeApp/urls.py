@@ -300,6 +300,11 @@ urlpatterns = [
 
     # path('generate-app-token/', views.appAuthToken,name='generate-app-token'),
     path('user-portal-login/', views.userPortalLogin,name='user-portal-login'),
+    path('user-portal-forgotpassword',views.userforgot_passwordUserPortal,name='user-portal-forgotpassword'),
+    path('password-reset-confirm/<uid>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+
+
+
     
     path('user-portal-add-purchase-order/', views.addPurchaseOrderFromUserPortal,name='user-portal-add-purchase-order'),
     path('user-portal-list-purchase-order/', views.listPurchaseOrderUserPortal ,name='user-portal-list-purchase-order'),

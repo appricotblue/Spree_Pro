@@ -150,27 +150,21 @@ def userLogin(request): ##admin users
 def userforgot_password(request): ##admin users
     if  request.method=='POST':
         email       = request.POST['email']
-       
+
         get_user_data   = user_data.objects.all().filter(email=email)
         
         if get_user_data:
-            get_user_data       = user_data.objects.filter(email=email)
-            characters          = string.ascii_letters + string.digits
-            random_string       = ''.join(secrets.choice(characters) for _ in range(8))
-
-            password            = random_string
-
-            hash_password       = make_password(password)
-            now                 = datetime.now()
-            print(get_user_data)
-            get_user_data.update(password=hash_password,updated_at=now)
+            uid     = get_user_data[0].id
+            token   = get_user_data[0].password[-5:]
+            url     = request.build_absolute_uri(reverse('password_reset_confirm', args=[uid, token]))
             
-
             ### send email
-            template            = 'email/password.html'
-            send_email          = sendEmail(email,template,random_string)
+            print("==========")
+            print(url)
+            template            = 'email/resetlink.html'
+            send_email          = sendEmail(email,template,url)
 
-            messages.success(request, 'Check Your Mail for new password to login .')
+            messages.success(request, 'Check Your Mail to get reset link .')
             return redirect('user-login')
         else:
             messages.error(request, 'Invalid username')
@@ -182,6 +176,26 @@ def userforgot_password(request): ##admin users
         else:
             return render(request,'users/pages/forgot_password.html')
 
+
+
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def password_reset_confirm(request, uid, token):
+    
+    user        = user_data.objects.filter(pk=uid)
+    password    = user[0].password[-5:]
+    token       = token
+    now     = datetime.now()
+    if user is not None and token==password:
+        if request.method == 'POST':
+            new_password = request.POST.get('password')
+            hash_password       = make_password(new_password)
+            user.update(password=hash_password,updated_at=now)  
+            messages.success(request, 'Password has been reset successfully.')
+            return redirect('user-login')
+        return render(request, 'users/pages/password_reset_confirm.html', {'uid': uid, 'token': token})
+    else:
+        messages.error(request, 'The reset link is invalid or has expired.')
+        return redirect('user-login')
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -275,10 +289,8 @@ def userreset_password(request): ##admin users
             return redirect('user-reset-password')
         else:
             messages.error(request, 'Invalid Current Password')
-            return redirect('user-reset-password')
-        
+            return redirect('user-reset-password')  
     else:
-       
         return render(request,'users/pages/reset_password.html')
 
 
@@ -292,10 +304,58 @@ def userLogout(request):
     return redirect('user-login')
 
 
+def return_transaction_count(voucher_type_id,branches):
+    total_count=invoice_data.objects.filter(Q(voucher_type_id=voucher_type_id) & Q(branch_id__in=branches) & Q(status='Approved') & Q(is_parent=1) & Q(latest=1)).count() 
+    return total_count
+
+
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def userDashboard(request):
+    if request.session.has_key('userId'):
+        user_id         = request.session.get('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')    
+            list_entity     = list_entity.filter(pk__in=user_entities)   
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id 
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')   
+            list_branch     = list_branch.filter(pk__in=user_branches)
+
+        branch_pks          = list(list_branch.values_list('pk',flat=True))
+
+        total_purchase  = 0
+        # total purchase 
+        vourcher_type_id               = voucher_type_data.objects.filter(name='Purchase')
+        if vourcher_type_id:
+             total_purchase = return_transaction_count(vourcher_type_id[0].id,branch_pks)
+       
+        # total_sales
+        total_sales = 0
+        vourcher_type_id               = voucher_type_data.objects.filter(name='Sales')
+        if vourcher_type_id:
+            total_sales = return_transaction_count(vourcher_type_id[0].id,branch_pks)
+
+        # receipt
+        total_receipt = 0
+        vourcher_type_id               = voucher_type_data.objects.filter(name='Receipt')
+        if vourcher_type_id:
+            total_receipt = return_transaction_count(vourcher_type_id[0].id,branch_pks)
+
+        # payment
+        total_payment = 0
+        vourcher_type_id               = voucher_type_data.objects.filter(name='Payment')
+        if vourcher_type_id:
+            total_payment = return_transaction_count(vourcher_type_id[0].id,branch_pks)
+
     return render(request,'users/pages/dashboard.html')
 
 
@@ -923,7 +983,7 @@ def addNewBranch(request):
             latest_id       = 1 if not branch_data.objects.all().exists() else int(branch_data.objects.latest('id').id) + 1
             get_series      = series_data.objects.get(type="Branch")
 
-            branch_code     = get_series.pre_text+str(latest_id)+get_series.post_text
+            branch_code         = get_series.pre_text+str(latest_id)+get_series.post_text
             gst_treatment_list  = gst_treatment_data.objects.all()
 
             return render(request,'users/pages/add_branch.html',{'get_entity' : get_entity,'gst_treatment_list':gst_treatment_list,'branch_code':branch_code,'state_list':state_list})
@@ -1618,12 +1678,19 @@ def updateUser(request):
 
                 get_user_data       = user_data.objects.get(id=user_id)
 
-                list_branch         = list_branch.filter(entity_id=get_user_data.entity_id)
+                if get_user_data.entity_id:
+                    user_entities       = get_user_data.entity_id.split(',')
+                    
+                    choosen_entity      = list_entity.filter(pk__in=user_entities)
+                
+                    enitity_pks         = list(choosen_entity.values_list('pk',flat=True))
+                    list_branch         = list_branch.filter(entity_id__in=enitity_pks)
+
 
 
                 get_entity_ids      = get_user_data.entity_id.split(',')
                 get_branch_ids      = get_user_data.branch_id.split(',')
-
+               
                 all_entities        = []
                 for entity in list_entity:
                     selected        = ''
@@ -1654,6 +1721,7 @@ def updateUser(request):
             raise Http404("Access to this is not permitted")
     else:
         return redirect('user-login')
+
 
 
 
@@ -5887,10 +5955,10 @@ def updateProduct(request):
 
                 branch_pks          = list(list_branch.values_list('pk',flat=True))
 
-                list_rack           = rack_data.objects.filter(branch_id__in=branch_pks)
-                list_godown         = godown_data.objects.filter(branch_id__in=branch_pks)
-                list_warehouse      = warehouse_data.objects.filter(branch_id__in=branch_pks)
-                list_tax            = tax_data.objects.filter(branch_id__in=branch_pks)
+                list_rack           = rack_data.objects.filter(branch_id=get_data.branch_id)
+                list_godown         = godown_data.objects.filter(branch_id=get_data.branch_id)
+                list_warehouse      = warehouse_data.objects.filter(branch_id=get_data.branch_id)
+                list_tax            = tax_data.objects.filter(branch_id=get_data.branch_id)
 
 
 
@@ -13860,6 +13928,38 @@ def updateUserUserPortal(request):
                             "message"   : "Invalid Token Or User",
                         }
     return Response(response)
+
+
+
+@api_view(['POST'])
+def userforgot_passwordUserPortal(request): ##admin users
+        data            = request.data
+        get_token       = app_auth_token_tb.objects.first()
+        email               = data.get('email')
+        get_user_data       = user_data.objects.filter(email=email)
+
+        if get_user_data:
+            uid     = get_user_data[0].id
+            token   = get_user_data[0].password[-5:]
+            url     = request.build_absolute_uri(reverse('password_reset_confirm', args=[uid, token]))
+            
+            ### send email
+            print("==========")
+            print(url)
+            template            = 'email/resetlink.html'
+            send_email          = sendEmail(email,template,url)
+
+            response            = {
+                "success" :True,
+                "message" :"Updated Successfully  please check mail for reset password link"
+            }
+        else:
+            response            = {
+                "success" :False,
+                "message" :"unverified email address"
+            }
+            
+        return Response(response)
 
 
 
@@ -22606,6 +22706,7 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
 
     purchase_amount     = sum_credit_product_amount
     return (current_stock_value,purchase_amount)
+
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)

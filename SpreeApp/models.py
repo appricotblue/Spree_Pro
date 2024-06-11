@@ -17,8 +17,6 @@ class entity_category(models.Model):
     updated_at      = models.DateTimeField(max_length=100,default='')
 
 
-
-
 class location_data(models.Model):
     location        = models.CharField(max_length=100,default='')
     created_at      = models.DateTimeField(max_length=100,default='')

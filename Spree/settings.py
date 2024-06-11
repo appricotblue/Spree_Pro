@@ -154,8 +154,8 @@ EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST          = 'smtp.gmail.com' # gmail
 EMAIL_PORT          = 587
 EMAIL_USE_TLS       = True
-EMAIL_HOST_USER     = 'silnaanil98@gmail.com'
-EMAIL_HOST_PASSWORD = 'lddhnytwyecplkoy'
+EMAIL_HOST_USER     = 'joyel@aindriya.co.in'
+EMAIL_HOST_PASSWORD = 'wuonhvyhldgtdkwo'
 
 TEMPLATES[0]['OPTIONS']['context_processors'].append("SpreeApp.common_variable.getCommonData")
 TEMPLATES[0]['OPTIONS']['context_processors'].append("SpreeApp.common_variable.getUserPermissions")
