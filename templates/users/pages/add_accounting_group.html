@@ -81,7 +81,7 @@
                                         <option value="Assets">Assets</option>
                                         <option value="Expenses">Expenses</option>
                                         <option value="Income">Income</option>
-                                        <option value="Liabilities">Liabilities</option>
+                                        <option value="Income">Liabilities</option>
                                     </select>
                                 </div>
                             </div>
@@ -95,6 +95,16 @@
                             </div>
                         </div>
                     </div>
+                    {% if not get_user_data.user_role_id %}
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Set Default
+                                <input type="checkbox" class="form-check-input"  id="checkBox" name="default" value="true">
+                            </label>
+                        </div>
+                    </div>
+                    {% endif %}
                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
             </div>

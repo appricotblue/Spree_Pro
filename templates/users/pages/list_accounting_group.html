@@ -98,6 +98,7 @@
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Entity</th>
                             <th>Branch</th>
                             <th>Under Group</th>
                             <th>Nature</th>
@@ -109,6 +110,9 @@
                         <tr>
                             <td>
                                 {{data.name}}
+                            </td>
+                            <td>
+                               {% if data.entity_id %} {{data.entity_id.name}} {%endif%}
                             </td>
                             <td>
                                 {{data.branch_id.name}}

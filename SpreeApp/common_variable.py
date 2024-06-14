@@ -3,8 +3,7 @@ from .models import *
 
 def getCommonData(request): 
     common_user_data        = {}
-    all_entities            = []
-    
+    all_entities            = []    
     if request.session.has_key('userId'):
         print(request.session.get('userId'))
         print("############")

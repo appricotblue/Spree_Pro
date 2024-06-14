@@ -109,6 +109,32 @@ state_list=[
 
 
 
+
+
+# Create your views here.
+@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+def userviewfrom_react(request): ##admin users
+    user_id       = request.GET['user_id']
+    app_token    = request.GET['token']
+    url         = request.GET['url']
+    report_id   = request.GET.get('report_id')
+    get_token       = app_auth_token_tb.objects.first()
+    
+    if user_id and app_token == get_token.token:
+    
+        get_user_data               = user_data.objects.all().filter(pk=user_id)
+        request.session['userId']   = get_user_data[0].id
+        if report_id:
+            return redirect(reverse(url) + '?report_id={}'.format(report_id))
+        else:
+            return redirect(url)
+    else:
+        return redirect('user-login')
+        
+
+
+
+
 # Create your views here.
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def userLogin(request): ##admin users
@@ -654,9 +680,19 @@ def listEntity(request):
         
         if (role_permission['entity_read'] or role_permission['entity_write']):
     
-        
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
             entity_types            = entity_type.objects.all()      
             entity_list             = entity_data.objects.all().order_by('-id')
+
+            
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                entity_list         = entity_list.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(entity_list.values_list('pk',flat=True))
+                
             # for html filter dispaly
             selected_entity_type    = 0
             search_enitity_name     = ''   
@@ -720,10 +756,14 @@ def addNewEntity(request):
                 gst             = request.POST['gst']
                 location_id     = location_data.objects.get(pk=location_id)
                 now             = datetime.now()
+                image_file          = imgForm(request.POST,request.FILES)
+                logo       = None
+                if image_file.is_valid():
+                    logo   = image_file.cleaned_data['image']
 
                 get_entity_type = entity_type.objects.get(id=type_id)
 
-                insert_data     = entity_data(name=name,entity_type_id=get_entity_type,description=description,created_at=now,updated_at=now,location=location_id,gst=gst)
+                insert_data     = entity_data(name=name,entity_type_id=get_entity_type,description=description,created_at=now,updated_at=now,location=location_id,gst=gst,logo=logo)
                 insert_data.save()
 
                 messages.success(request, 'Successfully added.')
@@ -756,9 +796,17 @@ def updateEntity(request):
 
                 # additional
                 location_id     = request.POST['location_id']
+
                 location_id     = location_data.objects.get(pk=location_id)
 
                 get_entity_type = entity_type.objects.get(id=type_id)
+                image_file          = imgForm(request.POST,request.FILES)
+
+                if image_file.is_valid():
+                    image                   = image_file.cleaned_data['image']
+                    mymodel                 = entity_data.objects.get(id=entity_id)
+                    mymodel.logo            = image
+                    mymodel.save()
 
                 entity_data.objects.all().filter(id=entity_id).update(name=name,entity_type_id=get_entity_type,description=description,updated_at=now,location_id=location_id,gst=gst)
 
@@ -875,6 +923,10 @@ def listBanch(request):
         if user_branch:
             user_branches       = user_details.branch_id.split(',')
             branch_list         = branch_list.filter(pk__in=user_branches)
+
+        user_default_entity     = user_details.default_entity_id
+        if user_default_entity:
+            branch_list     = branch_list.filter(entity_id=user_default_entity)
             
         
         if 'search' in request.POST: 
@@ -1420,6 +1472,8 @@ def listUsers(request):
             user_details            = user_data.objects.get(id=request.session.get('userId'))
 
             user_entity             = user_details.entity_id
+
+            
             if user_entity:
                 user_entities       = user_details.entity_id.split(',')
                 
@@ -1434,7 +1488,13 @@ def listUsers(request):
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
             
+            if user_details.default_entity_id:
+                branch_list         = branch_list.filter(entity_id=user_details.default_entity_id)
+            
             branch_pks        = list(branch_list.values_list('pk',flat=True))
+
+            
+
             
             user_list   = user_list.filter(branch_id__in=branch_pks)
 
@@ -1753,8 +1813,13 @@ def deleteUser(request):
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def setDefaultUserEntity(request):
-    entity_id   = request.POST['entity_id']
-    entity_id   = entity_data.objects.get(id=entity_id)
+    entity_id   = int(request.POST['entity_id'])
+    print(entity_id)
+    print("heyyy")
+    if entity_id:
+        entity_id   =  entity_data.objects.get(id=entity_id)
+    else:
+        entity_id   = None
     user_id     = request.session.get('userId')
 
     update      = user_data.objects.filter(id=user_id).update(default_entity_id=entity_id)
@@ -1809,6 +1874,11 @@ def listAccountingGroup(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 list_branch         = list_branch.filter(pk__in=user_branches)
+
+            user_default_entity = user_details.default_entity_id
+            if user_default_entity:
+                list_branch     = list_branch.filter(entity_id=user_default_entity)
+                
                 
             branch_pks          = list(list_branch.values_list('pk',flat=True))
             print("brachhh",branch_pks)
@@ -2097,6 +2167,10 @@ def listAccountingLedger(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+            
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             listledger          = listledger.filter(branch_id__in=branch_pks)
@@ -2334,7 +2408,7 @@ def addNewAccountingLedger(request):
                     insert_customer_data.save()
                     insert_data         = accounting_ledger_data(entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,branch_id= branch_id,pricing_level=pricing_level,credit_limit=credit_limit,credit_period=credit_period,name=name,customer_id=insert_customer_data,accounting_group_id=accounting_group_id,opening_balance=opening_balance,entry_type='Dr',created_at=now,updated_at=now)
                     insert_data.save()
-                if(accounting_group == 'Sundry Creditors'):
+                elif(accounting_group == 'Sundry Creditors'):
                     latest_id           = 1 if not supplier_data.objects.all().exists() else supplier_data.objects.latest('id').id
                     get_series          = series_data.objects.get(type="Supplier")
 
@@ -2378,7 +2452,7 @@ def addNewAccountingLedger(request):
                     insert_data         = accounting_ledger_data(entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,pricing_level=pricing_level,branch_id= branch_id,credit_limit=credit_limit,credit_period=credit_period,name=name,supplier_id=insert_supplier_data,accounting_group_id=accounting_group_id,opening_balance=opening_balance,entry_type='Cr',created_at=now,updated_at=now)
                     insert_data.save()
                 else:
-                    insert_data         = accounting_ledger_data(entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,branch_id= branch_id,pricing_level=pricing_level,name=name,accounting_group_id=accounting_group_id,created_at=now,updated_at=now)
+                    insert_data         = accounting_ledger_data(entity_id = entity_id,entry_type= entry_type,additional_expense=additional_expense,is_default= is_default,branch_id= branch_id,pricing_level=pricing_level,name=name,accounting_group_id=accounting_group_id,created_at=now,updated_at=now)
                     insert_data.save()
 
                 messages.success(request, 'Successfully added.')
@@ -2704,12 +2778,19 @@ def listFinancialYear(request):
                 enitity_pks         = list(listEntity.values_list('pk',flat=True))
                 branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
             
+            
+            
             user_branch             = user_details.branch_id
             
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
-                
+            
+
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
+
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             get_data            = get_data.filter(branch_id__in=branch_pks)
 
@@ -3291,9 +3372,15 @@ def listCustomer(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+            
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks        = list(branch_list.values_list('pk',flat=True))
-            customer_list   = customer_list.filter(branch_id__in=branch_pks)    
+            customer_list   = customer_list.filter(branch_id__in=branch_pks)  
+            
+              
 
             if 'search' in request.POST: 
                 selected_type       = int(request.POST.get('selected_type'))
@@ -3829,6 +3916,10 @@ def listSupplier(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             supplier_list       = supplier_list.filter(branch_id__in=branch_pks)
@@ -4732,6 +4823,10 @@ def listGodown(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             get_data            = get_data.filter(branch_id__in=branch_pks)
@@ -4954,7 +5049,10 @@ def listRack(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
-                
+
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             get_data            = get_data.filter(branch_id__in=branch_pks)
             godown_list         = godown_list.filter(branch_id__in=branch_pks)
@@ -5402,6 +5500,10 @@ def listPricingLevel(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+            
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             get_data            = get_data.filter(branch_id__in=branch_pks)
@@ -5625,6 +5727,10 @@ def listProducts(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             get_data            = get_data.filter(branch_id__in=branch_pks)
@@ -6316,6 +6422,10 @@ def listVoucherSeries(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+            
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             get_data            = get_data.filter(branch_id__in=branch_pks)
@@ -6561,10 +6671,37 @@ def listTaxData(request):
         role_permission         = get_role_permission['all_user_role_permission']
 
         if (role_permission['general_read'] or role_permission['general_write']):
-            tax_list            = tax_data.objects.filter(active=1).order_by('-id')
+            tax_list                = tax_data.objects.all().order_by('-id')
+            listEntity              = entity_data.objects.all()
+            branch_list             = branch_data.objects.all()
+            user_details            = user_data.objects.get(id=request.session.get('userId'))
+            user_entity             = user_details.entity_id
+            if user_entity:
+                user_entities       = user_details.entity_id.split(',')
+                
+                listEntity         = listEntity.filter(pk__in=user_entities)
+            
+                enitity_pks         = list(listEntity.values_list('pk',flat=True))
+                branch_list         = branch_list.filter(entity_id__in=enitity_pks)
+            
+            user_branch             = user_details.branch_id
+            
+            if user_branch:
+                user_branches       = user_details.branch_id.split(',')
+                branch_list         = branch_list.filter(pk__in=user_branches)
+
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
+                
+            branch_pks          = list(branch_list.values_list('pk',flat=True))
+
+            print(branch_pks)
+            print("..............")
+            tax_list            = tax_list.filter(Q(branch_id__in=branch_pks) | Q(default=1))
+
             name                =''
             
-            selected_status     =1
             if 'search' in request.POST: 
                 name                        = request.POST.get('name')
                 selected_status             = int(request.POST.get('selected_status'))
@@ -6574,9 +6711,8 @@ def listTaxData(request):
                 selected_status             = int(request.GET.get('selected_status',1))
                 
             if  name:   
-                tax_list                =  tax_data.objects.filter(tax__istartswith=name,active=selected_status).order_by('-id')                
-            else:  
-                tax_list                =  tax_data.objects.filter(active=selected_status).order_by('-id')
+                tax_list                =  tax_list.filter(tax__istartswith=name).order_by('-id')                
+            tax_list                =  tax_list.filter(active=selected_status).order_by('-id')
                         
                                     
             #Download Section 
@@ -6918,6 +7054,10 @@ def listWareHouse(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             get_data            = get_data.filter(branch_id__in=branch_pks)
@@ -7147,6 +7287,10 @@ def listBatch(request):
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
+
+            user_default_entity     = user_details.default_entity_id
+            if user_default_entity:
+                branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
             product_list        = product_list.filter(branch_id__in=branch_pks)
@@ -12500,7 +12644,8 @@ def listGoldenRules(request):
         #Session set for query result for excel based on last search    
         request.session['get_data']=json.dumps(list(get_data.values('voucher_type_id__name','debit_account_group_ids','credit_account_group_ids')), cls=DjangoJSONEncoder)
 
-
+        print(get_data)
+        print("heyyyyyyyyyyyyy")
         for data in get_data:
             ###-- Debit account group ids
             comma_separated_ids = data.debit_account_group_ids
@@ -14620,6 +14765,92 @@ def addVoucherTransactionUserPortal(request):
     return Response(response)
 
 
+
+
+@api_view(['POST'])
+def HistoryVoucherTransactionUserPortal(request):
+    data            = request.data
+    user_id         = data.get('user_id')
+    app_token       = data.get('app_token')
+    get_token       = app_auth_token_tb.objects.first()
+
+    # if request.session.has_key('userId') and user_id and app_token == get_token.token:
+    if user_id and app_token == get_token.token:
+        invoice_id           = data.get('invoice_id')
+        invoice              = invoice_data.objects.get(id=invoice_id)
+        if invoice.invoice_id:
+            invoice_id            = invoice.invoice_id.id
+        else:
+            invoice_id            = invoice_id.id
+        print("6666666666")
+        print(invoice_id)
+        from_date           = data.get('from_date') 
+        to_date             = data.get('to_date')
+        voucher_number      = data.get('voucher_number')
+
+        get_invoice_data    = invoice_data.objects.filter(user_id=user_id,is_parent=True)
+        print(get_invoice_data)
+        get_invoice_data    = get_invoice_data.filter(Q(pk=invoice_id) | Q(invoice_id=invoice_id))
+        if from_date and to_date:
+            get_invoice_data    = get_invoice_data.filter(date__range=(from_date,to_date))
+        
+        if voucher_number:
+            get_invoice_data    = get_invoice_data.filter(voucher_number_appended__icontains=voucher_number)
+
+        all_transactions    = []
+        for invoice in get_invoice_data:
+            invoice_id              = invoice.id
+            child_data              = []
+            get_childs              = invoice_data.objects.filter(parent_id=invoice)
+            if get_childs:
+                for child in get_childs:
+                    
+
+                    child_data.append({
+                        'entry_type'        : child.entry_type,
+                        'debit_ledger_id'   : None if not child.debit_ledger_id else child.debit_ledger_id.name,
+                        'credit_ledger_id'  : None if not child.credit_ledger_id else child.credit_ledger_id.name,
+                        'cheque_number'     : child.cheque_number,
+                        'total_amount'      : child.total_amount
+                    })
+
+            all_transactions.append({
+                    'id'                : invoice.id,
+                    'entity_id'         : invoice.entity_id.id,
+                    'entity_name'       : invoice.entity_id.name,
+                    'branch_id'         : invoice.branch_id.id,
+                    'branch_name'       : invoice.branch_id.name,
+                    'debit_ledger_id'   : None if not invoice.debit_ledger_id else invoice.debit_ledger_id.id,
+                    'debit_ledger_name' : None if not invoice.debit_ledger_id else invoice.debit_ledger_id.name,
+                    'credit_ledger_id'  : None if not invoice.credit_ledger_id else invoice.credit_ledger_id.id,
+                    'credit_ledger_name': None if not invoice.credit_ledger_id else invoice.credit_ledger_id.name,
+                    'total_amount'      : invoice.total_amount,
+                    'voucher_number'    : invoice.voucher_number_appended,
+                    'voucher_series_name': invoice.voucher_series_id.name,
+                    'date'              : invoice.date,
+                    'status'            : invoice.status,
+                    'child_data'        : child_data,
+
+                })
+
+
+        response            =   {
+                                    "success"           : True,
+                                    "message"           : "",
+                                    "all_transactions"  : all_transactions
+                                }
+    else:
+
+        response            =   {
+                                    "success"   : False,
+                                    "message"   : "Invalid Token Or User",
+                                }
+
+    return Response(response)
+
+
+
+
 @api_view(['POST'])
 def listVoucherTransactionUserPortal(request):
     data            = request.data
@@ -14995,10 +15226,18 @@ def getVoucherTransactionUserPortal(request):
                                         'voucher_number'            : get_invoice_data.voucher_number_appended,
                                         'pricing_lvl'               : None if not get_invoice_data.pricing_lvl else get_invoice_data.pricing_lvl.id,
                                         'additional_subtotal'       : get_invoice_data.additional_subtotal,
-                                        'entry_description'         : get_invoice_data.entry_description
+                                        'entry_description'         : get_invoice_data.entry_description,
+                                        'created_by'                : None if not get_invoice_data.created_by else get_invoice_data.created_by.name,
+                                        'updated_by'                : None if not get_invoice_data.updated_by else get_invoice_data.updated_by.name,
+                                }
+        
+        if get_invoice_data.created_by:
+            if get_invoice_data.created_by.profile_image:
+                transaction_data['created_by_image'] = request.build_absolute_uri(get_invoice_data.created_by.profile_image.url)
 
-                                    }
-
+        if get_invoice_data.updated_by:
+            if get_invoice_data.updated_by.profile_image:
+                transaction_data['updated_by_image'] = request.build_absolute_uri(get_invoice_data.updated_by.profile_image.url)               
 
         response            =   {
                                     "success"           : True,
@@ -15034,6 +15273,8 @@ def updateVoucherTransactionUserPortal(request):
             primary_inv           = invoice_id.invoice_id
         else:
             primary_inv           = invoice_id
+        created_by              = primary_inv.created_by
+        created_at              = primary_inv.created_at
         user_id                 = user_data.objects.get(id=user_id)
         entity_id               = data.get('entity_id')
         entity_id               = entity_data.objects.get(id=entity_id)
@@ -15056,7 +15297,7 @@ def updateVoucherTransactionUserPortal(request):
         entry_description       = data.get('entry_description')
         total_amount            = data.get('total_amount')
         entry_type              = data.get('entry_type')
-        created_by              = user_data.objects.get(id=user_id.id)
+        updated_by              = user_data.objects.get(id=user_id.id)
         financial_year_id       = financial_year_data.objects.get(active=True)
         debit_ledger_id         = data.get('debit_ledger_id')
         credit_ledger_id        = data.get('credit_ledger_id')
@@ -15242,6 +15483,7 @@ def updateVoucherTransactionUserPortal(request):
                                 voucher_number_id       = voucher_number_id,
                                 voucher_series_id       = voucher_series_id,
                                 created_by              = created_by,
+                                updated_by              = updated_by,
                                 debit_ledger_id         = debit_ledger_id,
                                 credit_ledger_id        = credit_ledger_id,
                                 against                 = against,
@@ -15259,11 +15501,9 @@ def updateVoucherTransactionUserPortal(request):
                                 is_amented              = is_amented,
                                 amented_upward          = amented_upward,
                                 amented_downward        = amented_downward,
-                                created_at              = now,
+                                created_at              = created_at,
                                 updated_at              = now,
                                 
-                                
-
                                 # additional
                                 roundoff                = roundoff,
                                 shipping_address        = shipping_address,
@@ -15688,8 +15928,6 @@ def updateVoucherTransactionUserPortal(request):
                             }
 
     return Response(response)
-
-
 
 
 
@@ -18334,7 +18572,7 @@ def userPortalgetExpenseLedger(request):
             expense_group   = list(accgroup.values())        
     return JsonResponse({'expense_group':expense_group})
 
-
+ 
 @api_view(['POST'])
 def userPortalgetProductData(request):
     data            = request.data
@@ -18525,19 +18763,16 @@ def userPortalgetProductData(request):
                                     'discount'          : get_product_data.discount,
                                     'discount_name'     : get_product_data.discount,
                                     'product_code'      : get_product_data.product_code,
-                                    'unit_id'           : get_product_data.unit_id.id,
-                                    'unit'              : get_product_data.unit_id.unit,
-                                    'unit_formal_name'  : get_product_data.unit_id.formal_name,
                                     'purchase_rate'     : get_product_data.purchase_rate,
                                     'sac'               : get_product_data.sac,
                                     'hsn'               : get_product_data.hsn,
                                     'discount_value'    : get_product_data.discount_value,
                                     'warehouse_id'      : None if not get_product_data.warehouse_id else get_product_data.warehouse_id.id,
-                                    'size_id'           : get_product_data.size_id.id,
-                                    'model_number_id'   : get_product_data.model_number_id.id,  
-                                    'unit_id'           : get_product_data.unit_id.id,
-                                    'unit'              : get_product_data.unit_id.unit,
-                                    'unit_formal_name'  : get_product_data.unit_id.formal_name,
+                                    'size_id'           : None if not get_product_data.size_id else get_product_data.size_id.id,
+                                    'model_number_id'   : None if not get_product_data.model_number_id else get_product_data.model_number_id.id,  
+                                    'unit_id'           : None if not get_product_data.unit_id else get_product_data.unit_id.id,
+                                    'unit'              : None if not get_product_data.unit_id else get_product_data.unit_id.unit,
+                                    'unit_formal_name'  : None if not get_product_data.unit_id else get_product_data.unit_id.formal_name,
                                     'sales_rate'        : get_product_data.sales_rate,
                                     'tax_id'            : None if not get_product_data.tax_id else get_product_data.tax_id.id,
                                     'tax'               : None if not get_product_data.tax_id else get_product_data.tax_id.tax,
@@ -20439,7 +20674,7 @@ def filterProductUserPortal(request):
                         print(debit_product)
                         if debit_product:
                             sum_debit_product       = debit_product.aggregate(total_debit_quantity=Sum('quantity'))['total_debit_quantity']  
-                            dsum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
+                            dsum_free_quantity      = debit_product.aggregate(total_free=Sum('free'))['total_free']
                             
                     else:
                         credit_product      = order_product_data.objects.filter(product_id=product_id,rack_id=rack_id,latest=1,entry_type="Credit",status='Approved')
@@ -20451,10 +20686,9 @@ def filterProductUserPortal(request):
                     
                         debit_product       = order_product_data.objects.filter(product_id=product_id,rack_id=rack_id,latest=1,entry_type="Debit",status='Approved')
                         if debit_product:
-                            sum_debit_product       = debit_product.aggregate(total_so_quantity=Sum('so_quantity'))['total_so_quantity']
+                            sum_debit_product       = debit_product.aggregate(total_so_quantity=Sum('quantity'))['total_so_quantity']
                             dsum_free_quantity              = debit_product.aggregate(total_free=Sum('free'))['total_free']
                     print(dsum_free_quantity)
-                    print("#######")
                     balance_quantity  = (sum_credit_product+csum_free_quantity) - (sum_debit_product+dsum_free_quantity)
 
                     product_list.append({
@@ -20673,6 +20907,7 @@ def filterVoucherSeriesUserPortal(request):
 
 
 
+
 @api_view(['POST'])
 def filterTaxUserPortal(request):
          
@@ -20681,18 +20916,46 @@ def filterTaxUserPortal(request):
     app_token       = data.get('app_token')
     get_token       = app_auth_token_tb.objects.first()
 
-    if user_id and app_token == get_token.token:
-        tax_list            = tax_data.objects.filter(active=1).order_by('-id')
+    if user_id and app_token == get_token.token:        
+        tax_list                = tax_data.objects.all().order_by('-id')
+        listEntity              = entity_data.objects.all()
+        branch_list             = branch_data.objects.all()
+        user_details            = user_data.objects.get(id=user_id)
+        user_entity             = user_details.entity_id
+        if user_entity:
+            user_entities       = user_details.entity_id.split(',')
+            
+            listEntity         = listEntity.filter(pk__in=user_entities)
         
+            enitity_pks         = list(listEntity.values_list('pk',flat=True))
+            branch_list         = branch_list.filter(entity_id__in=enitity_pks)
+        
+        user_branch             = user_details.branch_id
+        
+        if user_branch:
+            user_branches       = user_details.branch_id.split(',')
+            branch_list         = branch_list.filter(pk__in=user_branches)
+            
+        branch_pks          = list(branch_list.values_list('pk',flat=True))
+
+        print(branch_pks)
+        print("..............")
+        tax_list            = tax_list.filter(branch_id__in=branch_pks)
+
+
+
         name                        = data.get('name','')
         selected_status             = int(data.get('selected_status',1))
+        branch_id                   = int(data.get('branch_id',0))
         print(selected_status) 
         
         if  name:   
-            tax_list                =  tax_data.objects.filter(tax__istartswith=name,active=selected_status).order_by('-id')                
-        else:  
-            tax_list                =  tax_data.objects.filter(active=selected_status).order_by('-id')
-                
+            tax_list            =  tax_list.filter(tax__istartswith=name).order_by('-id')                
+         
+        tax_list            =  tax_list.filter(active=selected_status).order_by('-id')
+
+        if branch_id:
+            tax_list            = tax_list.filter(branch_id=branch_id)       
                                    
         #Download Section 
         if 'download' in data:
@@ -20719,6 +20982,7 @@ def filterTaxUserPortal(request):
                             }
 
     return Response(response)
+
 
 
 
@@ -22117,6 +22381,8 @@ def report_trail_balance(request):
         parent_account      = []
         total_income        = 0
         expense_parent_account =[]
+        asset_parent_account   =[]
+        income_parent_account   =[]
         total_expense = 0
         search_branch = 0
 
@@ -22206,6 +22472,7 @@ def report_trail_balance(request):
 
             get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
             liability_parent_account= []
+
             total_liability = 0
             if get_acc_group_liability:
                 
@@ -23239,6 +23506,7 @@ def report_balance_sheet(request):
         expense_parent_account =[]
         total_expense = 0
         search_branch = 0
+        liability_parent_account    =[]
         
 
         if 'search' in request.POST:

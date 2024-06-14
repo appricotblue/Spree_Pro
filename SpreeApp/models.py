@@ -37,6 +37,7 @@ class entity_data(models.Model):
     location        = models.ForeignKey(location_data,on_delete=models.SET_NULL,null=True)
     updated_at      = models.DateTimeField(max_length=100,default='')
     gst             = models.CharField(max_length=100,default='')
+    logo            = models.ImageField(upload_to='image',null=True)
 
 
 class branch_data(models.Model):
@@ -75,6 +76,7 @@ class user_data(models.Model):
     default_entity_id   = models.ForeignKey(entity_data,on_delete=models.CASCADE,default='',null=True)
     created_at          = models.DateTimeField(max_length=100,default='')
     updated_at          = models.DateTimeField(max_length=100,default='')
+    default_branch      = models.ForeignKey(branch_data,on_delete=models.CASCADE,default='',null=True)
 
 
 
@@ -337,6 +339,8 @@ class tax_data(models.Model):
     cgst                = models.CharField(max_length=100,default='',null=True)
     sgst                = models.CharField(max_length=100,default='',null=True)
     igst                = models.CharField(max_length=100,default='',null=True)
+    cess                = models.CharField(max_length=100,default='',null=True)
+    default             = models.BooleanField(max_length=100,default=0)
     created_at          = models.DateTimeField(max_length=100,default='')
     updated_at          = models.DateTimeField(max_length=100,default='')
 
@@ -504,6 +508,7 @@ class invoice_data(models.Model): ###--- All transactions
     debit_ledger_id     = models.ForeignKey(accounting_ledger_data,on_delete=models.CASCADE,default='',null=True, related_name='invoice_debit_ledger_id')
     credit_ledger_id    = models.ForeignKey(accounting_ledger_data,on_delete=models.CASCADE,default='',null=True, related_name='invoice_credit_ledger_id')
     created_by          = models.ForeignKey(user_data,on_delete=models.CASCADE,default='',null=True, related_name='created_by')
+    updated_by          = models.ForeignKey(user_data,on_delete=models.CASCADE,default='',null=True, related_name='updated_by')
     approved_by         = models.ForeignKey(user_data,on_delete=models.CASCADE,default='',null=True, related_name='approved_by')
     status              = models.CharField(max_length=100,default='Pending',null=True)
     against             = models.CharField(max_length=100,default='',null=True)

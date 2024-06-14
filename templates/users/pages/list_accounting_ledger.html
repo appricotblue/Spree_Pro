@@ -96,6 +96,7 @@
                     <thead>
                         <tr>
                             <th>Ledger Name</th>
+                            <th>Entity</th>
                             <th>Group</th>
                             <th>Opening Balance</th>
                             <th>Dr/Cr</th>
@@ -107,6 +108,9 @@
                         <tr>
                             <td>
                                 {{data.name}}
+                            </td>
+                            <td>
+                                {% if data.entity_id %}{{data.entity_id.name}} {%endif%}
                             </td>
                             <td>
                                 {{data.accounting_group_id.name}}

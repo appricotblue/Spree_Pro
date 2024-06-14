@@ -1,5 +1,11 @@
 {% extends "users/layout/app.html" %}
 {% block content %}
+<style>
+
+    .w-100{
+        width: 400px !important;
+    }
+</style>
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
@@ -64,8 +70,33 @@
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
-                    
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <p class="mb-3">
+                                    {% if entity_data.logo %}
+                                    <img src="{{entity_data.logo.url}}" height="auto" data-enlargeable width="100" style="cursor: zoom-in">
+                                    {% endif %}
+                                </p>
+                                <label class="col-sm-3 col-form-label">Logo</label>
+                                <div class="col-sm-9">
+                                    <input type="file" name="image" class="file-upload-default" id="image">
+                                    <div class="input-group col-xs-12">
+                                        <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Logo" style="height: 45px;">
+                                        <span class="input-group-append">
+                                        <button class="file-upload-browse btn btn-primary btn-sm" type="button" style="
+                                        margin-left: 300px;
+                                        margin-top: -6em;
+                                    ">Upload</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
             </div>

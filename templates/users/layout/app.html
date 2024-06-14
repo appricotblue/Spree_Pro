@@ -282,7 +282,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     {% load custom_filters %} 
     <div class="container-scroller"> 
-        <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row navbar-light" style="border-bottom: none;" > <!-- Added inline style to remove border-bottom -->
+        <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row navbar-light" style="border-bottom: none;height: 10px;" > <!-- Added inline style to remove border-bottom -->
             <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start" style="background:#0c0c0c !important; border-right: none;"> <!-- Added inline style to remove border-right -->
                 <div class="me-3">
                     <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-bs-toggle="minimize">
@@ -298,7 +298,7 @@ window.addEventListener('DOMContentLoaded', function() {
                     </a>
                 </div>
             </div>
-            <div class="navbar-menu-wrapper d-flex align-items-top" style="background: #161616 !important; border-left: none;"> <!-- Added inline style to remove border-left -->
+            <div class="navbar-menu-wrapper d-flex align-items-top" style="background: #161616 !important; border-left: none;height: 10px;margin-top: -3em;"> <!-- Added inline style to remove border-left -->
                 <ul class="navbar-nav">
                     <li class="nav-item font-weight-semibold d-none d-lg-block ms-0">
                         <h4><span class="text-black fw-bold"><b>Welcome Back, Admin </b>&#128075;</span></h4>
@@ -309,7 +309,7 @@ window.addEventListener('DOMContentLoaded', function() {
                     <li class="nav-item dropdown d-none d-lg-block me-3">
                         <select class="nav-link dropdown-bordered dropdown-toggle dropdown-toggle-split js-example-basic-single select-entity" data-bs-toggle="dropdown" id="messageDropdown">
                           <option value="" disabled selected>Select Entity</option>
-                          <option value="All">All</option>
+                          <option value=0>All</option>
                           {% for x in common_entities %}
                             <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
                             {% endfor %}

@@ -1,11 +1,13 @@
 {% extends "users/layout/app.html" %}
 {% block content %}
-
 <style>
-    .w-100{
-        width: 300px !important;
-    }
+
+.w-100{
+    width: 400px !important;
+}
 </style>
+
+
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
@@ -50,6 +52,32 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Default Branch Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="Branch" placeholder="Default Branch Name" name="branch_name" value="Main " required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Default Godown Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="godown" placeholder="Default Godown Name" name="godown_name" value="Main " required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Default Rack Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="rack" placeholder="Default Rack Name" name="rack_name" value="Main " required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Location</label>
                                 <div class="col-sm-9">
                                     <select class="js-example-basic-single w-100" name="location_id" required>
@@ -69,6 +97,29 @@
                                 </div>
                             </div>
                         </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Logo</label>
+                                <div class="col-sm-9">
+                                    <input type="file" name="image" class="file-upload-default" id="image">
+                                    <div class="input-group col-xs-12">
+                                        <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Logo" style="height: 45px;">
+                                        <span class="input-group-append">
+                                            <button class="file-upload-browse btn btn-primary btn-sm" type="button" style="
+                                            margin-left: 300px;
+                                            margin-top: -6em;
+                                        ">Upload</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
@@ -76,4 +127,32 @@
         </div>
     </div>
 </div>
+<script>
+    $(document).ready(function() {
+        $('#Branch').on('input', function() {
+            var inputValue = $(this).val();
+            
+            if (!inputValue.startsWith('Main')) {
+                $(this).val('Main ' + inputValue);
+            }
+        });
+
+        $('#godown').on('input', function() {
+            var godown = $(this).val();
+            
+            if (!godown.startsWith('Main')) {
+                $(this).val('Main ' + godown);
+            }
+        });
+
+        $('#rack').on('input', function() {
+            var rack = $(this).val();
+            
+            if (!rack.startsWith('Main')) {
+                $(this).val('Main ' + rack);
+            }
+        });
+    });
+
+</script>
 {% endblock %}

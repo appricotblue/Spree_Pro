@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.userLogin ,name='user-login'),
     path('user-logout/', views.userLogout ,name='user-logout'),
     path('update-user-profile',views.updateUserProfile,name='update-user-profile'),
+    path('view-from-react',views.userviewfrom_react,name='view-from-react'),
 
     path('user-dashboard/', views.userDashboard ,name='user-dashboard'),
     
@@ -485,6 +486,7 @@ urlpatterns = [
 
     path('get-Other-vouchers',views.getOtherVouchers,name='get-Other-vouchers'),
 
+    path('History-Voucher-TransactionUserPortal',views.HistoryVoucherTransactionUserPortal,name='History-Voucher-TransactionUserPortal'),
 
     path('addnew-custom-report',views.addnewcustom_report,name='addnew-custom-report'),
     path('get-table-fields',views.get_table_fields,name='get-table-fields'),
@@ -494,15 +496,8 @@ urlpatterns = [
     path('delete-custom-report',views.deletecustomreport,name='delete-custom-report'),
     path('userforgot-password',views.userforgot_password,name='userforgot-password'),
     path('user-reset-password',views.userreset_password,name='user-reset-password'),
-
-
-
-
     path('get-user-details',views.getUserUserPortal,name='get-user-details'),
     path('update-user-userportal',views.updateUserUserPortal,name='update-user-userportal')
-
-    
-
 ]    
 
 

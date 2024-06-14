@@ -52,7 +52,42 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Rate(%)</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Rate(%)" name="rate_perc" required>
+                                    <input type="text" class="form-control" id="rateInput" placeholder="Rate(%)" name="rate_perc" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">CGST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control tax" id="exampleInputName1" placeholder="CGST" readonly>
+                                    <input type=hidden name="cgst" class="tax">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">SGST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control tax" id="exampleInputName1" placeholder="SGST" readonly>
+                                    <input type=hidden name="sgst" class="tax">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">IGST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control tax" id="exampleInputName1" placeholder="IGST" readonly>
+                                    <input type=hidden name="igst" class="tax">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Cess</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Cess" name="cess">
                                 </div>
                             </div>
                         </div>
@@ -65,6 +100,16 @@
                             </div>
                         </div>
                     </div>
+                    {% if not get_user_data.user_role_id %}
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Set Default
+                                <input type="checkbox" class="form-check-input"  id="checkBox" name="default" value="true">
+                            </label>
+                        </div>
+                    </div>
+                    {% endif %}
                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
             </div>
@@ -99,6 +144,17 @@
                     console.error(xhr.responseText);
                 }
             });
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        $('#rateInput').on('input', function() {
+            var rate = parseFloat($(this).val());
+            if (!isNaN(rate)) {
+                var tax = rate / 2;
+                $('.tax').val(tax);
+            }
         });
     });
 </script>
