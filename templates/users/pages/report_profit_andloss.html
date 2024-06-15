@@ -88,15 +88,23 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <th colspan="2" style="text-align: left !important;">INCOME</th>
+                            <th colspan="2" style="text-align: left !important;">INCOME DIRECT</th>
                         </tr>
                         {% for data in income_accounts %}
 
                             <tr>
                                 <th><b><u>{{data.name}}</u></b></th>
                                 <th><b>{{data.amount}}</b></th>
-                                
                             </tr>
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                <tr>
+                                    <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                    <td>{{ledgers.amount}}</td>
+                                </tr>
+                                {%endfor%}
+                            {%endif%}
+
                             {% if data.childs %}
                                 {% for child in data.childs %}
                                     <tr>
@@ -118,7 +126,7 @@
                             <th >{{total_income}}</th>
                         </tr>   
                         <tr>
-                            <th colspan="2" style="text-align: left !important;">EXPENSE</th>
+                            <th colspan="2" style="text-align: left !important;">EXPENSE DIRECT</th>
                         </tr>
                         {% for data in expense_accounts %}
 
@@ -127,6 +135,126 @@
                                 <th><b>{{data.amount}}</b></th>
                                 
                             </tr>
+
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                <tr>
+                                    <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                    <td>{{ledgers.amount}}</td>
+                                </tr>
+                                {%endfor%}
+                            {%endif%}
+
+
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                    </tr>
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                        <tr>
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            <td>{{ledgers.amount}}</td>
+                                        </tr>
+                                        {%endfor%}
+                                    {%endif%}
+                                {%endfor%}
+                           
+                            {%endif%}
+                        {%endfor%}   
+                        <tr>
+                            <th style="text-align: center !important;">Total Expense</th>
+                            <th >{{total_expense}}</th>
+                        </tr>  
+                       
+                        <tr>
+                            <th style="text-align: left !important;">Opening Stock</th>
+                            <th>{{opening_stock}}</th>
+                        </tr> 
+                        <tr>
+                            <th style="text-align: left !important;">Closing Stock</th>
+                            <th>{{closing_stock}}</th>
+                        </tr> 
+                        <tr>
+                            <th style="text-align: left !important;">Cost of Goods Sold (COGS):</th>
+                            <th>{{cogs}}</th>
+                        </tr> 
+                        
+                        {% if gross_profit > 0%}
+                        <tr>
+                            <th style="text-align: center !important;">Gross Profit</th>
+                            <th>{{gross_profit}}</th>
+                        </tr> 
+                        {%else%} 
+                        <tr>
+                            <th style="text-align: center !important;">Loss Profit</th>
+                            <th>{{gross_profit}}</th>
+                        </tr> 
+                        {%endif%}
+                          
+
+
+                        <tr>
+                            <th colspan="2" style="text-align: left !important;">INCOME IN-DIRECT</th>
+                        </tr>
+                        {% for data in indir_income_account %}
+
+                            <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <th><b>{{data.amount}}</b></th>
+                            </tr>
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                <tr>
+                                    <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                    <td>{{ledgers.amount}}</td>
+                                </tr>
+                                {%endfor%}
+                            {%endif%}
+
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                    </tr>
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            <td>{{ledgers.amount}}</td>
+                                        {%endfor%}
+                                    {%endif%}
+                                {%endfor%}
+                           
+                            {%endif%}
+                        {%endfor%}   
+                        <tr>
+                            <th style="text-align: center !important;">Total Income</th>
+                            <th >{{total_in_dir_income}}</th>
+                        </tr>   
+                        <tr>
+                            <th colspan="2" style="text-align: left !important;">EXPENSE In-DIRECT</th>
+                        </tr>
+                        {% for data in indir_expense_account %}
+
+                            <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <th><b>{{data.amount}}</b></th>
+                                
+                            </tr>
+
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                <tr>
+                                    <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                    <td>{{ledgers.amount}}</td>
+                                </tr>
+                                {%endfor%}
+                            {%endif%}
+
+                            
                             {% if data.childs %}
                                 {% for child in data.childs %}
                                     <tr>
@@ -150,25 +278,15 @@
                             <th >{{total_expense}}</th>
                         </tr>  
                         <tr>
-                            <th style="text-align: center !important;">Income Before Stock Adjustment</th>
-                            <th>{{income_before_stock}}</th>
-                        </tr>  
-                        <tr>
-                            <th style="text-align: left !important;">Opening Stock</th>
-                            <th>{{opening_stock}}</th>
-                        </tr> 
-                        <tr>
-                            <th style="text-align: left !important;">Closing Stock</th>
-                            <th>{{closing_stock}}</th>
-                        </tr> 
-                        <tr>
-                            <th style="text-align: left !important;">Cost of Goods Sold (COGS):</th>
-                            <th>{{cogs}}</th>
-                        </tr> 
-                        <tr>
-                            <th style="text-align: center !important;">Gross Profit</th>
-                            <th>{{gross_profit}}</th>
-                        </tr>    
+                            {% if netprofit > 0 %}
+                            <th  style="text-align: center !important;">Net Profit</th>
+                            <th>{{netprofit}}</th>
+                            {%else%}
+                            <th  style="text-align: center !important;">Net Loss Profit</th>
+                            <th>{{netprofit}}</th>
+                            {%endif%}
+
+                        </tr>
 
                     </tbody>
                 </table>
