@@ -1,5 +1,14 @@
 {% extends "users/layout/app.html" %}
 {% block content %}
+
+<style>
+   
+    .w-100{
+        width: 400px !important;
+    }
+
+</style>
+
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
@@ -16,7 +25,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id"  required>
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" >
                                         <option value="" disabled>Select Entity</option>
                                         {% for x in list_entity %}
                                         <option value="{{x.id}}" {% if x.id|slugify == group_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -29,7 +38,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Branch</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" >
                                         <option value="" disabled selected>Select Branch</option>
                                         {% for x in list_branch %}
                                         <option value="{{x.id}}" {% if x.id|slugify == group_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -96,6 +105,16 @@
                             </div>
                         </div>
                     </div>
+                    {% if not get_user_data.user_role_id %}
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Set Default
+                                <input type="checkbox" class="form-check-input"  id="checkBox" name="default" value="true" {% if get_data.default == True %} checked {% endif %}>
+                            </label>
+                        </div>
+                    </div>
+                    {% endif %}
                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
             </div>

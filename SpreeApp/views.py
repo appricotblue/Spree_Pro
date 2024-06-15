@@ -1850,7 +1850,6 @@ def listAccountingGroup(request):
 
         if (role_permission['accounting_read'] or role_permission['accounting_write']):    
             
-            get_groups              = accounting_group_data.objects.all().order_by('-id')
             list_branch             = branch_data.objects.all().order_by('-id')
             accounts_list           = accounting_group_data.objects.all().order_by('id')
             selected_branch         = 0
@@ -1882,8 +1881,7 @@ def listAccountingGroup(request):
                 
             branch_pks          = list(list_branch.values_list('pk',flat=True))
             print("brachhh",branch_pks)
-            accounts_list       = accounts_list.filter(branch_id__in=branch_pks)
-            get_groups          = get_groups.filter(branch_id__in=branch_pks)
+            accounts_list       = accounts_list.filter(Q(branch_id__in=branch_pks) | Q(is_default=1))
 
             if 'search' in request.POST:
                 selected_branch         = int(request.POST.get('select_branch'))
@@ -1944,7 +1942,7 @@ def listAccountingGroup(request):
             if role_permission['accounting_write']:
                 write=1
 
-            return render(request,'users/pages/list_accounting_group.html',{'write':write,'get_groups' : get_groups,'accounts_list':accounts_list,'list_branch':list_branch,'selected_branch':selected_branch,'search_name':search_name,'selected_group':selected_group})
+            return render(request,'users/pages/list_accounting_group.html',{'write':write,'accounts_list':accounts_list,'list_branch':list_branch,'selected_branch':selected_branch,'search_name':search_name,'selected_group':selected_group})
         else:
             raise Http404("Access to this is not permitted")
     else:
@@ -1963,8 +1961,8 @@ def addNewAccountingGroup(request):
 
         if (role_permission['accounting_write']):
             if request.method=="POST":
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
+                entity_id           = request.POST.get('entity_id')
+                entity_id           = None if not entity_id else entity_data.objects.get(id=entity_id)
                 branch_id           = request.POST.get('branch_id')
                 name                = request.POST['name']
                 under_group         = None if not request.POST.get('group_id') else accounting_group_data.objects.get(id=request.POST.get('group_id'))
@@ -2035,8 +2033,8 @@ def updateAccountingGroup(request):
                 entity_id           = request.POST['entity_id']
                 entity_id           = entity_data.objects.get(id=entity_id)
                 group_id            = request.POST['id']
-                branch_id           = request.POST['branch_id']
-                branch_id           =   branch_data.objects.get(id=branch_id)
+                branch_id           = request.POST.get('branch_id')
+                branch_id           = None if not branch_id else branch_data.objects.get(id=branch_id)
                 name                = request.POST['name']
                 under_group         = None if not request.POST.get('group_id') else accounting_group_data.objects.get(id=request.POST.get('group_id'))
                 nature              = request.POST.get('nature')
@@ -2173,9 +2171,9 @@ def listAccountingLedger(request):
                 branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
             branch_pks          = list(branch_list.values_list('pk',flat=True))
-            listledger          = listledger.filter(branch_id__in=branch_pks)
+            listledger          = listledger.filter(Q(branch_id__in=branch_pks) | Q(is_default=1) )
             
-            list_account_group  = list_account_group.filter(branch_id__in=branch_pks) 
+            list_account_group  = list_account_group.filter(Q(branch_id__in=branch_pks) | Q(is_default=1)) 
 
             if 'search' in request.POST: 
                 selected_acc_group      = int(request.POST.get('select_acc_group'))
@@ -2354,6 +2352,7 @@ def addNewAccountingLedger(request):
 
                 else:
                     is_default              = 0
+                    
                 additional_expense          = request.POST.get('additional')
                 if additional_expense:
                     additional_expense      = 1
@@ -22851,6 +22850,7 @@ def report_trail_balance(request):
 def AccountLedger_balance(ledger_id,start_date,end_date):
            
         ledger_id               = ledger_id
+        print("startttttttttttt",ledger_id)
         getledger               = accounting_ledger_data.objects.get(pk=ledger_id)
         branch_id               = getledger.branch_id 
         end_date                = end_date
@@ -22861,6 +22861,7 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
 
         if voucher_type_ids:
             invoice_data_list   = invoice_data_list.exclude(voucher_type_id__in=voucher_type_ids)
+        
         
         list_invoice_data   = invoice_data_list.filter(
                 (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id))
@@ -22880,7 +22881,10 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
                 list_invoice_data                = list_invoice_data.filter(date__range=(start_date,end_date))
                         
         elif start_date:   
+            print("||||||||||||||||||||||||||||")
+            print(start_date)
             list_invoice_data                = list_invoice_data.filter(date__gte=start_date)
+            print(list_invoice_data)
 
         elif end_date:
             list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
@@ -22894,17 +22898,22 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
         balance     = opening_balance
        
         for row in list_invoice_data:
-            amount  = row.total_amount
+            amount  = row.pretax_amount
             if not amount:
                 amount  = 0
 
             row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
             row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
-            
+            print(getledger.entry_type)
+            print(row_debit_ledger_id)
+            print(ledger_id)
+            print("__________________")
             if row_debit_ledger_id==ledger_id:
-                
+                print(amount)
+                print("****")
                 if getledger.entry_type=='Dr':
                     balance = balance+ float(amount)
+                    print(balance)
                 else:
                     balance = balance - float(amount)      
     
@@ -22940,7 +22949,7 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
             get_product_transactions            = get_product_transactions.filter(date__range=(start_date,end_date))
                     
     elif start_date:   
-        get_product_transactions                = get_product_transactions.filter(date__gt=start_date)
+        get_product_transactions                = get_product_transactions.filter(date__gte=start_date)
 
     elif end_date:
         get_product_transactions                = get_product_transactions.filter(date__lt=end_date)
@@ -22956,8 +22965,9 @@ def plgetProduct_balance(product_id,start_date,end_date,batch_id):
     if credit_product:
         sum_credit_product_quantity      = credit_product.aggregate(total_credit_quantity=Sum('quantity'))['total_credit_quantity']
         csum_free_quantity               = credit_product.aggregate(total_free=Sum('free'))['total_free']
-        sum_credit_product_amount        = credit_product.aggregate(total_credit_amount=Sum('amount'))['total_credit_amount']
-        
+        sum_credit_product_amount        = credit_product.aggregate(total_credit_amount=Sum('pretax_amount'))['total_credit_amount']
+        print("[[[[[[[[[]]]]]]]]]")
+        print(sum_credit_product_amount)
         if sum_credit_product_amount:
             avg_purchase_price              = float(sum_credit_product_amount)/float(sum_credit_product_quantity)
        
@@ -23851,15 +23861,19 @@ def report_account_ledger(request):
                 data_to_display_child = []
                 description = row.description
                 reference       = row.voucher_number_appended
-                debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.name
-                credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.name
+                debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
+                credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
                 amount          = row.total_amount
                 
                 if not amount:
                     amount = 0
-
-                if row.debit_ledger_id==search_acc_ledger:
-                    
+                print(search_acc_ledger)
+                print(debit_account)
+                print(credit_account)
+                print(balance)
+                print(search_acc_ledger)
+                if debit_account==search_acc_ledger:
+                    print("debitttttttttttttttt")
                     if acc_type=='Dr':
                         balance = balance+ float(amount)
                     else:
@@ -24004,13 +24018,14 @@ def get_AccountLedger_balance(request):
 
         balance     = opening_balance
         for row in list_invoice_data:
-            amount  = row.total_amount
+            amount  = row.pretax_amount
             if not amount:
                 amount  = 0
 
             row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
             row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
             
+            print(row_debit_ledger_id)
             if row_debit_ledger_id==ledger_id:
                 
                 if getledger.entry_type=='Dr':

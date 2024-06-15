@@ -172,7 +172,7 @@ def getUserPermissions(request):
             #         transactions_read   = role_permission.transactions_read  
             #         transactions_write  = role_permission.transactions_write  
             # else:
-                role_permission         = user_role_permission.objects.filter(user_id=get_user_data.id,user_role_id=get_user_data.user_role_id.id).exists()
+                role_permission         = user_role_permission.objects.filter(user_role_id=get_user_data.user_role_id.id).exists()
                 
                 if role_permission:
                     role_permission     = user_role_permission.objects.get(pk=1)
@@ -260,4 +260,4 @@ def getUserPermissions(request):
                                         }
 
     
-    return {'all_user_role_permission': all_user_role_permission}
+    return {'all_user_role_permission': all_user_role_permission,'get_user_data':get_user_data}

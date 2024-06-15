@@ -122,20 +122,37 @@
                             </td>
                             <td>
                                 {{data.nature}}
-                            </td>
-                            <td>
-                                <a href="{% url 'update-accounting-group' %}?id={{data.id}}" class="adec">
-                                    <i class="mdi mdi-grease-pencil  me-3 lupdate hidethis"></i>
-                                </a>
-                                <a class="delete-btn" href="#" id="{{data.id}}" onclick="showModalAndChangeColor(this)">
-                                    <i class="mdi mdi-delete ldelete hidethis"></i>
-                                </a>
-                                {% if not write %}
-                                <a class="delete-btn" href="{% url 'view-accounting-ledger' %}?id={{data.id}}"  >
-                                    <i class="mdi mdi mdi-eye lview"></i>
-                                </a>
-                                {% endif %}
-                            </td>
+                            </td> 
+                            {% if data.is_default == 0 %}
+                                <td>
+                                    <a href="{% url 'update-accounting-group' %}?id={{data.id}}" class="adec">
+                                        <i class="mdi mdi-grease-pencil  me-3 lupdate hidethis"></i>
+                                    </a>
+                                    <a class="delete-btn" href="#" id="{{data.id}}" onclick="showModalAndChangeColor(this)">
+                                        <i class="mdi mdi-delete ldelete hidethis"></i>
+                                    </a>
+                                    {% if not write %}
+                                    <a class="delete-btn" href="{% url 'view-accounting-ledger' %}?id={{data.id}}" >
+                                        <i class="mdi mdi mdi-eye lview"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            {% elif not get_user_data.user_role_id %}
+                                <td>
+                               
+                                    <a href="{% url 'update-accounting-group' %}?id={{data.id}}" class="adec">
+                                        <i class="mdi mdi-grease-pencil  me-3 lupdate hidethis"></i>
+                                    </a>
+                                    <a class="delete-btn" href="#" id="{{data.id}}" onclick="showModalAndChangeColor(this)">
+                                        <i class="mdi mdi-delete ldelete hidethis"></i>
+                                    </a>
+                                    {% if not write %}
+                                    <a class="delete-btn" href="{% url 'view-accounting-ledger' %}?id={{data.id}}" >
+                                        <i class="mdi mdi mdi-eye lview"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>
