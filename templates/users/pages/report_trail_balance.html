@@ -94,7 +94,32 @@
                             <th></th>
                             
                         </tr>
-                        {% for data in asset_parent_account %}
+                        
+                        {% for data in asset_parent_account %}     
+                            <!-- direct -->
+
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                   
+                                    <tr>
+                                        <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                        {% if ledgers.type == 'Cr' %}
+                                            <td>{{ledgers.amount}}</td>
+                                            <td></td>
+                                        {% else %}
+                                            <td></td>
+                                            <td>{{ledgers.amount}}</td>
+                                        {% endif %}
+                                    </tr>
+                                       
+                                {%endfor%} 
+                            {%endif%}
+
+
+                            <!-- end  -->
+
+
+
 
                             <!-- <tr>
                                 <th><b><u>{{data.name}}</u></b></th>
@@ -141,6 +166,45 @@
                         </tr>
                         {% for data in liability_parent_account %}
 
+                            <!-- direct -->
+
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                   
+                                    <tr>
+                                        <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                        {% if ledgers.type == 'Cr' %}
+                                            <td>{{ledgers.amount}}</td>
+                                            <td></td>
+                                        {% else %}
+                                            <td></td>
+                                            <td>{{ledgers.amount}}</td>
+                                        {% endif %}
+                                    </tr>
+                                       
+                                {%endfor%} 
+                            {%endif%}
+
+
+                            <!-- end  -->
+
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                   
+                                    <tr>
+                                        <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                        {% if ledgers.type == 'Cr' %}
+                                            <td>{{ledgers.amount}}</td>
+                                            <td></td>
+                                        {% else %}
+                                            <td></td>
+                                            <td>{{ledgers.amount}}</td>
+                                        {% endif %}
+                                    </tr>
+                                       
+                                {%endfor%} 
+                            {%endif%}
+
                             <!-- <tr>
                                 <th><b><u>{{data.name}}</u></b></th>
                                 <th><b>{{data.amount}}</b></th>
@@ -173,22 +237,63 @@
                            
                             {%endif%}
                         {%endfor%}   
-                        <!-- <tr>
-                            <th style="text-align: center !important;">Total Liabilities</th>
-                            <th >{{total_liability}}</th>
-                        </tr>    -->
+
+
+
+
+                        <!-- total exepense -->
+
                         <tr>
-                            <th colspan="2" style="text-align: left !important;">INCOME</th>
+                            <th colspan="2" style="text-align: left !important;">EQUITY</th>
                             <th></th>
-                           
+                            
                         </tr>
-                        {% for data in income_accounts %}
+                        {% for data in equity_parent_account %}
+
+                            <!-- direct -->
+
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                   
+                                    <tr>
+                                        <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                        {% if ledgers.type == 'Cr' %}
+                                            <td>{{ledgers.amount}}</td>
+                                            <td></td>
+                                        {% else %}
+                                            <td></td>
+                                            <td>{{ledgers.amount}}</td>
+                                        {% endif %}
+                                    </tr>
+                                       
+                                {%endfor%} 
+                            {%endif%}
+
+
+                            <!-- end  -->
+
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                   
+                                    <tr>
+                                        <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                        {% if ledgers.type == 'Cr' %}
+                                            <td>{{ledgers.amount}}</td>
+                                            <td></td>
+                                        {% else %}
+                                            <td></td>
+                                            <td>{{ledgers.amount}}</td>
+                                        {% endif %}
+                                    </tr>
+                                       
+                                {%endfor%} 
+                            {%endif%}
 
                             <!-- <tr>
                                 <th><b><u>{{data.name}}</u></b></th>
                                 <th><b>{{data.amount}}</b></th>
-                                <th></th> 
-                                <th></th>                               
+                                <th></th>
+                                <th></th>                                
                             </tr> -->
                             {% if data.childs %}
                                 {% for child in data.childs %}
@@ -216,53 +321,7 @@
                            
                             {%endif%}
                         {%endfor%}   
-                        <!-- <tr>
-                            <th style="text-align: center !important;">Gross Profit</th>
-                            <th >{{total_income}}</th>
-                        </tr>    -->
-                        <tr>
-                            <th colspan="2" style="text-align: left !important;">EXPENSE</th>
-                            <th></th>
-                            
-                        </tr>
-                        {% for data in expense_accounts %}
-
-                            <!-- <tr>
-                                <th><b><u>{{data.name}}</u></b></th>
-                                <th><b>{{data.amount}}</b></th>                               
-                                <th></th>
-                                <th></th>
-                            </tr> -->
-                            {% if data.childs %}
-                                {% for child in data.childs %}
-                                    <!-- <tr>
-                                       <td> {{child.name}}</td>
-                                       <td> {{child.amount}} </td>
-                                       <td></td>
-                                       <td></td>
-                                    </tr> -->
-                                    {% if child.accledgers %}
-                                        {% for ledgers in child.accledgers %}
-                                        <tr>
-                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
-                                            {% if ledgers.type == 'Cr' %}
-                                                <td>{{ledgers.amount}}</td>
-                                                <td></td>
-                                            {% else %}
-                                                <td></td>
-                                                <td>{{ledgers.amount}}</td>
-                                            {% endif %}
-                                        {%endfor%}
-                                        </tr>
-                                    {%endif%}
-                                {%endfor%}
-                           
-                            {%endif%}
-                        {%endfor%}   
-                        <!-- <tr>
-                            <th style="text-align: center !important;">Total Expense</th>
-                            <th >{{total_expense}}</th>
-                        </tr>   -->
+                        
                         <tr>
                             <th style="text-align: center !important;">Total</th>
                             <th>{{credit_total}}</th>

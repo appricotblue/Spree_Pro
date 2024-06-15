@@ -91,12 +91,23 @@
                             <th colspan="2" style="text-align: left !important;">ASSET</th>
                         </tr>
                         {% for data in parent_account %}
+                            
+                        
 
                             <tr>
                                 <th><b><u>{{data.name}}</u></b></th>
                                 <th><b>{{data.amount}}</b></th>
                                 
                             </tr>
+
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                <tr>
+                                    <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                    <td>{{ledgers.amount}}</td>
+                                </tr>
+                                {%endfor%}
+                            {%endif%}
                             {% if data.childs %}
                                 {% for child in data.childs %}
                                     <tr>
@@ -105,9 +116,12 @@
                                     </tr>
                                     {% if child.accledgers %}
                                         {% for ledgers in child.accledgers %}
+                                        <tr>
                                             <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
                                             <td>{{ledgers.amount}}</td>
+                                        </tr>
                                         {%endfor%}
+                                        
                                     {%endif%}
                                 {%endfor%}
                            
@@ -127,6 +141,15 @@
                                 <th><b>{{data.amount}}</b></th>
                                 
                             </tr>
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                <tr>
+                                    <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                    <td>{{ledgers.amount}}</td>
+                                </tr>
+                                {%endfor%}
+                            {%endif%}
+
                             {% if data.childs %}
                                 {% for child in data.childs %}
                                     <tr>
@@ -149,6 +172,51 @@
                             <th style="text-align: center !important;">Total Liabilities</th>
                             <th >{{total_liability}}</th>
                         </tr> 
+
+
+                        <tr>
+                            <th colspan="2" style="text-align: left !important;">EQUITIES</th>
+                        </tr>
+                        {% for data in equity_parent_account %}
+
+                            <tr>
+                                <th><b><u>{{data.name}}</u></b></th>
+                                <th><b>{{data.amount}}</b></th>
+                                
+                            </tr>
+                            {% if data.dir_ledgers %}
+                                {% for ledgers in data.dir_ledgers %}
+                                <tr>
+                                    <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                    <td>{{ledgers.amount}}</td>
+                                </tr>
+                                {%endfor%}
+                            {%endif%}
+                            
+                            {% if data.childs %}
+                                {% for child in data.childs %}
+                                    <tr>
+                                       <td> {{child.name}}</td>
+                                       <td> {{child.amount}} </td>
+                                    </tr>
+                                    {% if child.accledgers %}
+                                        {% for ledgers in child.accledgers %}
+                                        <tr>
+                                            <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
+                                            <td>{{ledgers.amount}}</td>
+                                        </tr>
+                                        {%endfor%}
+                                    {%endif%}
+                                {%endfor%}
+                           
+                            {%endif%}
+                        {%endfor%}   
+                        <tr>
+                            <th style="text-align: center !important;">Total Equities</th>
+                            <th >{{total_equity}}</th>
+                        </tr> 
+
+
                             <th style="text-align: center !important;">Reseve and Surplus</th>
                             <th >{{pandl}}</th>
                         <tr>

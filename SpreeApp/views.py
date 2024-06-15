@@ -22307,8 +22307,8 @@ def report_daybook(request):
 
 def AccountLedger_trail_bal(ledger_id,start_date,end_date):
            
-        ledger_id               = ledger_id
-        getledger               = accounting_ledger_data.objects.get(pk=ledger_id)
+        search_acc_ledger        = ledger_id
+        getledger               = accounting_ledger_data.objects.get(pk=search_acc_ledger)
         branch_id               = getledger.branch_id 
         end_date                = end_date
         start_date              = start_date
@@ -22320,7 +22320,7 @@ def AccountLedger_trail_bal(ledger_id,start_date,end_date):
             invoice_data_list   = invoice_data_list.exclude(voucher_type_id__in=voucher_type_ids)
         
         list_invoice_data   = invoice_data_list.filter(
-                (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id))
+                (Q(debit_ledger_id=search_acc_ledger) | Q(credit_ledger_id=search_acc_ledger))
             )
         print(list_invoice_data)
 
@@ -22343,33 +22343,65 @@ def AccountLedger_trail_bal(ledger_id,start_date,end_date):
             list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
    
        
-        # if getledger.opening_balance:
-        #     opening_balance     = float(getledger.opening_balance)
-        # else:
-        #     opening_balance     = 0.0
-        opening_balance     = 0.0
+        if getledger.opening_balance:
+            opening_balance     = float(getledger.opening_balance)
+        else:
+            opening_balance     = 0.0
+        # opening_balance     = 0.0
 
         balance     = opening_balance
-       
+        amountfield = getledger.sumfield
+        acc_type    = getledger.entry_type
+
         for row in list_invoice_data:
-            amount  = row.total_amount
+            if amountfield=='total_amount':
+                amount  = row.total_amount
+            elif amountfield=='pretax_amount':
+                amount  = row.total_amount
             if not amount:
                 amount  = 0
 
-            row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
-            row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
-            
-            if row_debit_ledger_id==ledger_id:
-                
-                if getledger.entry_type=='Dr':
-                    balance = balance+ float(amount)
-                     
-    
+            debit_account = None if not row.debit_ledger_id else row.debit_ledger_id.id
+            credit_account = None if not row.credit_ledger_id else row.credit_ledger_id.id
+            if debit_account==search_acc_ledger:
+                    if row.is_child:
+                        parent  = invoice_data.objects.get(pk=row.parent_id.id)
+                        if parent.debit_ledger_id:
+                            if parent.debit_ledger_id.id==debit_account:
+                                pass
+                            elif acc_type=='Dr':
+                                balance = balance+ float(amount)
+                            else:
+                                balance = balance - float(amount) 
+                        elif acc_type=='Dr':
+                                balance = balance+ float(amount)
+                        else:
+                            balance = balance - float(amount) 
+                        
+                    elif acc_type=='Dr':
+                        balance = balance+ float(amount)
+                    else:
+                        balance = balance - float(amount)      
             else:
-                if row_debit_ledger_id and row.is_child:
-                    pass 
-                elif getledger.entry_type=='Cr':
+                if row.is_child:
+                    parent  = invoice_data.objects.get(pk=row.parent_id.id)
+                    if parent.credit_ledger_id:
+                        if parent.credit_ledger_id.id==credit_account:
+                            pass
+                        elif acc_type=='Cr':
+                            balance = balance+ float(amount)
+                        else:
+                            balance = balance - float(amount) 
+                    elif acc_type=='Cr':
+                            balance = balance+ float(amount)
+                    else:
+                        balance = balance - float(amount) 
+                    
+                elif acc_type=='Cr':
                     balance = balance+ float(amount)
+                else:
+                    balance = balance - float(amount)  
+            
                 
    
         return balance
@@ -22402,12 +22434,12 @@ def report_trail_balance(request):
         
         branch_filter       = list_branch.values('pk','name')  
         branch_pks          = list(list_branch.values_list('pk', flat=True))
-        parent_account      = []
-        total_income        = 0
-        expense_parent_account =[]
-        asset_parent_account   =[]
-        income_parent_account   =[]
-        total_expense = 0
+        asset_parent_account        = []
+        liability_parent_account    = []
+        expense_parent_account      = []
+        total_expense               = []
+        total_asset = 0
+        total_liability = 0
         search_branch = 0
 
         if 'search' in request.POST:
@@ -22430,13 +22462,15 @@ def report_trail_balance(request):
         debit_total     = 0.0
         if search_branch:
             # asset
-            get_acc_group_asset   = accounting_group_data.objects.filter(Q(nature="Assets") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            get_acc_group_asset   = accounting_group_data.objects.filter(Q(nature="Assets") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
             
             total_asset = 0
 
             if get_acc_group_asset:
                 
                 asset_parent_account  = list(get_acc_group_asset.values('id','name'))
+
+
                 
                 parent_counter = 0
                 
@@ -22444,10 +22478,33 @@ def report_trail_balance(request):
                 for parent_account_group in get_acc_group_asset:
                     parent_balance      = 0
                     asset_parent_account[parent_counter]['amount'] = 0.0
+
+                    diracc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=parent_account_group.id)
+                    if diracc_ledgers:
+                        asset_parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
+                        ledger_counter  = 0
+                        for ledger in diracc_ledgers:
+                            balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                            if ledger.entry_type=='Cr':
+                                credit_total    = credit_total+balance
+                                asset_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['type']='Cr'
+                            else:
+                                debit_total     = debit_total+balance
+                                asset_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['type']='Dr'
+                                        
+                            total_asset = float(total_asset)+float(balance)
+
+                            asset_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['amount']=balance
+                            ledger_counter = ledger_counter+1
+                            parent_balance = parent_balance + float(balance)
+
+
+                        
                     child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
                     if child_acc: 
                         asset_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
-                             
+                                     
                         child_counter= 0
                         
                         
@@ -22491,10 +22548,11 @@ def report_trail_balance(request):
 
                     asset_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
-                    
+                
+                 
             # liability
 
-            get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
             liability_parent_account= []
 
             total_liability = 0
@@ -22510,6 +22568,28 @@ def report_trail_balance(request):
                 for parent_account_group in get_acc_group_liability:
                     parent_balance      = 0
                     liability_parent_account[parent_counter]['amount'] = 0
+
+                    diracc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=parent_account_group.id)
+                    if diracc_ledgers:
+                        liability_parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
+                        ledger_counter  = 0
+                        for ledger in diracc_ledgers:
+                            balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                            if ledger.entry_type=='Cr':
+                                credit_total    = credit_total+balance
+                                liability_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['type']='Cr'
+                            else:
+                                debit_total     = debit_total+balance
+                                liability_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['type']='Dr'
+                                        
+                            total_liability = float(total_liability)+float(balance)
+
+                            liability_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['amount']=balance
+                            ledger_counter = ledger_counter+1
+                            parent_balance = parent_balance + float(balance)
+
+
                     child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
                     if child_acc: 
                         liability_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
@@ -22547,122 +22627,82 @@ def report_trail_balance(request):
                     liability_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
                         
-            # income
-          
-            get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
-            
-            total_income = 0
-            if get_acc_group_income:
+           # equity
+
+            get_acc_group_equity   = accounting_group_data.objects.filter(Q(nature="Equity") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
+            equity_parent_account= []
+
+            total_equity = 0
+            if get_acc_group_equity:
                 
-                income_parent_account  = list(get_acc_group_income.values('id','name'))
-                print(income_parent_account)
+                equity_parent_account  = list(get_acc_group_equity.values('id','name'))
+                print(equity_parent_account)
                 
                 
                 parent_counter = 0
                 
                 
-                for parent_account_group in get_acc_group_income:
+                for parent_account_group in get_acc_group_equity:
                     parent_balance      = 0
-                    
-                    income_parent_account[parent_counter]['amount'] = 0
+                    equity_parent_account[parent_counter]['amount'] = 0
+
+                    diracc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=parent_account_group.id)
+                    if diracc_ledgers:
+                        equity_parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
+                        ledger_counter  = 0
+                        for ledger in diracc_ledgers:
+                            balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                            if ledger.entry_type=='Cr':
+                                credit_total    = credit_total+balance
+                                equity_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['type']='Cr'
+                            else:
+                                debit_total     = debit_total+balance
+                                equity_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['type']='Dr'
+                                        
+                            total_equity = float(total_equity)+float(balance)
+
+                            equity_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['amount']=balance
+                            ledger_counter = ledger_counter+1
+                            parent_balance = parent_balance + float(balance)
+
+
                     child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
                     if child_acc: 
-                        income_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                        equity_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
                              
                         child_counter= 0
                         for child in child_acc:
                             acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
-                            income_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            equity_parent_account[parent_counter]['childs'][child_counter]['amount']=0
                             if acc_ledgers:
                                         
-                                income_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                equity_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
                                 
                                 ledger_counter            =0 
                                 total_of_child_acc_ledger = 0
                                 for ledger in acc_ledgers:
-
-                                    
                                     balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
-
                                     if ledger.entry_type=='Cr':
                                         credit_total    = credit_total+balance
-                                        income_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Cr'
+                                        equity_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Cr'
                                     else:
-                                        debit_total     = debit_total+balance
-                                        income_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Dr'
+                                        debit_total = debit_total+1
+                                        equity_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Dr'
                                         
-                                        
-                                    total_income = float(total_income)+float(balance)
+                                    total_equity = float(total_equity)+float(balance)
                       
-                                    income_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    equity_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
                                     total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
-                                    ledger_counter = ledger_counter+1
-
-                                income_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
-                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
-                                
-                            child_counter= child_counter+1
-
-                    income_parent_account[parent_counter]['amount']=parent_balance
-                    parent_counter= parent_counter+1
-                                
-            
-        # expense
-       
-            get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True))
-            
-            if get_acc_group_expense:
-                
-                expense_parent_account  = list(get_acc_group_expense.values('id','name'))
-                print(expense_parent_account)
-                
-                
-                parent_counter = 0
-                
-                
-                for expense_parent_account_group in get_acc_group_expense:
-                    parent_balance      = 0
-                    
-                    expense_parent_account[parent_counter]['amount'] = 0
-                    child_acc   = accounting_group_data.objects.filter(under_group=expense_parent_account_group.id)
-                    if child_acc:
-                        
-                        expense_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
-                                
-                        child_counter= 0
-                        for child in child_acc:
-                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
-                            expense_parent_account[parent_counter]['childs'][child_counter]['amount']=0
-                            if acc_ledgers:
-                                        
-                                expense_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
-                                
-                                ledger_counter            =0 
-                                total_of_child_acc_ledger = 0
-                                for ledger in acc_ledgers:
-                                    balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
                                     
-                                        
-                                    total_expense = float(total_expense)+float(balance)
-                                    if ledger.entry_type=='Cr':
-                                        credit_total    = credit_total+balance
-                                        expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Cr'
-                                    else:
-                                        debit_total = debit_total+balance
-                                        expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['type']='Dr'
-                                        
-                                    expense_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
-                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
-                                    ledger_counter = ledger_counter+1
-
-                                expense_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                    ledger_counter  = ledger_counter+1
+                                equity_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
                                 parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
                                 
                             child_counter= child_counter+1
-                    
-                    expense_parent_account[parent_counter]['amount']=parent_balance
+
+                    equity_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
-        
 
         
         if 'download' in request.POST:
@@ -22841,12 +22881,10 @@ def report_trail_balance(request):
 
         request.session['liability_parent_account'] = liability_parent_account
         request.session['asset_parent_account']     = asset_parent_account
-        request.session['income_account']           = income_parent_account
-        request.session['expense_parent_account']   = expense_parent_account
-        request.session['total_income']             = total_income
-        request.session['total_expense']            = total_expense
+        request.session['equity_parent_account']   = equity_parent_account
         request.session['total_liability']          = total_liability
         request.session['total_asset']              = total_asset
+        request.session['total_equity']            = total_equity
         request.session['search_branch']            = branch_data.objects.get(pk=search_branch).name
         request.session['from_date']                = from_date
         request.session['to_date']                  = to_date
@@ -22854,8 +22892,10 @@ def report_trail_balance(request):
         request.session['credit_total']             = credit_total
         
         print(asset_parent_account)
+        print("_________")
 
-        return render(request,'users/pages/report_trail_balance.html',{'income_accounts':income_parent_account,'asset_parent_account':asset_parent_account,'total_asset':total_asset,'liability_parent_account':liability_parent_account,'total_liability':total_liability,'expense_accounts':expense_parent_account,'total_income':total_income,'total_expense':total_expense,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'debit_total':debit_total,'credit_total':credit_total})
+        print(equity_parent_account)
+        return render(request,'users/pages/report_trail_balance.html',{'equity_parent_account':equity_parent_account,'total_equity':total_equity,'asset_parent_account':asset_parent_account,'total_asset':total_asset,'liability_parent_account':liability_parent_account,'total_liability':total_liability,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'debit_total':debit_total,'credit_total':credit_total})
     else:
         return redirect('user-login')
 
@@ -22874,9 +22914,9 @@ def report_trail_balance(request):
 
 def AccountLedger_balance(ledger_id,start_date,end_date):
            
-        ledger_id               = ledger_id
-        print("startttttttttttt",ledger_id)
-        getledger               = accounting_ledger_data.objects.get(pk=ledger_id)
+        search_acc_ledger       = ledger_id
+        print("startttttttttttt",search_acc_ledger)
+        getledger               = accounting_ledger_data.objects.get(pk=search_acc_ledger)
         branch_id               = getledger.branch_id 
         end_date                = end_date
         start_date              = start_date
@@ -22889,7 +22929,7 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
         
         
         list_invoice_data   = invoice_data_list.filter(
-                (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id))
+                (Q(debit_ledger_id=search_acc_ledger) | Q(credit_ledger_id=search_acc_ledger))
             )
         print(list_invoice_data)
 
@@ -22921,31 +22961,58 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
             opening_balance     = 0.0
 
         balance     = opening_balance
-       
+
+        balance     = opening_balance
+        amountfield = getledger.sumfield
+            
+        acc_type = getledger.entry_type
         for row in list_invoice_data:
-            amount  = row.pretax_amount
+            if amountfield=='total_amount':
+                amount  = row.total_amount
+            elif amountfield=='pretax_amount':
+                amount  = row.total_amount
             if not amount:
                 amount  = 0
 
-            row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
-            row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
-            print(getledger.entry_type)
-            print(row_debit_ledger_id)
-            print(ledger_id)
-            print("__________________")
-            if row_debit_ledger_id==ledger_id:
-                print(amount)
-                print("****")
-                if getledger.entry_type=='Dr':
-                    balance = balance+ float(amount)
-                    print(balance)
-                else:
-                    balance = balance - float(amount)      
-    
+            debit_account = None if not row.debit_ledger_id else row.debit_ledger_id.id
+            credit_account = None if not row.credit_ledger_id else row.credit_ledger_id.id
+           
+            if debit_account==search_acc_ledger:
+                    if row.is_child:
+                        parent  = invoice_data.objects.get(pk=row.parent_id.id)
+                        if parent.debit_ledger_id:
+                            if parent.debit_ledger_id.id==debit_account:
+                                pass
+                            elif acc_type=='Dr':
+                                balance = balance+ float(amount)
+                            else:
+                                balance = balance - float(amount) 
+                        elif acc_type=='Dr':
+                                balance = balance+ float(amount)
+                        else:
+                            balance = balance - float(amount) 
+                        
+                    elif acc_type=='Dr':
+                        balance = balance+ float(amount)
+                    else:
+                        balance = balance - float(amount)      
             else:
-                if row_debit_ledger_id and row.is_child:
-                    pass 
-                elif getledger.entry_type=='Cr':
+                if row.is_child:
+                    parent  = invoice_data.objects.get(pk=row.parent_id.id)
+                    print("7777777777")
+                    if parent.credit_ledger_id:
+                        if parent.credit_ledger_id.id==credit_account:
+                            pass
+                        elif acc_type=='Cr':
+                            balance = balance+ float(amount)
+                        else:
+                            balance = balance - float(amount) 
+                    elif acc_type=='Cr':
+                            balance = balance+ float(amount)
+                    else:
+                        balance = balance - float(amount) 
+                    
+                elif acc_type=='Cr':
                     balance = balance+ float(amount)
                 else:
                     balance = balance - float(amount)  
@@ -23064,7 +23131,7 @@ def report_profit_andloss(request):
 
         if search_branch:
           
-            get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(affect_gross_profit="1") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
             
             total_income = 0
             if get_acc_group_income:
@@ -23078,11 +23145,48 @@ def report_profit_andloss(request):
                 
                 for parent_account_group in get_acc_group_income:
                     parent_balance = 0
+                    
                     parent_account[parent_counter]['amount'] = 0
-                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
+
+                    diracc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=parent_account_group.id)
+                    if diracc_ledgers:
+                        liability_parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
+                        ledger_counter  = 0
+                        for ledger in diracc_ledgers:
+                            balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                            if ledger.entry_type=='Cr':
+                                credit_total    = credit_total+balance
+                                liability_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['type']='Cr'
+                            else:
+                                debit_total     = debit_total+balance
+                                liability_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['type']='Dr'
+                                        
+                            total_liability = float(total_liability)+float(balance)
+
+                            liability_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['amount']=balance
+                            ledger_counter = ledger_counter+1
+                            parent_balance = parent_balance + float(balance)
+
+                    diracc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=parent_account_group.id)
+                    if diracc_ledgers:
+                        parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
+                        ledger_counter  = 0
+                        for ledger in diracc_ledgers:
+                            balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                        
+                            total_asset = float(total_asset)+float(balance)
+
+                            parent_account[parent_counter]['dir_ledgers'][ledger_counter]['amount']=balance
+                            ledger_counter = ledger_counter+1
+                            parent_balance = parent_balance + float(balance)
+
+
+
+                    child_acc   = accounting_group_data.objects.filter(Q(under_group=parent_account_group.id) and Q(affect_gross_profit="1"))
                     if child_acc: 
                         parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
-                             
+                            
                         child_counter= 0
                         for child in child_acc:
                             acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
@@ -23113,7 +23217,7 @@ def report_profit_andloss(request):
             
         # expense
        
-            get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(affect_gross_profit="1") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
             
             if get_acc_group_expense:
                 
@@ -23128,7 +23232,7 @@ def report_profit_andloss(request):
                     parent_balance      = 0
                     
                     expense_parent_account[parent_counter]['amount'] = 0
-                    child_acc   = accounting_group_data.objects.filter(under_group=expense_parent_account_group.id)
+                    child_acc   = accounting_group_data.objects.filter(Q(under_group=expense_parent_account_group.id) and Q(affect_gross_profit="1"))
                     if child_acc:
                         
                         expense_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
@@ -23372,7 +23476,7 @@ def p_and_l_balancesheet(search_branch,from_date,to_date):
 
     if search_branch:
         
-        get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+        get_acc_group_income   = accounting_group_data.objects.filter(Q(nature="Income") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
         
         total_income = 0
         if get_acc_group_income:
@@ -23420,7 +23524,7 @@ def p_and_l_balancesheet(search_branch,from_date,to_date):
         
     # expense
     
-        get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+        get_acc_group_expense   = accounting_group_data.objects.filter(Q(nature="Expenses") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
         
         if get_acc_group_expense:
             
@@ -23542,6 +23646,8 @@ def report_balance_sheet(request):
         total_expense = 0
         search_branch = 0
         liability_parent_account    =[]
+        equity_parent_account   = []
+        total_equity    = 0
         
 
         if 'search' in request.POST:
@@ -23562,7 +23668,7 @@ def report_balance_sheet(request):
             
         if search_branch:
           
-            get_acc_group_asset   = accounting_group_data.objects.filter(Q(nature="Assets") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            get_acc_group_asset   = accounting_group_data.objects.filter(Q(nature="Assets") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
             
             total_asset = 0
             if get_acc_group_asset:
@@ -23577,6 +23683,24 @@ def report_balance_sheet(request):
                 for parent_account_group in get_acc_group_asset:
                     parent_balance = 0
                     parent_account[parent_counter]['amount'] = 0
+
+                    diracc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=parent_account_group.id)
+                    if diracc_ledgers:
+                        parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
+                        ledger_counter  = 0
+                        for ledger in diracc_ledgers:
+                            balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                            
+                            total_asset = float(total_asset)+float(balance)
+
+                            parent_account[parent_counter]['dir_ledgers'][ledger_counter]['amount']=balance
+                            ledger_counter = ledger_counter+1
+                            parent_balance = parent_balance + float(balance)
+
+
+
+
                     child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
                     if child_acc: 
                         parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
@@ -23611,7 +23735,7 @@ def report_balance_sheet(request):
             
         # liabilities
             total_liability = 0
-            get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & Q(branch_id=search_branch))
+            get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
             
             if get_acc_group_liability:
                 
@@ -23622,11 +23746,27 @@ def report_balance_sheet(request):
                 parent_counter = 0
                 
                 
-                for liability_parent_account_group in get_acc_group_liability:
+                for parent_account_group in get_acc_group_liability:
                     parent_balance      = 0
                     
                     liability_parent_account[parent_counter]['amount'] = 0
-                    child_acc   = accounting_group_data.objects.filter(under_group=liability_parent_account_group.id)
+                    diracc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=parent_account_group.id)
+                    if diracc_ledgers:
+                        liability_parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
+                        ledger_counter  = 0
+                        for ledger in diracc_ledgers:
+                            balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                                     
+                            total_liability = float(total_liability)+float(balance)
+
+                            liability_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['amount']=balance
+                            ledger_counter = ledger_counter+1
+                            parent_balance = parent_balance + float(balance)
+                            
+
+
+                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
                     if child_acc:
                         
                         liability_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
@@ -23657,6 +23797,69 @@ def report_balance_sheet(request):
                     liability_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
         
+        # equity
+            get_acc_group_equity   = accounting_group_data.objects.filter(Q(nature="Equity") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | (Q(is_default=1))))
+            equity_parent_account= []
+
+            total_equity = 0
+            if get_acc_group_equity:
+                
+                equity_parent_account  = list(get_acc_group_equity.values('id','name'))
+                print(equity_parent_account)
+                
+                
+                parent_counter = 0
+                
+                
+                for parent_account_group in get_acc_group_equity:
+                    parent_balance      = 0
+                    equity_parent_account[parent_counter]['amount'] = 0
+
+                    diracc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=parent_account_group.id)
+                    if diracc_ledgers:
+                        equity_parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
+                        ledger_counter  = 0
+                        for ledger in diracc_ledgers:
+                            balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                            
+                            total_equity = float(total_equity)+float(balance)
+
+                            equity_parent_account[parent_counter]['dir_ledgers'][ledger_counter]['amount']=balance
+                            ledger_counter = ledger_counter+1
+                            parent_balance = parent_balance + float(balance)
+
+
+                    child_acc   = accounting_group_data.objects.filter(under_group=parent_account_group.id)
+                    if child_acc: 
+                        equity_parent_account[parent_counter]['childs']=list(child_acc.values('id','name'))
+                             
+                        child_counter= 0
+                        for child in child_acc:
+                            acc_ledgers   = accounting_ledger_data.objects.filter(accounting_group_id=child.id)
+                            equity_parent_account[parent_counter]['childs'][child_counter]['amount']=0
+                            if acc_ledgers:
+                                        
+                                equity_parent_account[parent_counter]['childs'][child_counter]['accledgers']= list(acc_ledgers.values('id','name'))
+                                
+                                ledger_counter            =0 
+                                total_of_child_acc_ledger = 0
+                                for ledger in acc_ledgers:
+                                    balance = AccountLedger_trail_bal(ledger.id,from_date,to_date)
+                                    
+                                    total_equity = float(total_equity)+float(balance)
+                      
+                                    equity_parent_account[parent_counter]['childs'][child_counter]['accledgers'][ledger_counter]['amount']=balance
+                                    total_of_child_acc_ledger = float(total_of_child_acc_ledger)+float(balance)
+                                    
+                                    ledger_counter  = ledger_counter+1
+                                equity_parent_account[parent_counter]['childs'][child_counter]['amount']=total_of_child_acc_ledger
+                                parent_balance = float(parent_balance)+float(total_of_child_acc_ledger)
+                                
+                            child_counter= child_counter+1
+
+                    equity_parent_account[parent_counter]['amount']=parent_balance
+                    parent_counter= parent_counter+1
 
             pandl   =   p_and_l_balancesheet(search_branch,from_date,to_date)
             
@@ -23666,6 +23869,8 @@ def report_balance_sheet(request):
             request.session['liability_parent_account'] = liability_parent_account
             request.session['total_asset']              = total_asset
             request.session['total_liability']          = total_liability
+            request.session['total_equity']             = total_equity
+            request.session['equity_parent_account']      = equity_parent_account
             request.session['search_branch']            = branch_data.objects.get(pk=search_branch).name
             request.session['from_date']                = from_date
             request.session['to_date']                  = to_date
@@ -23792,8 +23997,10 @@ def report_balance_sheet(request):
             wb.save(response)
             return response
 
+        print(liability_parent_account)
+
         
-        return render(request,'users/pages/report_balance_sheet.html',{'parent_account':parent_account,'liability_parent_account':liability_parent_account,'total_asset':total_asset,'total_liability':total_liability,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'pandl':pandl})
+        return render(request,'users/pages/report_balance_sheet.html',{'equity_parent_account':equity_parent_account,'parent_account':parent_account,'liability_parent_account':liability_parent_account,'total_asset':total_asset,'total_liability':total_liability,'total_equity':total_equity,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'pandl':pandl})
     else:
         return redirect('user-login')
 
@@ -23880,40 +24087,81 @@ def report_account_ledger(request):
             list_invoice_data   = invoice_data_list.filter(
                 (Q(debit_ledger_id=search_acc_ledger) | Q(credit_ledger_id=search_acc_ledger))
                 )
-            balance     = float(opening_balance)
+            balance         = float(opening_balance)
+            amountfield     = get_account_ledger.sumfield
+
+            print(list_invoice_data)
             for row in list_invoice_data:
                 print(row)
                 data_to_display_child = []
                 description = row.description
                 reference       = row.voucher_number_appended
-                debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
-                credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
-                amount          = row.total_amount
+                skip            = 0
                 
+                debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
+                debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
+                credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
+                credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
+                if amountfield=='total_amount':
+                    amount  = row.total_amount
+                elif amountfield=='pretax_amount':
+                    amount  = row.total_amount
                 if not amount:
-                    amount = 0
+                    amount  = 0
+                
+
                 print(search_acc_ledger)
                 print(debit_account)
                 print(credit_account)
                 print(balance)
                 print(search_acc_ledger)
                 if debit_account==search_acc_ledger:
-                    print("debitttttttttttttttt")
-                    if acc_type=='Dr':
+                    if row.is_child:
+                        parent  = invoice_data.objects.get(pk=row.parent_id.id)
+                        print("{{{{{{{{{{{}}}}}}}}}}}")
+                        if parent.debit_ledger_id:
+                            if parent.debit_ledger_id.id==debit_account:
+                                skip = 1
+                                pass
+                            elif acc_type=='Dr':
+                                balance = balance+ float(amount)
+                            else:
+                                balance = balance - float(amount) 
+                        elif acc_type=='Dr':
+                                balance = balance+ float(amount)
+                        else:
+                            balance = balance - float(amount) 
+                        
+                    elif acc_type=='Dr':
                         balance = balance+ float(amount)
                     else:
                         balance = balance - float(amount)      
-     
                 else:
-                    if acc_type=='Cr':
+                    if row.is_child:
+                        parent  = invoice_data.objects.get(pk=row.parent_id.id)
+                        print("7777777777")
+                        if parent.credit_ledger_id:
+                            if parent.credit_ledger_id.id==credit_account:
+                                skip = 1
+                                pass
+                            elif acc_type=='Cr':
+                                balance = balance+ float(amount)
+                            else:
+                                balance = balance - float(amount) 
+                        elif acc_type=='Cr':
+                                balance = balance+ float(amount)
+                        else:
+                            balance = balance - float(amount) 
+                        
+                    elif acc_type=='Cr':
                         balance = balance+ float(amount)
                     else:
                         balance = balance - float(amount)  
 
 
-
-                data_to_display_child.extend([debit_account,credit_account,description,reference,amount,balance])
-                data_to_display.extend([data_to_display_child])
+                if skip==0:
+                    data_to_display_child.extend([debit_account_name,credit_account_name,description,reference,amount,balance])
+                    data_to_display.extend([data_to_display_child])
 
 
         request.session['data_to_display'] = data_to_display
