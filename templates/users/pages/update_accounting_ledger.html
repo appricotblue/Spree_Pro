@@ -105,8 +105,8 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id"  required>
-                                        <option value="" disabled>Select Entity</option>
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" >
+                                        <option value="" disabled selected>Select Entity</option>
                                         {% for x in list_entity %}
                                         <option value="{{x.id}}" {% if x.id|slugify == get_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
                                         {% endfor %}
@@ -118,7 +118,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Branch</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" >
                                         <option value="" disabled selected>Select Branch</option>
                                         {% for x in list_branch %}
                                         <option value="{{x.id}}" {% if x.id|slugify == get_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -296,7 +296,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Pricing Level</label>
                             <div class="col-sm-9">
-                                <select class="js-example-basic-single w-100 pricing_level" name="pricing_level" required>
+                                <select class="js-example-basic-single w-100 pricing_level" name="pricing_level" >
                                     <option value="" disabled selected>Select Pricing Level</option>
                                     {% for x in list_pricing_level %}
                                     <option value="{{x.id}}" {% if x.id|slugify == get_data.pricing_level.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -484,6 +484,26 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Aggregate Field</label>
+                            <div class="col-sm-9">
+                                <select id="aggre" name="sumfield" class="js-example-basic-single w-100">
+                                   <option value="total_amount" {% if get_data.sumfield|slugify == 'total_amount' %} selected {% endif %}>total_amount</option>
+                                   <option value="pretax_amount" {% if get_data.sumfield|slugify == 'pretax_amount' %} selected {% endif %}>pretax_amount</option>
+                                </select>     
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Show Tax
+                                <input type="checkbox" class="form-check-input"  id="checkBox" name="showtax" {% if get_data.taxshow == 1 %} checked {% endif %}>
+                            </label>
+                         </div>
+                    </div>
+                    
                 </div>
                 {% if not get_user_data.user_role_id %}
                 <div class="form-group">

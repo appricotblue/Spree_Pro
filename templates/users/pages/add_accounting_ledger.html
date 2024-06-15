@@ -95,7 +95,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" required>
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" >
                                         <option value="" disabled selected>Select Entity</option>
                                         {% for x in list_entity %}
                                         <option value="{{x.id}}" {% if x.id|slugify == common_user_data.default_entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -109,7 +109,7 @@
                                 <label class="col-sm-3 col-form-label">Branch</label>
                                 <div class="col-sm-9">
                                     <select class="js-example-basic-single w-100 
-                                     branch" name="branch_id" required>
+                                     branch" name="branch_id" >
                                         <option value="" disabled selected>Select Branch</option>
                                         {% for x in list_branch %}
                                         <option value="{{x.id}}">{{x.name}}</option>
@@ -220,7 +220,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Opening Balance</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Opening Balance" name="opening_balance">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Opening Balance" name="opening_balance" value="0">
                             </div>
                         </div>
                     </div>
@@ -228,7 +228,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Entry Type</label>
                             <div class="col-sm-9">
-                                <select class="js-example-basic-single w-100" name="entry_type">
+                                <select class="js-example-basic-single w-100" name="entry_type" required>
                                     <option value="" disabled selected>Entry Type</option>
                                     <option value="Dr">Dr</option>
                                     <option value="Cr">Cr</option>
@@ -273,7 +273,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Pricing Level</label>
                             <div class="col-sm-9">
-                                <select class="js-example-basic-single w-100 pricing_level" name="pricing_level" required>
+                                <select class="js-example-basic-single w-100 pricing_level" name="pricing_level">
                                     <option value="" disabled selected>Select Pricing Level</option>
                                     {% for x in list_pricing_level %}
                                     <option value="{{x.id}}">{{x.name}}</option>
@@ -445,6 +445,25 @@
                                     {% endfor%}
                                 </select>     
                             </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Aggregate Field</label>
+                            <div class="col-sm-9">
+                                <select id="aggre" name="sumfield" class="js-example-basic-single w-100">
+                                   <option value="total_amount">total_amount</option>
+                                   <option value="pretax_amount">pretax_amount</option>
+                                </select>     
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Show Tax
+                                <input type="checkbox" class="form-check-input"  id="checkBox" name="showtax">
+                            </label>
                         </div>
                     </div>
                 </div>

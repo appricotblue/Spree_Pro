@@ -265,6 +265,8 @@ class accounting_ledger_data(models.Model):
     credit_limit        = models.CharField(max_length=100,default='',null=True)
     pricing_level       = models.ForeignKey(pricing_level_data,on_delete=models.SET_NULL,null=True)
     additional_expense  = models.BooleanField(max_length=100,default=0)
+    sumfield            = models.TextField(default='total_amount',null=True)
+    taxshow             = models.BooleanField(max_length=100,default=0)
 
 
 

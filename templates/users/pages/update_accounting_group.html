@@ -97,11 +97,13 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Affect Gross Profit</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Affect Gross Profit" name="affect_gross_profit" value="{{group_data.affect_gross_profit}}">
-                                </div>
+                            <div class="form-group">
+                                <div class="form-check form-check-primary">
+                                <label class="form-check-label">
+                                    Affect Gross Profit 
+                                    <input type="checkbox" class="form-check-input"  id="checkBox" name="affect_gross_profit" {% if group_data.affect_gross_profit == '1' %} checked {% endif %}>
+                                </label>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -109,8 +111,8 @@
                     <div class="form-group">
                         <div class="form-check form-check-primary">
                             <label class="form-check-label">
-                                Set Default
-                                <input type="checkbox" class="form-check-input"  id="checkBox" name="default" value="true" {% if get_data.default == True %} checked {% endif %}>
+                                Set Default 
+                                <input type="checkbox" class="form-check-input"  id="checkBox" name="default" {% if group_data.is_default == 1 %} checked {% endif %}>
                             </label>
                         </div>
                     </div>

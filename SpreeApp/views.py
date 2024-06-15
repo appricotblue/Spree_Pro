@@ -1968,7 +1968,12 @@ def addNewAccountingGroup(request):
                 under_group         = None if not request.POST.get('group_id') else accounting_group_data.objects.get(id=request.POST.get('group_id'))
                 nature              = request.POST.get('nature')
                 description         = request.POST.get('description')
+                
                 affect_gross_profit = request.POST.get('affect_gross_profit')
+                if affect_gross_profit:
+                    affect_gross_profit = 1
+                else:
+                    affect_gross_profit = 0
                 default             = True if request.POST.get('default') == 'true' else False
                 now                 = datetime.now()
 
@@ -2040,7 +2045,16 @@ def updateAccountingGroup(request):
                 nature              = request.POST.get('nature')
                 description         = request.POST.get('description')
                 affect_gross_profit = request.POST.get('affect_gross_profit')
-                default             = True if request.POST.get('default') == 'true' else False
+                affect_gross_profit = request.POST.get('affect_gross_profit')
+                if affect_gross_profit:
+                    affect_gross_profit = 1
+                else:
+                    affect_gross_profit = 0
+                default             = request.POST.get('default')
+                if default:
+                    default =1
+                else:
+                    default=0
                 now                 = datetime.now()
             
                 accounting_group_data.objects.filter(id=group_id).update(entity_id=entity_id,branch_id=branch_id,name=name,under_group=under_group,nature=nature,description=description,affect_gross_profit=affect_gross_profit,is_default=default,updated_at=now)
@@ -2299,10 +2313,10 @@ def addNewAccountingLedger(request):
         if (role_permission['accounting_write']):    
             if request.method=="POST":
                 
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
-                branch_id           = request.POST['branch_id']
-                branch_id           = branch_data.objects.get(id=branch_id)
+                entity_id           = request.POST.get('entity_id')
+                entity_id           = None if not entity_id else entity_data.objects.get(id=entity_id)
+                branch_id           = request.POST.get('branch_id')
+                branch_id           = None if not branch_id else branch_data.objects.get(id=branch_id)
                 customer_type_id    = request.POST.get('customer_type_id')
                 if customer_type_id:
                     customer_type_id    = customer_type.objects.get(id=customer_type_id)
@@ -2359,7 +2373,12 @@ def addNewAccountingLedger(request):
                 else:
                     additional_expense      = 0
 
-                
+                showtax             = request.POST.get('showtax')
+                if showtax:
+                    showtax     = 1
+                else:
+                    showtax     = 0
+                sumfield            = request.POST.get('sumfield')
 
                 
                 gst_treatment   = None if not gst_treatment else gst_treatment_data.objects.get(id=gst_treatment)
@@ -2405,7 +2424,7 @@ def addNewAccountingLedger(request):
                                                 gst_treatment       =gst_treatment,
                                             )
                     insert_customer_data.save()
-                    insert_data         = accounting_ledger_data(entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,branch_id= branch_id,pricing_level=pricing_level,credit_limit=credit_limit,credit_period=credit_period,name=name,customer_id=insert_customer_data,accounting_group_id=accounting_group_id,opening_balance=opening_balance,entry_type='Dr',created_at=now,updated_at=now)
+                    insert_data         = accounting_ledger_data(taxshow=showtax,sumfield=sumfield,entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,branch_id= branch_id,pricing_level=pricing_level,credit_limit=credit_limit,credit_period=credit_period,name=name,customer_id=insert_customer_data,accounting_group_id=accounting_group_id,opening_balance=opening_balance,entry_type='Dr',created_at=now,updated_at=now)
                     insert_data.save()
                 elif(accounting_group == 'Sundry Creditors'):
                     latest_id           = 1 if not supplier_data.objects.all().exists() else supplier_data.objects.latest('id').id
@@ -2448,10 +2467,10 @@ def addNewAccountingLedger(request):
                     insert_supplier_data.save()
 
                     # accounting_group_id = accounting_group_data.objects.get(name="Sundry Deptor")
-                    insert_data         = accounting_ledger_data(entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,pricing_level=pricing_level,branch_id= branch_id,credit_limit=credit_limit,credit_period=credit_period,name=name,supplier_id=insert_supplier_data,accounting_group_id=accounting_group_id,opening_balance=opening_balance,entry_type='Cr',created_at=now,updated_at=now)
+                    insert_data         = accounting_ledger_data(taxshow=showtax,sumfield=sumfield,entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,pricing_level=pricing_level,branch_id= branch_id,credit_limit=credit_limit,credit_period=credit_period,name=name,supplier_id=insert_supplier_data,accounting_group_id=accounting_group_id,opening_balance=opening_balance,entry_type='Cr',created_at=now,updated_at=now)
                     insert_data.save()
                 else:
-                    insert_data         = accounting_ledger_data(entity_id = entity_id,entry_type= entry_type,additional_expense=additional_expense,is_default= is_default,branch_id= branch_id,pricing_level=pricing_level,name=name,accounting_group_id=accounting_group_id,created_at=now,updated_at=now)
+                    insert_data         = accounting_ledger_data(taxshow=showtax,sumfield=sumfield,entity_id = entity_id,entry_type= entry_type,additional_expense=additional_expense,is_default= is_default,branch_id= branch_id,pricing_level=pricing_level,name=name,accounting_group_id=accounting_group_id,created_at=now,updated_at=now)
                     insert_data.save()
 
                 messages.success(request, 'Successfully added.')
@@ -2525,10 +2544,10 @@ def updateAccountingLedger(request):
         if (role_permission['accounting_write']):
             if request.method=="POST":
                 get_id              = request.POST['id']
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
-                branch_id           = request.POST['branch_id']
-                branch_id           = branch_data.objects.get(id=branch_id)
+                entity_id           = request.POST.get('entity_id')
+                entity_id           = None if not entity_id else entity_data.objects.get(id=entity_id)
+                branch_id           = request.POST.get('branch_id')
+                branch_id           = None if not branch_id else branch_data.objects.get(id=branch_id)
                 customer_type_id    = request.POST.get('customer_type_id')
                 if customer_type_id:
                     customer_type_id    = customer_type.objects.get(id=customer_type_id)
@@ -2566,7 +2585,13 @@ def updateAccountingLedger(request):
                 accounting_ledger   = accounting_ledger_data.objects.get(id=get_id)
                 customer_id         = None
                 supplier_id         = None
-                
+                showtax             = request.POST.get('showtax')
+                if showtax:
+                    showtax     = 1
+                else:
+                    showtax     = 0
+                sumfield            = request.POST.get('sumfield')
+
                 if accounting_ledger.customer_id:
                     customer_id         = accounting_ledger.customer_id.id
                 elif accounting_ledger.supplier_id:
@@ -2660,7 +2685,7 @@ def updateAccountingLedger(request):
                                                 gst_treatment       =gst_treatment
                                             )
 
-                accounting_ledger_data.objects.all().filter(id=get_id).update(entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,pricing_level=pricing_level,branch_id= branch_id,credit_limit=credit_limit,credit_period=credit_period,name=name,accounting_group_id=accounting_group_id,opening_balance=opening_balance,entry_type=entry_type,bill_by_bill=bill_by_bill,updated_at=now)
+                accounting_ledger_data.objects.all().filter(id=get_id).update(taxshow=showtax,sumfield=sumfield,entity_id = entity_id,additional_expense=additional_expense,is_default= is_default,pricing_level=pricing_level,branch_id= branch_id,credit_limit=credit_limit,credit_period=credit_period,name=name,accounting_group_id=accounting_group_id,opening_balance=opening_balance,entry_type=entry_type,bill_by_bill=bill_by_bill,updated_at=now)
 
 
                 messages.success(request, 'Changes successfully updated.')
