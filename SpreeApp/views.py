@@ -1974,7 +1974,11 @@ def addNewAccountingGroup(request):
                     affect_gross_profit = 1
                 else:
                     affect_gross_profit = 0
-                default             = True if request.POST.get('default') == 'true' else False
+                default             = request.POST.get('default')
+                if default:
+                    default =1
+                else:
+                    default=0
                 now                 = datetime.now()
 
                 branch_id           = None if not branch_id else branch_data.objects.get(id=branch_id)
@@ -2035,8 +2039,8 @@ def updateAccountingGroup(request):
 
         if (role_permission['accounting_write']):
             if request.method=="POST":
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
+                entity_id           = request.POST.get('entity_id')
+                entity_id           = None if not entity_id else entity_data.objects.get(id=entity_id)
                 group_id            = request.POST['id']
                 branch_id           = request.POST.get('branch_id')
                 branch_id           = None if not branch_id else branch_data.objects.get(id=branch_id)

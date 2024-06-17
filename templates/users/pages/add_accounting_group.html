@@ -24,7 +24,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" >
+                                    <select class="js-example-basic-single w-100 entity_data"  id="entity_id" name="entity_id" required>
                                         <option value="" disabled selected>Select Entity</option>
                                         {% for x in list_entity %}
                                         <option value="{{x.id}}" {% if x.id|slugify == common_user_data.default_entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -35,9 +35,9 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Branch</label>
+                                <label class="col-sm-3 col-form-label" >Branch</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 branch" name="branch_id" >
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" id="branch_id" required>
                                         <option value="" disabled selected>Select Branch</option>
                                         {% for x in list_branch %}
                                         <option value="{{x.id}}">{{x.name}}</option>
@@ -112,7 +112,7 @@
                         <div class="form-check form-check-primary">
                             <label class="form-check-label">
                                 Set Default
-                                <input type="checkbox" class="form-check-input"  id="checkBox" name="default">
+                                <input type="checkbox" class="form-check-input"  id="default" name="default">
                             </label>
                         </div>
                     </div>
@@ -154,5 +154,36 @@
             });
         });
     });
+</script>
+
+<script>
+      $(document).ready(function() {
+            const entityIdField = $('#entity_id');
+            const defaultCheckbox = $('#default');
+            const branch_idField    = $('#branch_id')
+
+
+            // Function to toggle the required attribute based on checkbox state
+            function toggleRequired() {
+                if (defaultCheckbox.is(':checked')) {
+                    entityIdField.removeAttr('required');
+                    branch_idField.removeAttr('required');
+
+                } else {
+                    entityIdField.attr('required', true);
+                    branch_idField.attr('required',true);
+                }
+            }
+
+            // Initial check in case the checkbox is already checked on page load
+            toggleRequired();
+
+            // Listen for changes on the checkbox to toggle the required attribute
+            defaultCheckbox.change(toggleRequired);
+
+            // Form submission handler
+           
+        });
+    </script>
 </script>
 {% endblock %}
