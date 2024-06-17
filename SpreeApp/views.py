@@ -24389,69 +24389,65 @@ def report_account_ledger(request):
                 description = row.description
                 reference       = row.voucher_number_appended
                 skip            = 0
-                
-                debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
-                debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
-                credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
-                credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
-                if amountfield=='total_amount':
-                    amount  = row.total_amount
-                elif amountfield=='pretax_amount':
-                    amount  = row.total_amount
-                if not amount:
-                    amount  = 0
-                
+                voucher_type_single_row        = voucher_type_data.objects.filter(name__in=['Purchase','Sales']).values_list('id', flat=True)
+                print(voucher_type_single_row)
+                print(row.voucher_type_id)
+                if row.voucher_type_id.id in voucher_type_single_row:
 
-                print(search_acc_ledger)
-                print(debit_account)
-                print(credit_account)
-                print(balance)
-                print(search_acc_ledger)
-                if debit_account==search_acc_ledger:
-                    if row.is_child:
-                        parent  = invoice_data.objects.get(pk=row.parent_id.id)
-                        print("{{{{{{{{{{{}}}}}}}}}}}")
-                        if parent.debit_ledger_id:
-                            if parent.debit_ledger_id.id==debit_account:
-                                skip = 1
-                                pass
-                            elif acc_type=='Dr':
-                                balance = balance+ float(amount)
-                            else:
-                                balance = balance - float(amount) 
-                        elif acc_type=='Dr':
+                    debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
+                    debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
+                    credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
+                    credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
+                    if amountfield=='total_amount':
+                        amount  = row.total_amount
+                    elif amountfield=='pretax_amount':
+                        amount  = row.total_amount
+                    if not amount:
+                        amount  = 0
+                    
+                    if debit_account==search_acc_ledger:
+                        
+                        if acc_type=='Dr':
                                 balance = balance+ float(amount)
                         else:
                             balance = balance - float(amount) 
+                            
+                         
+                    else:           
+                        if acc_type=='Cr':
+                            balance = balance+ float(amount)
+                        else:
+                            balance = balance - float(amount)  
+                    
+                    data_to_display_child.extend([debit_account_name,credit_account_name,description,reference,amount,balance])
+                    data_to_display.extend([data_to_display_child])
+
+                elif row.is_child:
+
+                    debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
+                    debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
+                    credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
+                    credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
+                    if amountfield=='total_amount':
+                        amount  = row.total_amount
+                    elif amountfield=='pretax_amount':
+                        amount  = row.total_amount
+                    if not amount:
+                        amount  = 0
+                    
+                    if debit_account==search_acc_ledger:
                         
-                    elif acc_type=='Dr':
-                        balance = balance+ float(amount)
-                    else:
-                        balance = balance - float(amount)      
-                else:
-                    if row.is_child:
-                        parent  = invoice_data.objects.get(pk=row.parent_id.id)
-                        print("7777777777")
-                        if parent.credit_ledger_id:
-                            if parent.credit_ledger_id.id==credit_account:
-                                skip = 1
-                                pass
-                            elif acc_type=='Cr':
-                                balance = balance+ float(amount)
-                            else:
-                                balance = balance - float(amount) 
-                        elif acc_type=='Cr':
+                        if acc_type=='Dr':
                                 balance = balance+ float(amount)
                         else:
                             balance = balance - float(amount) 
-                        
-                    elif acc_type=='Cr':
-                        balance = balance+ float(amount)
-                    else:
-                        balance = balance - float(amount)  
-
-
-                if skip==0:
+                                 
+                    else:           
+                        if acc_type=='Cr':
+                            balance = balance+ float(amount)
+                        else:
+                            balance = balance - float(amount)  
+                    
                     data_to_display_child.extend([debit_account_name,credit_account_name,description,reference,amount,balance])
                     data_to_display.extend([data_to_display_child])
 
