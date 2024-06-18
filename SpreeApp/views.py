@@ -2021,7 +2021,7 @@ def addNewAccountingGroup(request):
 
                 branch_pks        = list(list_branch.values_list('pk',flat=True))
 
-                list_all_group      = accounting_group_data.objects.filter(branch_id__in=branch_pks)
+                list_all_group      = accounting_group_data.objects.filter(Q(branch_id__in=branch_pks) | Q(is_default=1))
 
                 return render(request,'users/pages/add_accounting_group.html',{'list_entity':list_entity,'list_branch':list_branch,'list_all_group':list_all_group,'get_user_data':get_user_data})
         else:
@@ -2091,13 +2091,13 @@ def updateAccountingGroup(request):
                     user_branches       = get_user_data.branch_id.split(',')
                     list_branch         = list_branch.filter(pk__in=user_branches)
 
-
-                list_branch         = list_branch.filter(entity_id=group_data.entity_id)
+                if group_data.entity_id:
+                    list_branch         = list_branch.filter(entity_id=group_data.entity_id)
 
                 branch_pks        = list(list_branch.values_list('pk',flat=True))
 
-                list_all_group      = accounting_group_data.objects.filter(branch_id__in=branch_pks)
-                list_all_group      = accounting_group_data.objects.all().exclude(id=group_id)
+                list_all_group      = accounting_group_data.objects.filter(Q(branch_id__in=branch_pks) | Q(is_default=1))
+                list_all_group      = list_all_group.exclude(id=group_id)
 
                 
                 return render(request,'users/pages/update_accounting_group.html',{'group_data' : group_data,'list_entity':list_entity,'list_branch':list_branch,'list_all_group':list_all_group,'get_user_data':get_user_data})
@@ -2508,9 +2508,8 @@ def addNewAccountingLedger(request):
                 if get_user_data.default_entity_id:
                     list_branch     = list_branch.filter(entity_id=get_user_data.default_entity_id.id)
 
-                if list_branch:
-                    list_branch_ids     = list_branch.values_list('id', flat=True)
-                    list_pricing_level  =  pricing_level_data.objects.filter(branch_id__in=list_branch_ids)
+                list_branch_ids     = list_branch.values_list('id', flat=True)
+                list_pricing_level  =  pricing_level_data.objects.filter(branch_id__in=list_branch_ids)
 
         
 
@@ -2719,9 +2718,12 @@ def updateAccountingLedger(request):
                 if user_branch:
                     user_branches       = get_user_data.branch_id.split(',')
                     list_branch         = list_branch.filter(pk__in=user_branches)
+                
+                if get_data.entity_id:
+                    list_branch         = list_branch.filter(entity_id=get_data.entity_id)
 
 
-
+                branch_pks        = list(list_branch.values_list('pk',flat=True))
 
 
                 commondata          = None
@@ -2740,12 +2742,18 @@ def updateAccountingLedger(request):
 
                 list_location           = location_data.objects.all()
 
-                list_all_group      = accounting_group_data.objects.filter(Q(branch_id=get_data.branch_id) | Q(is_default=1) )
-
-                list_pricing_level  =[]
-                # additional
-                if list_branch:
+                list_pricing_level  = []
+                if get_data.branch_id:
+                    list_all_group      = accounting_group_data.objects.filter(Q(branch_id=get_data.branch_id) | Q(is_default=1))
                     list_pricing_level  =  pricing_level_data.objects.filter(branch_id=get_data.branch_id)
+
+                else:
+                    list_all_group      = accounting_group_data.objects.filter(Q(branch_id__in=branch_pks) | Q(is_default=1) )
+                    list_pricing_level  =  pricing_level_data.objects.filter(branch_id__in=branch_pks)
+
+                
+                # additional
+                
                 
                 gst_treatment_list  = gst_treatment_data.objects.all()
 
@@ -22635,7 +22643,48 @@ def report_trail_balance(request):
                     asset_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
                 
-                 
+            product_list    = product_data.objects.filter(branch_id=search_branch)
+            # opening stcok balance
+            
+            opening_stock   = 0
+
+            # stock value = balance(purchase-sell) * avg_purchase
+            for product in product_list:
+                batch_list                          = batch_data.objects.filter(product_id=product.id)
+                if batch_list:
+                    for batch in batch_list:
+                        stock_value,purchase_amount,sales_amount            = plgetProduct_balance(product.id,'',from_date,batch.id)
+                        opening_stock                                       = float(opening_stock) + float(stock_value)
+
+            # current stock balance  
+            total_sales_amount    = 0
+            purchase_total      = 0
+            closing_stock        = 0
+            for product in product_list: 
+                batch_list                          = batch_data.objects.filter(product_id=product) 
+                if batch_list:
+                    for batch in batch_list: 
+                        stock_value,purchase_amount,sales_amount         = plgetProduct_balance(product,from_date,to_date,batch.id)
+                        closing_stock                       = float(closing_stock) + float(stock_value)
+                        purchase_total                      = purchase_total+purchase_amount
+                        total_sales_amount                  = total_sales_amount+float(total_sales_amount)
+
+
+
+            print("opening :",opening_stock)
+            print("purchase_total : ",purchase_total)
+            print("closing_stock : ",closing_stock)
+            
+
+            cogs    = opening_stock+purchase_total-closing_stock
+            stock   = purchase_total-cogs
+            print(stock,"[[[[[[[[[[]]]]]]]]]]")
+            debit_total = debit_total+stock
+
+
+            
+
+
             # liability
 
             get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | Q(is_default=1)))
@@ -22978,12 +23027,13 @@ def report_trail_balance(request):
         request.session['to_date']                  = to_date
         request.session['debit_total']              = debit_total
         request.session['credit_total']             = credit_total
+        request.session['stock']                    = stock
         
         print(asset_parent_account)
         print("_________")
 
         print(equity_parent_account)
-        return render(request,'users/pages/report_trail_balance.html',{'equity_parent_account':equity_parent_account,'total_equity':total_equity,'asset_parent_account':asset_parent_account,'total_asset':total_asset,'liability_parent_account':liability_parent_account,'total_liability':total_liability,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'debit_total':debit_total,'credit_total':credit_total})
+        return render(request,'users/pages/report_trail_balance.html',{'stock':stock,'equity_parent_account':equity_parent_account,'total_equity':total_equity,'asset_parent_account':asset_parent_account,'total_asset':total_asset,'liability_parent_account':liability_parent_account,'total_liability':total_liability,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'debit_total':debit_total,'credit_total':credit_total})
     else:
         return redirect('user-login')
 
@@ -23284,10 +23334,17 @@ def report_profit_andloss(request):
 
             cogs    = opening_stock+purchase_total-closing_stock
             
-            if cogs==0:
-                cogs = opening_stock+purchase_total
+            # if cogs==0:
+            #     cogs = opening_stock+purchase_total
+            print("{{{{{{{{{{{{{{{{{{}}}}}}}}}}}}}}}}}}")
+            print(total_sales_amount)
+            print(closing_stock)
+            print(total_income)
+            print(opening_stock)
+            print(purchase_total)
+            print(total_expense)
 
-            gross_profit    = total_sales_amount+ (total_income-total_expense) + cogs
+            gross_profit    = (total_sales_amount+ closing_stock + total_income) - (opening_stock+total_expense)
             print(parent_account)
 
 
@@ -24027,7 +24084,29 @@ def report_balance_sheet(request):
 
                     parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
-                                
+
+
+            product_list    = product_data.objects.filter(branch_id=search_branch)
+           
+            # current stock balance  
+            total_sales_amount    = 0
+            purchase_total      = 0
+            closing_stock        = 0
+            for product in product_list: 
+                batch_list                          = batch_data.objects.filter(product_id=product) 
+                if batch_list:
+                    for batch in batch_list: 
+                        stock_value,purchase_amount,sales_amount         = plgetProduct_balance(product,from_date,to_date,batch.id)
+                        closing_stock                       = float(closing_stock) + float(stock_value)
+                        purchase_total                      = purchase_total+purchase_amount
+                        total_sales_amount                  = total_sales_amount+float(total_sales_amount)
+
+
+
+            
+            print("closing_stock : ",closing_stock)
+
+            total_asset = total_asset+closing_stock
             
         # liabilities
             total_liability = 0
@@ -24171,6 +24250,7 @@ def report_balance_sheet(request):
             request.session['from_date']                = from_date
             request.session['to_date']                  = to_date
             request.session['pandl']                    = pandl
+            request.session['closing_stock']            = closing_stock
             
 
             
@@ -24296,7 +24376,7 @@ def report_balance_sheet(request):
         print(liability_parent_account)
 
         
-        return render(request,'users/pages/report_balance_sheet.html',{'equity_parent_account':equity_parent_account,'parent_account':parent_account,'liability_parent_account':liability_parent_account,'total_asset':total_asset,'total_liability':total_liability,'total_equity':total_equity,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'pandl':pandl})
+        return render(request,'users/pages/report_balance_sheet.html',{'closing_stock':closing_stock,'equity_parent_account':equity_parent_account,'parent_account':parent_account,'liability_parent_account':liability_parent_account,'total_asset':total_asset,'total_liability':total_liability,'total_equity':total_equity,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'pandl':pandl})
     else:
         return redirect('user-login')
 
@@ -24384,8 +24464,6 @@ def report_account_ledger(request):
                 (Q(debit_ledger_id=search_acc_ledger) | Q(credit_ledger_id=search_acc_ledger))
                 )
             balance         = float(opening_balance)
-            amountfield     = get_account_ledger.sumfield
-
             print(list_invoice_data)
             for row in list_invoice_data:
                 print(row)
@@ -24393,6 +24471,7 @@ def report_account_ledger(request):
                 description = row.description
                 reference       = row.voucher_number_appended
                 skip            = 0
+                amount          = 0
                 voucher_type_single_row        = voucher_type_data.objects.filter(name__in=['Purchase','Sales']).values_list('id', flat=True)
                 print(voucher_type_single_row)
                 print(row.voucher_type_id)
@@ -24402,22 +24481,35 @@ def report_account_ledger(request):
                     debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
                     credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
                     credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
-                    if amountfield=='total_amount':
-                        amount  = row.total_amount
-                    elif amountfield=='pretax_amount':
-                        amount  = row.total_amount
-                    if not amount:
-                        amount  = 0
+                    
                     
                     if debit_account==search_acc_ledger:
-                        
+                        if credit_account:
+                            credit_account  = accounting_ledger_data.objects.get(pk=credit_account)
+                            amount_field    = credit_account.sumfield
+                            if amount_field=='total_amount':
+                                amount  = row.total_amount
+                            elif amount_field=='pretax_amount':
+                                amount  = row.pretax_amount
+                            if not amount:
+                                amount  = 0
+
                         if acc_type=='Dr':
                                 balance = balance+ float(amount)
                         else:
                             balance = balance - float(amount) 
                             
                          
-                    else:           
+                    else:   
+                        if debit_account:
+                            debit_account  = accounting_ledger_data.objects.get(pk=debit_account)
+                            amount_field    = debit_account.sumfield
+                        if amount_field=='total_amount':
+                            amount  = row.total_amount
+                        elif amount_field=='pretax_amount':
+                            amount  = row.pretax_amount
+                        if not amount:
+                            amount  = 0        
                         if acc_type=='Cr':
                             balance = balance+ float(amount)
                         else:
@@ -24432,21 +24524,35 @@ def report_account_ledger(request):
                     debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
                     credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
                     credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
-                    if amountfield=='total_amount':
-                        amount  = row.total_amount
-                    elif amountfield=='pretax_amount':
-                        amount  = row.total_amount
-                    if not amount:
-                        amount  = 0
+                    
                     
                     if debit_account==search_acc_ledger:
+
+                        if credit_account:
+                            credit_account  = accounting_ledger_data.objects.get(pk=credit_account)
+                            amount_field    = credit_account.sumfield
+                            if amount_field=='total_amount':
+                                amount  = row.total_amount
+                            elif amount_field=='pretax_amount':
+                                amount  = row.pretax_amount
+                            if not amount:
+                                amount  = 0
                         
                         if acc_type=='Dr':
                                 balance = balance+ float(amount)
                         else:
                             balance = balance - float(amount) 
                                  
-                    else:           
+                    else:       
+                        if debit_account:
+                            debit_account  = accounting_ledger_data.objects.get(pk=debit_account)
+                            amount_field    = debit_account.sumfield
+                        if amount_field=='total_amount':
+                            amount  = row.total_amount
+                        elif amount_field=='pretax_amount':
+                            amount  = row.pretax_amount
+                        if not amount:
+                            amount  = 0       
                         if acc_type=='Cr':
                             balance = balance+ float(amount)
                         else:
