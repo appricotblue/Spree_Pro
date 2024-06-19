@@ -2583,7 +2583,11 @@ def updateAccountingLedger(request):
                 cin                 = request.POST.get('cin')
                 pan                 = request.POST.get('pan')
                 gst                 = request.POST.get('gst')
-                active              = True if request.POST.get('active') == 'true' else False
+                active              = request.POST.get('active')
+                if active:
+                    active = 1
+                else:
+                    active = 0
                 accounting_group_id = accounting_group_data.objects.get(id=request.POST.get('accounting_group_id'))
                 accounting_ledger   = accounting_ledger_data.objects.get(id=get_id)
                 customer_id         = None

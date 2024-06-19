@@ -580,6 +580,7 @@ class invoice_data(models.Model): ###--- All transactions
     tax_value                   = models.TextField(default='',null=True)
     entry_description           = models.TextField(default='',null=True)
     index_number                = models.TextField(max_length=100,default='0')
+    amount                      = models.CharField(max_length=100,default=0,null=True)
 
 
 class bill_by_bill_data(models.Model):
