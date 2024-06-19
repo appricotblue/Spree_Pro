@@ -191,24 +191,7 @@
                             {%endif%}
 
 
-                            <!-- end  -->
-
-                            {% if data.dir_ledgers %}
-                                {% for ledgers in data.dir_ledgers %}
-                                   
-                                    <tr>
-                                        <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
-                                        {% if ledgers.type == 'Cr' %}
-                                            <td>{{ledgers.amount}}</td>
-                                            <td></td>
-                                        {% else %}
-                                            <td></td>
-                                            <td>{{ledgers.amount}}</td>
-                                        {% endif %}
-                                    </tr>
-                                       
-                                {%endfor%} 
-                            {%endif%}
+                            
 
                             <!-- <tr>
                                 <th><b><u>{{data.name}}</u></b></th>

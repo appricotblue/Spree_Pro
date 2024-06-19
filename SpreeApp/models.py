@@ -265,7 +265,7 @@ class accounting_ledger_data(models.Model):
     credit_limit        = models.CharField(max_length=100,default='',null=True)
     pricing_level       = models.ForeignKey(pricing_level_data,on_delete=models.SET_NULL,null=True)
     additional_expense  = models.BooleanField(max_length=100,default=0)
-    sumfield            = models.TextField(default='total_amount',null=True)
+    sumfield            = models.TextField(default='',null=True)
     taxshow             = models.BooleanField(max_length=100,default=0)
 
 
@@ -580,7 +580,8 @@ class invoice_data(models.Model): ###--- All transactions
     tax_value                   = models.TextField(default='',null=True)
     entry_description           = models.TextField(default='',null=True)
     index_number                = models.TextField(max_length=100,default='0')
-    amount                      = models.CharField(max_length=100,default=0,null=True)
+    credit_amount               = models.CharField(max_length=100,default=0,null=True)
+    debit_amount                = models.CharField(max_length=100,default=0,null=True)
 
 
 class bill_by_bill_data(models.Model):
@@ -683,6 +684,8 @@ class golden_rules(models.Model):
     voucher_type_id             = models.ForeignKey(voucher_type_data,on_delete=models.CASCADE,default='',null=True)
     debit_account_group_ids     = models.TextField(default='',null=True)
     credit_account_group_ids    = models.TextField(default='',null=True)
+    debit_account_ledger_ids    = models.TextField(default='',null=True)
+    credit_account_ledger_ids   = models.TextField(default='',null=True)
     created_at                  = models.DateTimeField(max_length=100,default='')
     updated_at                  = models.DateTimeField(max_length=100,default='')
 

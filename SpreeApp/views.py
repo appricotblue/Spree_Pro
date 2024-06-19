@@ -12745,12 +12745,20 @@ def addNewGoldenRule(request):
             credit_accounting_group_ids = request.POST.getlist('credit_accounting_group_ids[]')
             comma_separated_credit_ids  = ','.join(credit_accounting_group_ids)
 
+            debit_accounting_ldeger_ids  = request.POST.getlist('debit_accounting_ldeger_ids[]')
+            comma_separated_debit_ledger_ids         = ','.join(debit_accounting_ldeger_ids)
+
+            credit_accounting_ledger_ids = request.POST.getlist('credit_accounting_ledger_ids[]')
+            comma_separated_credit_ledger_ids   = ','.join(credit_accounting_group_ids)
+
             now                 = datetime.now()
 
             insert_rule         = golden_rules(
                                     voucher_type_id             = voucher_type_id,
                                     debit_account_group_ids     = comma_separated_ids,
                                     credit_account_group_ids    = comma_separated_credit_ids,
+                                    debit_account_ledger_ids    = comma_separated_debit_ledger_ids,
+                                    credit_account_ledger_ids   = comma_separated_credit_ledger_ids,
                                     created_at                  = now,
                                     updated_at                  = now
                                 )
@@ -12761,8 +12769,9 @@ def addNewGoldenRule(request):
         else:
             list_voucher_types  = voucher_type_data.objects.all()
             list_account_group  = accounting_group_data.objects.all()
+            list_account_ledger = accounting_ledger_data.objects.filter(is_default=1)
 
-            return render(request,'users/pages/add_golden_rule.html',{'list_account_group':list_account_group,'list_voucher_types':list_voucher_types})
+            return render(request,'users/pages/add_golden_rule.html',{'list_account_ledger':list_account_ledger,'list_account_group':list_account_group,'list_voucher_types':list_voucher_types})
     else:
         return redirect('user-login')
 
@@ -12780,9 +12789,19 @@ def updateGoldenRule(request):
 
             credit_accounting_group_ids = request.POST.getlist('credit_accounting_group_ids[]')
             comma_separated_credit_ids  = ','.join(credit_accounting_group_ids)
+
+            debit_accounting_ldeger_ids  = request.POST.getlist('debit_accounting_ldeger_ids[]')
+            comma_separated_debit_ledger_ids         = ','.join(debit_accounting_ldeger_ids)
+
+            credit_accounting_ledger_ids = request.POST.getlist('credit_accounting_ldeger_ids[]')
+            comma_separated_credit_ledger_ids   = ','.join(credit_accounting_ledger_ids)
+
+            print(comma_separated_credit_ids)
+            print(comma_separated_debit_ledger_ids)
+            print("[[[[[[[[]]]]]]]]")
             now                         = datetime.now()
 
-            golden_rules.objects.all().filter(id=rule_id).update(voucher_type_id=voucher_type_id,debit_account_group_ids=comma_separated_ids,credit_account_group_ids=comma_separated_credit_ids,updated_at=now)
+            golden_rules.objects.all().filter(id=rule_id).update(voucher_type_id=voucher_type_id,debit_account_group_ids=comma_separated_ids,credit_account_group_ids=comma_separated_credit_ids,debit_account_ledger_ids= comma_separated_debit_ledger_ids,credit_account_ledger_ids=comma_separated_credit_ledger_ids,updated_at=now)
 
             messages.success(request, 'Changes successfully updated.')
             return redirect('list-golden-rule')
@@ -12791,7 +12810,9 @@ def updateGoldenRule(request):
             get_data            = golden_rules.objects.get(id=rule_id)
             list_voucher_types  = voucher_type_data.objects.all()
             list_account_group  = accounting_group_data.objects.all()
+            list_account_ledger = accounting_ledger_data.objects.filter(is_default=1)
             
+
             accounting_group_ids= get_data.debit_account_group_ids.split(",")
 
             all_ccounting_group = []
@@ -12821,7 +12842,44 @@ def updateGoldenRule(request):
                     'name'      : group.name,
                     'selected'  : selected
                 })
-                   
+
+            debit_ledger_ids    = []
+
+            if get_data.debit_account_ledger_ids:
+                debit_ledger_ids= get_data.debit_account_ledger_ids.split(",")
+
+            debit_accounts = []
+            for ledger in list_account_ledger:
+                selected        = ''
+                if  str(ledger.id) in debit_ledger_ids:
+                    selected    = 'selected'
+                
+                debit_accounts.append({
+                    'id'        : ledger.id,
+                    'name'      : ledger.name,
+                    'selected'  : selected
+                })
+
+
+            credit_ledger_ids   = []
+            if get_data.credit_account_ledger_ids:
+                credit_ledger_ids= get_data.credit_account_ledger_ids.split(",")
+
+
+            credit_accounts = []
+            for ledger in list_account_ledger:
+                selected        = ''
+                print(str(ledger.id))
+                if  str(ledger.id) in credit_ledger_ids:
+                    selected    = 'selected'
+                    print("**********")
+                
+                credit_accounts.append({
+                    'id'        : ledger.id,
+                    'name'      : ledger.name,
+                    'selected'  : selected
+                })
+           
 
             get_rule_data       =   {
                                         'id'                            : get_data.id,
@@ -12830,7 +12888,7 @@ def updateGoldenRule(request):
                                         'credit_accounting_group_ids'   : all_credit_acounting_group
                                     }
 
-            return render(request,'users/pages/update_golden_rules.html',{'get_data' : get_rule_data,'list_voucher_types':list_voucher_types,'list_account_group':all_ccounting_group})
+            return render(request,'users/pages/update_golden_rules.html',{'debit_accounts':debit_accounts,'credit_accounts':credit_accounts,'get_data' : get_rule_data,'list_voucher_types':list_voucher_types,'list_account_group':all_ccounting_group})
     else:
         return redirect('user-login')
 
@@ -14157,7 +14215,6 @@ def addVoucherTransactionUserPortal(request):
 
     # if request.session.has_key('userId') and user_id and app_token == get_token.token:
     if user_id and app_token == get_token.token:
-        print("----------------")
         entity_id               = data.get('entity_id')
         entity_id               = entity_data.objects.get(id=entity_id)
         user_id                 = user_data.objects.get(id=user_id)
@@ -14275,6 +14332,7 @@ def addVoucherTransactionUserPortal(request):
         cheque_date             = data.get('cheque_date','')
         exchange_rate           = data.get('exchange_rate','')
         # missed
+
         order_id                = data.get('order_id',None)
         against                 = data.get('against','')
         cgst                    = data.get('cgst','')
@@ -14297,8 +14355,7 @@ def addVoucherTransactionUserPortal(request):
         else:
             pricing_lvl       = None
 
-        
-        
+      
         now                     = datetime.now()
         get_additional_charge   = data.get('additional_charge_data','')
         pretax_amount           = data.get('pretax_amount',0)
@@ -14306,8 +14363,25 @@ def addVoucherTransactionUserPortal(request):
         tax_value               = data.get('tax_value',0)
         reverse_tax_value       = data.get('reverse_tax_value',0)
 
+        credit_amount       = 0
+        debit_amount        = 0
 
+        if voucher_series_id.voucher_type_id.name in ['Sales','Purchase Return']:
+            credit_amount   = pretax_amount 
+            debit_amount    = total_amount 
 
+        elif voucher_series_id.voucher_type_id.name in ['purchase','Sales Return'] :
+            debit_amount        = pretax_amount
+            credit_amount       = total_amount 
+
+        else:
+            if credit_ledger_id:
+                credit_amount   = total_amount
+
+            elif debit_ledger_id:
+                debit_amount    = total_amount
+
+        
         check_get_data          = voucher_number_data.objects.all().filter(voucher_series_id=voucher_series_id).exists()
 
         if voucher_series_id:
@@ -14316,7 +14390,6 @@ def addVoucherTransactionUserPortal(request):
 
         voucher_number_appened  = pre_text+str(1)+post_text
         voucher_number          = 1
-                       
 
 
 
@@ -14337,6 +14410,7 @@ def addVoucherTransactionUserPortal(request):
                                     updated_at          = now
                                 )
         insert_voucher_number.save()
+        
         
         insert_invoice_data = invoice_data(
                                 user_id                 = user_id,
@@ -14412,11 +14486,151 @@ def addVoucherTransactionUserPortal(request):
                                 status                  = status,
                                 date                    = date,
                                 pricing_lvl             = pricing_lvl,
-                                entry_description       = entry_description,     
-
+                                entry_description       = entry_description,  
+                                debit_amount            = debit_amount,
+                                credit_amount           = credit_amount
+                                   
                             )
 
         insert_invoice_data.save()
+
+        if voucher_series_id.voucher_type_id.name in ['Sales','Purchase Return','Purchase','Sales Return']:
+            check_golden_rule       = golden_rules.objects.filter(voucher_type_id=voucher_series_id.voucher_type_id).exists()
+
+
+            if check_golden_rule:
+                get_golden_rule               = golden_rules.objects.get(voucher_type_id__name=voucher_series_id.voucher_type_id)
+
+                if get_golden_rule.debit_account_ledger_ids:
+                    debit_account_ledger_ids        = get_golden_rule.debit_account_ledger_ids.split(",")
+                    if debit_account_ledger_ids:
+                        for ledger in debit_account_ledger_ids:
+                            acc_leger   = accounting_ledger_data.objects.get(pk=ledger)
+                            sumfield    = acc_leger.sumfield
+                            if sumfield:
+                                field_value = getattr(insert_invoice_data, sumfield)
+                                debit_invoice_data = invoice_data(
+                                    user_id                 = user_id,
+                                    entity_id               = entity_id,
+                                    branch_id               = branch_id,
+                                    voucher_type_id         = voucher_series_id.voucher_type_id,
+                                    due_date                = due_date,
+                                    due_days                = due_days,
+                                    description             = description,
+                                    total_amount            = total_amount,
+                                    
+                                    financial_year_id       = financial_year_id,
+                                    voucher_number_id       = insert_voucher_number,
+                                    voucher_series_id       = voucher_series_id,
+                                    created_by              = created_by,
+                                    debit_ledger_id         = debit_ledger_id,
+                                    credit_ledger_id        = None,
+                                    against                 = against,
+                                    
+                                    is_child                = 1,
+                                    parent_id               = insert_invoice_data,
+                                    is_amented              = is_amented,
+                                    amented_upward          = amented_upward,
+                                    amented_downward        = amented_downward,
+                                    created_at              = now,
+                                    updated_at              = now,
+                                    
+
+                                    # additional
+                                    roundoff                = roundoff,
+                                    shipping_address        = shipping_address,
+                                    receiver_address        = receiver_address,
+                                    discount_value          = discount_value,
+                                    customer_type_id        = customer_type_id,
+                                    
+                                    ewaybill_number         = ewaybill_number,
+                                    
+                                    
+                                    weight                  = weight,
+                                    is_parent               = 0,
+                                    manuel_invoice_number   = manuel_invoice_number,
+                                    gstin                   = gstin,
+                                    gst_state_id            = gst_state_id,
+                                    gst_treatment_id        = gst_treatment_id,
+                                    
+                                    voucher_number_appended = voucher_number_appened,
+                                    branch_gst_state_id     = branch_gst_state_id,
+                                    branch_gst_treatment_id = branch_gst_treatment_id,
+                                    latest                  = 1,
+                                    status                  = status,
+                                    date                    = date,
+                                    pricing_lvl             = pricing_lvl,
+                                    entry_description       = entry_description,  
+                                    debit_amount            = 0,
+                                    credit_amount           = field_value
+                                        
+                                )
+
+                                debit_invoice_data.save()
+
+
+                if get_golden_rule.credit_account_ledger_ids:
+                    credit_account_ledger_ids          = get_golden_rule.credit_account_ledger_ids.split(",")
+                    if credit_account_ledger_ids:
+                        for ledger in credit_account_ledger_ids:
+                            acc_leger   = accounting_ledger_data.objects.get(pk=ledger)
+                            sumfield    = acc_leger.sumfield
+                            if sumfield:
+                                field_value = getattr(insert_invoice_data, sumfield)
+                                credit_invoice_data = invoice_data(
+                                    user_id                 = user_id,
+                                    entity_id               = entity_id,
+                                    branch_id               = branch_id,
+                                    voucher_type_id         = voucher_series_id.voucher_type_id,
+                                    due_date                = due_date,
+                                    due_days                = due_days,
+                                    description             = description,
+                                    total_amount            = total_amount,  
+                                    financial_year_id       = financial_year_id,
+                                    voucher_number_id       = insert_voucher_number,
+                                    voucher_series_id       = voucher_series_id,
+                                    created_by              = created_by,
+                                    debit_ledger_id         = None,
+                                    credit_ledger_id        = credit_ledger_id,
+                                    against                 = against,  
+                                    is_child                = 1,
+                                    parent_id               = insert_invoice_data,
+                                    is_amented              = is_amented,
+                                    amented_upward          = amented_upward,
+                                    amented_downward        = amented_downward,
+                                    created_at              = now,
+                                    updated_at              = now,
+                                    # additional
+                                    roundoff                = roundoff,
+                                    shipping_address        = shipping_address,
+                                    receiver_address        = receiver_address,
+                                    discount_value          = discount_value,
+                                    customer_type_id        = customer_type_id, 
+                                    ewaybill_number         = ewaybill_number,      
+                                    weight                  = weight,
+                                    is_parent               = 0,
+                                    manuel_invoice_number   = manuel_invoice_number,
+                                    gstin                   = gstin,
+                                    gst_state_id            = gst_state_id,
+                                    gst_treatment_id        = gst_treatment_id,
+                                    
+                                    voucher_number_appended = voucher_number_appened,
+                                    branch_gst_state_id     = branch_gst_state_id,
+                                    branch_gst_treatment_id = branch_gst_treatment_id,
+                                    latest                  = 1,
+                                    status                  = status,
+                                    date                    = date,
+                                    pricing_lvl             = pricing_lvl,
+                                    entry_description       = entry_description,  
+                                    debit_amount            = 0,
+                                    credit_amount           = field_value
+                                        
+                                )
+
+                                credit_invoice_data.save()
+
+
+
 
         if get_credit_ledgers:
             for credit_ledger in get_credit_ledgers:
@@ -14447,7 +14661,7 @@ def addVoucherTransactionUserPortal(request):
                                         voucher_number_id       = insert_voucher_number,
                                         voucher_series_id       = voucher_series_id,
                                         created_by              = created_by,
-                                        debit_ledger_id         = debit_ledger_id,
+                                        debit_ledger_id         = None,
                                         credit_ledger_id        = c_credit_ledger,
                                         order_id                = order_id,
                                         pretax_amount           = pretax_amount,
@@ -14495,9 +14709,12 @@ def addVoucherTransactionUserPortal(request):
                                         pricing_lvl             = pricing_lvl,
                                         latest                  = 1,
                                         status                  = status,
-                                        index_number            = index_number
+                                        index_number            = index_number,
+                                        credit_amount           = c_total_amount
                                     )
                 insert_debit_ledger_data.save()
+
+
 
         if get_debit_ledgers:
             for debit_ledger in get_debit_ledgers:
@@ -14532,7 +14749,7 @@ def addVoucherTransactionUserPortal(request):
                                         voucher_series_id       = voucher_series_id,
                                         created_by              = created_by,
                                         debit_ledger_id         = d_debit_ledger_id,
-                                        credit_ledger_id        = credit_ledger_id,
+                                        credit_ledger_id        = None,
                                         # transaction_type        = transaction_type,
                                         created_at              = now,
                                         updated_at              = now,
@@ -14569,7 +14786,8 @@ def addVoucherTransactionUserPortal(request):
                                         pricing_lvl             = pricing_lvl,
                                         latest                  = 1,
                                         status                  = status,
-                                        index_number            = index_number
+                                        index_number            = index_number,
+                                        d_total_amount          = d_total_amount
                                         
                                     )
                 insert_credit_ledger_data.save()
@@ -14979,16 +15197,16 @@ def getOtherVouchers(request):
         ledger_id           = data.get('ledger_id')
         voucher_type        = data.get('voucher_type')
 
-        list_voucher_series = invoice_data.objects.exclude(voucher_type_id=voucher_type,is_parent=1,status="Approved")
+        invoice_list        = invoice_data.objects.exclude(voucher_type_id=voucher_type)
         voucher_type_list   = voucher_type_data.objects.exclude(pk=voucher_type)
-        
+        invoice_list        = invoice_list.filter(is_parent=1)
         print(voucher_type_list)
-        print(list_voucher_series)
+        print(invoice_list)
         voucher = []
 
         for i in voucher_type_list:
             list_invoice =[]
-            list_invoice = list(list_voucher_series.filter(
+            list_invoice = list(invoice_list.filter(
                         (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id)) & Q(voucher_type_id=i.id)
                     ).values('total_amount','status','date','pk','voucher_number_appended'))
             
@@ -22767,7 +22985,7 @@ def report_trail_balance(request):
 
                     liability_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
-                        
+               
            # equity
 
             get_acc_group_equity   = accounting_group_data.objects.filter(Q(nature="Equity") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | Q(is_default=1)))

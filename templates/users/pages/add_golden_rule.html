@@ -52,6 +52,34 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Debit Accounting Ledgers</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-multiple w-100"  multiple="multiple" name="debit_accounting_ldeger_ids[]" >
+                                        <option value="" disabled>Select Ledger</option>
+                                        {% for x in list_account_ledger %}
+                                        <option value="{{x.id}}">{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Credit Accounting Ledgers</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-multiple w-100"  multiple="multiple" name="credit_accounting_ldeger_ids[]" >
+                                        <option value="" disabled>Select Ledger</option>
+                                        {% for x in list_account_ledger %}
+                                        <option value="{{x.id}}">{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
