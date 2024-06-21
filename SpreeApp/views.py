@@ -1318,7 +1318,7 @@ def updateUserRolePermission(request):
                 user_role_id        = user_roles.objects.get(id=user_role_id)
                 
                 now                 = datetime.now()
-
+                
                 entity_active       = True if request.POST.get('entity_active') == 'true' else False
                 entity_read         = True if request.POST.get('entity_read') == 'true' else False
                 entity_write        = True if request.POST.get('entity_write') == 'true' else False
@@ -1359,6 +1359,151 @@ def updateUserRolePermission(request):
                 transactions_read   = True if request.POST.get('transactions_read') == 'true' else False
                 transactions_write  = True if request.POST.get('transactions_write') == 'true' else False
 
+                transactions_active = True if request.POST.get('transactions_active') == 'true' else False
+                transactions_read   = True if request.POST.get('transactions_read') == 'true' else False
+                transactions_write  = True if request.POST.get('transactions_write') == 'true' else False
+
+                report_active = True if request.POST.get('report_active') == 'true' else False
+                report_read   = True if request.POST.get('report_read') == 'true' else False
+                report_write  = True if request.POST.get('report_write') == 'true' else False
+
+                entity_type_active = True if request.POST.get('entity_type_active') == 'true' else False
+                entity_type_read   = True if request.POST.get('entity_type_read') == 'true' else False
+                entity_type_write  = True if request.POST.get('entity_type_write') == 'true' else False
+
+                entity_list_active = True if request.POST.get('entity_list_active') == 'true' else False
+                entity_list_read   = True if request.POST.get('entity_list_read') == 'true' else False
+                entity_list_write  = True if request.POST.get('entity_list_write') == 'true' else False
+
+                entity_category_active = True if request.POST.get('entity_category_active') == 'true' else False
+                entity_category_read   = True if request.POST.get('entity_category_read') == 'true' else False
+                entity_category_write  = True if request.POST.get('entity_category_write') == 'true' else False
+
+                branch_active = True if request.POST.get('branch_active') == 'true' else False
+                branch_read   = True if request.POST.get('branch_read') == 'true' else False
+                branch_write  = True if request.POST.get('branch_write') == 'true' else False
+
+                user_role_active = True if request.POST.get('user_role_active') == 'true' else False
+                user_role_read   = True if request.POST.get('user_role_read') == 'true' else False
+                user_role_write  = True if request.POST.get('user_role_write') == 'true' else False 
+                
+
+                role_permission_active = True if request.POST.get('role_permission_active') == 'true' else False
+                role_permission_read   = True if request.POST.get('role_permission_read') == 'true' else False
+                role_permission_write  = True if request.POST.get('role_permission_write') == 'true' else False
+                
+                user_list_active = True if request.POST.get('user_list_active') == 'true' else False
+                user_list_read   = True if request.POST.get('user_list_read') == 'true' else False
+                user_list_write  = True if request.POST.get('user_list_write') == 'true' else False
+
+                series_active = True if request.POST.get('series_active') == 'true' else False
+                series_read   = True if request.POST.get('series_read') == 'true' else False
+                series_write  = True if request.POST.get('series_write') == 'true' else False
+
+                customer_type_active = True if request.POST.get('customer_type_active') == 'true' else False
+                customer_type_read   = True if request.POST.get('customer_type_read') == 'true' else False
+                customer_type_write  = True if request.POST.get('customer_type_write') == 'true' else False
+
+                customer_list_active = True if request.POST.get('customer_list_active') == 'true' else False
+                customer_list_read   = True if request.POST.get('customer_list_read') == 'true' else False
+                customer_list_write  = True if request.POST.get('customer_list_write') == 'true' else False
+
+                supplier_type_active = True if request.POST.get('supplier_type_active') == 'true' else False
+                supplier_type_read   = True if request.POST.get('supplier_type_read') == 'true' else False
+                supplier_type_write  = True if request.POST.get('supplier_type_write') == 'true' else False
+
+
+                accounting_group_active = True if request.POST.get('accounting_group_active') == 'true' else False
+                accounting_group_read   = True if request.POST.get('accounting_group_read') == 'true' else False
+                accounting_group_write  = True if request.POST.get('accounting_group_write') == 'true' else False
+
+
+                accounting_ledger_active = True if request.POST.get('accounting_ledger_active') == 'true' else False
+                accounting_ledger_read   = True if request.POST.get('accounting_ledger_read') == 'true' else False
+                accounting_ledger_write  = True if request.POST.get('accounting_ledger_write') == 'true' else False
+
+
+                financial_year_active = True if request.POST.get('financial_year_active') == 'true' else False
+                financial_year_read   = True if request.POST.get('financial_year_read') == 'true' else False
+                financial_year_write  = True if request.POST.get('financial_year_write') == 'true' else False
+
+                warehouse_active = True if request.POST.get('warehouse_active') == 'true' else False
+                warehouse_read   = True if request.POST.get('warehouse_read') == 'true' else False
+                warehouse_write  = True if request.POST.get('warehouse_write') == 'true' else False
+
+                brand_active = True if request.POST.get('brand_active') == 'true' else False
+                brand_read   = True if request.POST.get('brand_read') == 'true' else False
+                brand_write  = True if request.POST.get('brand_write') == 'true' else False
+
+
+                model_number_active = True if request.POST.get('model_number_active') == 'true' else False
+                model_number_read   = True if request.POST.get('model_number_read') == 'true' else False
+                model_number_write  = True if request.POST.get('model_number_write') == 'true' else False
+
+                size_active = True if request.POST.get('size_active') == 'true' else False
+                size_read   = True if request.POST.get('size_read') == 'true' else False
+                size_write  = True if request.POST.get('size_write') == 'true' else False
+
+                unit_active = True if request.POST.get('unit_active') == 'true' else False
+                unit_read   = True if request.POST.get('unit_read') == 'true' else False
+                unit_write  = True if request.POST.get('unit_write') == 'true' else False
+
+                godown_active = True if request.POST.get('godown_active') == 'true' else False
+                godown_read   = True if request.POST.get('godown_read') == 'true' else False
+                godown_write  = True if request.POST.get('godown_write') == 'true' else False
+
+                rack_active = True if request.POST.get('rack_active') == 'true' else False
+                rack_read   = True if request.POST.get('rack_read') == 'true' else False
+                rack_write  = True if request.POST.get('rack_write') == 'true' else False
+
+                product_group_active = True if request.POST.get('product_group_active') == 'true' else False
+                product_group_read   = True if request.POST.get('product_group_read') == 'true' else False
+                product_group_write  = True if request.POST.get('product_group_write') == 'true' else False
+
+                product_active = True if request.POST.get('product_active') == 'true' else False
+                product_read   = True if request.POST.get('product_read') == 'true' else False
+                product_write  = True if request.POST.get('product_write') == 'true' else False
+
+                pricing_level_active = True if request.POST.get('pricing_level_active') == 'true' else False
+                pricing_level_read   = True if request.POST.get('pricing_level_read') == 'true' else False
+                pricing_level_write  = True if request.POST.get('pricing_level_write') == 'true' else False
+
+                batch_active = True if request.POST.get('batch_active') == 'true' else False
+                batch_read   = True if request.POST.get('batch_read') == 'true' else False
+                batch_write  = True if request.POST.get('batch_write') == 'true' else False
+
+                general_active = True if request.POST.get('general_active') == 'true' else False
+                general_read   = True if request.POST.get('general_read') == 'true' else False
+                general_write  = True if request.POST.get('general_write') == 'true' else False
+
+                tax_active = True if request.POST.get('tax_active') == 'true' else False
+                tax_read   = True if request.POST.get('tax_read') == 'true' else False
+                tax_write  = True if request.POST.get('tax_write') == 'true' else False
+
+                voucher_type_active = True if request.POST.get('voucher_type_active') == 'true' else False
+                voucher_type_read   = True if request.POST.get('voucher_type_read') == 'true' else False
+                voucher_type_write  = True if request.POST.get('voucher_type_write') == 'true' else False
+
+                voucher_series_active = True if request.POST.get('voucher_series_active') == 'true' else False
+                voucher_series_read   = True if request.POST.get('voucher_series_read') == 'true' else False
+                voucher_series_write  = True if request.POST.get('voucher_series_write') == 'true' else False
+
+                location_active = True if request.POST.get('location_active') == 'true' else False
+                location_read   = True if request.POST.get('location_read') == 'true' else False
+                location_write  = True if request.POST.get('location_write') == 'true' else False
+
+                gst_treatment_active = True if request.POST.get('gst_treatment_active') == 'true' else False
+                gst_treatment_read   = True if request.POST.get('gst_treatment_read') == 'true' else False
+                gst_treatment_write  = True if request.POST.get('gst_treatment_write') == 'true' else False
+
+                report_active = True if request.POST.get('report_active') == 'true' else False
+                report_read   = True if request.POST.get('report_read') == 'true' else False
+                report_write  = True if request.POST.get('report_write') == 'true' else False
+
+                supplier_list_active = True if request.POST.get('supplier_list_active') == 'true' else False
+                supplier_list_read   = True if request.POST.get('supplier_list_read') == 'true' else False
+                supplier_list_write  = True if request.POST.get('supplier_list_write') == 'true' else False
+
                 if not role_id:
                     insert_data     = user_role_permission(
                                         user_id                 = user_id,
@@ -1394,7 +1539,105 @@ def updateUserRolePermission(request):
                                         transactions_read       = transactions_read,
                                         transactions_write      = transactions_write,
                                         created_at              = now,
-                                        updated_at              = now)
+                                        updated_at              = now,
+                                        entity_type_active  	    =	entity_type_active  ,
+                                        entity_type_read    	    =	entity_type_read    ,
+                                        entity_type_write   	    =	entity_type_write   ,
+                                        entity_list_active  	    =	entity_list_active  ,
+                                        entity_list_read    	    =	entity_list_read    ,
+                                        entity_list_write   	    =	entity_list_write   ,
+                                        entity_category_active  	=	entity_category_active  ,
+                                        entity_category_read    	=	entity_category_read    ,
+                                        entity_category_write   	=	entity_category_write   ,
+                                        branch_active           	=	branch_active           ,
+                                        branch_read             	=	branch_read             ,
+                                        branch_write            	=	branch_write            ,
+                                        user_role_active        	=	user_role_active        ,
+                                        user_role_read          	=	user_role_read          ,
+                                        user_role_write         	=	user_role_write         ,
+                                        role_permission_active  	=	role_permission_active  ,
+                                        role_permission_read    	=	role_permission_read    ,
+                                        role_permission_write   	=	role_permission_write   ,
+                                        user_list_active        	=	user_list_active        ,
+                                        user_list_read          	=	user_list_read          ,
+                                        user_list_write         	=	user_list_write         ,
+                                        series_active           	=	series_active           ,
+                                        series_read             	=	series_read             ,
+                                        series_write            	=	series_write            ,
+                                        customer_type_active    	=	customer_type_active    ,
+                                        customer_type_read      	=	customer_type_read      ,
+                                        customer_type_write     	=	customer_type_write     ,
+                                        customer_list_active    	=	customer_list_active    ,
+                                        customer_list_read      	=	customer_list_read      ,
+                                        customer_list_write     	=	customer_list_write     ,
+                                        supplier_type_active    	=	supplier_type_active    ,
+                                        supplier_type_read      	=	supplier_type_read      ,
+                                        supplier_type_write     	=	supplier_type_write     ,
+                                        supplier_list_active    	=	supplier_list_active    ,
+                                        supplier_list_read      	=	supplier_list_read      ,
+                                        supplier_list_write     	=	supplier_list_write     ,
+                                        accounting_group_active 	=	accounting_group_active ,
+                                        accounting_group_read   	=	accounting_group_read   ,
+                                        accounting_group_write  	=	accounting_group_write  ,
+                                        accounting_ledger_active   	=	accounting_ledger_active   ,
+                                        accounting_ledger_read  	=	accounting_ledger_read  ,
+                                        accounting_ledger_write 	=	accounting_ledger_write ,
+                                        financial_year_active   	=	financial_year_active   ,
+                                        financial_year_read     	=	financial_year_read     ,
+                                        financial_year_write    	=	financial_year_write    ,
+                                        warehouse_active        	=	warehouse_active        ,
+                                        warehouse_read          	=	warehouse_read          ,
+                                        warehouse_write         	=	warehouse_write         ,
+                                        brand_active            	=	brand_active            ,
+                                        brand_read              	=	brand_read              ,
+                                        brand_write             	=	brand_write             ,
+                                        model_number_active     	=	model_number_active     ,
+                                        model_number_read       	=	model_number_read       ,
+                                        model_number_write      	=	model_number_write      ,
+                                        size_active             	=	size_active             ,
+                                        size_read               	=	size_read               ,
+                                        size_write              	=	size_write              ,
+                                        unit_active             	=	unit_active             ,
+                                        unit_read               	=	unit_read               ,
+                                        unit_write              	=	unit_write              ,
+                                        godown_active           	=	godown_active           ,
+                                        godown_read             	=	godown_read             ,
+                                        godown_write            	=	godown_write            ,
+                                        rack_active             	=	rack_active             ,
+                                        rack_write              	=	rack_write              ,
+                                        rack_read               	=	rack_read               ,
+                                        product_group_active    	=	product_group_active    ,
+                                        product_group_read      	=	product_group_read      ,
+                                        product_group_write     	=	product_group_write     ,
+                                        product_active          	=	product_active          ,
+                                        product_read            	=	product_read            ,
+                                        product_write           	=	product_write           ,
+                                        pricing_level_active    	=	pricing_level_active    ,
+                                        pricing_level_read      	=	pricing_level_read      ,
+                                        pricing_level_write     	=	pricing_level_write     ,
+                                        batch_active            	=	batch_active            ,
+                                        batch_read              	=	batch_read              ,
+                                        batch_write             	=	batch_write             ,
+                                        tax_active              	=	tax_active              ,
+                                        tax_read                	=	tax_read                ,
+                                        tax_write               	=	tax_write               ,
+                                        voucher_type_active     	=	voucher_type_active     ,
+                                        voucher_type_read       	=	voucher_type_read       ,
+                                        voucher_type_write      	=	voucher_type_write      ,
+                                        voucher_series_active   	=	voucher_series_active   ,
+                                        voucher_series_read     	=	voucher_series_read     ,
+                                        voucher_series_write    	=	voucher_series_write    ,
+                                        location_active         	=	location_active         ,
+                                        location_read           	=	location_read           ,
+                                        location_write          	=	location_write          ,
+                                        gst_treatment_active    	=	gst_treatment_active    ,
+                                        gst_treatment_read      	=	gst_treatment_read      ,
+                                        gst_treatment_write     	=	gst_treatment_write     ,
+                                        report_active           	=	report_active           ,
+                                        report_read             	=	report_read             ,
+                                        report_write            	=	report_write            
+
+                                        )
                     insert_data.save()
 
                 else:
@@ -1429,7 +1672,104 @@ def updateUserRolePermission(request):
                                             transactions_active     = transactions_active,
                                             transactions_read       = transactions_read,
                                             transactions_write      = transactions_write,
-                                            updated_at              = now
+                                            report_active       	    =	report_active             ,
+                                            report_read         	    =	report_read         ,
+                                            report_write        	    =	report_write        ,
+                                            entity_type_active  	    =	entity_type_active  ,
+                                            entity_type_read    	    =	entity_type_read    ,
+                                            entity_type_write   	    =	entity_type_write   ,
+                                            entity_list_active  	    =	entity_list_active  ,
+                                            entity_list_read    	    =	entity_list_read    ,
+                                            entity_list_write   	    =	entity_list_write   ,
+                                            entity_category_active  	=	entity_category_active  ,
+                                            entity_category_read    	=	entity_category_read    ,
+                                            entity_category_write   	=	entity_category_write   ,
+                                            branch_active           	=	branch_active           ,
+                                            branch_read             	=	branch_read             ,
+                                            branch_write            	=	branch_write            ,
+                                            user_role_active        	=	user_role_active        ,
+                                            user_role_read          	=	user_role_read          ,
+                                            user_role_write         	=	user_role_write         ,
+                                            role_permission_active  	=	role_permission_active  ,
+                                            role_permission_read    	=	role_permission_read    ,
+                                            role_permission_write   	=	role_permission_write   ,
+                                            user_list_active        	=	user_list_active        ,
+                                            user_list_read          	=	user_list_read          ,
+                                            user_list_write         	=	user_list_write         ,
+                                            series_active           	=	series_active           ,
+                                            series_read             	=	series_read             ,
+                                            series_write            	=	series_write            ,
+                                            customer_type_active    	=	customer_type_active    ,
+                                            customer_type_read      	=	customer_type_read      ,
+                                            customer_type_write     	=	customer_type_write     ,
+                                            customer_list_active    	=	customer_list_active    ,
+                                            customer_list_read      	=	customer_list_read      ,
+                                            customer_list_write     	=	customer_list_write     ,
+                                            supplier_type_active    	=	supplier_type_active    ,
+                                            supplier_type_read      	=	supplier_type_read      ,
+                                            supplier_type_write     	=	supplier_type_write     ,
+                                            supplier_list_active    	=	supplier_list_active    ,
+                                            supplier_list_read      	=	supplier_list_read      ,
+                                            supplier_list_write     	=	supplier_list_write     ,
+                                            accounting_group_active 	=	accounting_group_active ,
+                                            accounting_group_read   	=	accounting_group_read   ,
+                                            accounting_group_write  	=	accounting_group_write  ,
+                                            accounting_ledger_active   	=	accounting_ledger_active  , 
+                                            accounting_ledger_read  	=	accounting_ledger_read  ,
+                                            accounting_ledger_write 	=	accounting_ledger_write ,
+                                            financial_year_active   	=	financial_year_active   ,
+                                            financial_year_read     	=	financial_year_read     ,
+                                            financial_year_write    	=	financial_year_write    ,
+                                            warehouse_active        	=	warehouse_active        ,
+                                            warehouse_read          	=	warehouse_read          ,
+                                            warehouse_write         	=	warehouse_write         ,
+                                            brand_active            	=	brand_active            ,
+                                            brand_read              	=	brand_read              ,
+                                            brand_write             	=	brand_write             ,
+                                            model_number_active     	=	model_number_active     ,
+                                            model_number_read       	=	model_number_read       ,
+                                            model_number_write      	=	model_number_write      ,
+                                            size_active             	=	size_active             ,
+                                            size_read               	=	size_read               ,
+                                            size_write              	=	size_write              ,
+                                            unit_active             	=	unit_active             ,
+                                            unit_read               	=	unit_read               ,
+                                            unit_write              	=	unit_write              ,
+                                            godown_active           	=	godown_active           ,
+                                            godown_read             	=	godown_read             ,
+                                            godown_write            	=	godown_write            ,
+                                            rack_active             	=	rack_active             ,
+                                            rack_write              	=	rack_write              ,
+                                            rack_read               	=	rack_read               ,
+                                            product_group_active    	=	product_group_active    ,
+                                            product_group_read      	=	product_group_read      ,
+                                            product_group_write     	=	product_group_write     ,
+                                            product_active          	=	product_active          ,
+                                            product_read            	=	product_read            ,
+                                            product_write           	=	product_write           ,
+                                            pricing_level_active    	=	pricing_level_active    ,
+                                            pricing_level_read      	=	pricing_level_read      ,
+                                            pricing_level_write     	=	pricing_level_write     ,
+                                            batch_active            	=	batch_active            ,
+                                            batch_read              	=	batch_read              ,
+                                            batch_write             	=	batch_write             ,
+                                            tax_active              	=	tax_active              ,
+                                            tax_read                	=	tax_read                ,
+                                            tax_write               	=	tax_write               ,
+                                            voucher_type_active     	=	voucher_type_active     ,
+                                            voucher_type_read       	=	voucher_type_read       ,
+                                            voucher_type_write      	=	voucher_type_write      ,
+                                            voucher_series_active   	=	voucher_series_active   ,
+                                            voucher_series_read     	=	voucher_series_read     ,
+                                            voucher_series_write    	=	voucher_series_write    ,
+                                            location_active         	=	location_active         ,
+                                            location_read           	=	location_read           ,
+                                            location_write          	=	location_write          ,
+                                            gst_treatment_active    	=	gst_treatment_active    ,
+                                            gst_treatment_read      	=	gst_treatment_read      ,
+                                            gst_treatment_write     	=	gst_treatment_write     ,
+
+                                            updated_at              = now,
                                         )
 
                 messages.success(request, 'Changes successfully updated.')
@@ -6927,19 +7267,23 @@ def addNewTaxData(request):
 
         if (role_permission['general_write']):
             if request.method=="POST":
-                branch_id           = request.POST['branch_id']
-                branch_id           = branch_data.objects.get(id=branch_id)
+                branch_id           = request.POST.get('branch_id')
+                branch_id           = None if not branch_id else branch_data.objects.get(id=branch_id)
                 tax                 = request.POST['tax']
                 rate_perc           = request.POST.get('rate_perc')
                 description         = request.POST['description']
                 now                 = datetime.now()
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
+                entity_id           = request.POST.get('entity_id')
+                entity_id           = None if not entity_id else entity_data.objects.get(id=entity_id)
                 cgst                = request.POST['cgst']
                 sgst                = request.POST['sgst']
                 igst                = request.POST['igst']
                 cess                = request.POST['cess']
-                default             = True if request.POST.get('default') == 'true' else False
+                default             = request.POST.get('default')
+                if default:
+                    default =1
+                else:
+                    default=0
                 insert_data         = tax_data(entity_id=entity_id,branch_id=branch_id,tax=tax,rate_perc=rate_perc,description=description,cgst=cgst,sgst=sgst,igst=igst,cess=cess,default=default,created_at=now,updated_at=now)
                 insert_data.save()
 
@@ -6987,19 +7331,27 @@ def updateTaxData(request):
         if (role_permission['general_write']):
             if request.method=="POST":
                 get_id              = request.POST['id']
-                branch_id           = request.POST['branch_id']
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
-                branch_id           = branch_data.objects.get(id=branch_id)
+                branch_id           = request.POST.get('branch_id')
+                entity_id           = request.POST.get('entity_id')
+                entity_id           = None if not entity_id else entity_data.objects.get(id=entity_id)
+                branch_id           = None if not branch_id else branch_data.objects.get(id=branch_id)
                 tax                 = request.POST['tax']
                 description         = request.POST['description']
                 rate_perc           = request.POST.get('rate_perc')
-                active              = True if request.POST.get('active') == 'true' else False
+                active              = request.POST.get('active')
+                if active:
+                    active  = 1
+                else:
+                    active  = 0
                 cgst                 = request.POST['cgst']
                 sgst                = request.POST['sgst']
                 igst                = request.POST['igst']
                 cess                = request.POST['cess']
-                default             = True if request.POST.get('default') == 'true' else False
+                default             = request.POST.get('default')
+                if default:
+                    default =1
+                else:
+                    default=0
                 now                 = datetime.now()
 
                 tax_data.objects.all().filter(id=get_id).update(entity_id=entity_id,branch_id=branch_id,tax=tax,rate_perc=rate_perc,description=description,cgst=cgst,sgst=sgst,igst=igst,cess=cess,active=active,default=default,updated_at=now)
@@ -14235,7 +14587,8 @@ def addVoucherTransactionUserPortal(request):
         total_amount            = data.get('total_amount','')
         entry_type              = data.get('entry_type')
         created_by              = user_data.objects.get(id=user_id.id)
-        financial_year_id       = financial_year_data.objects.get(active=True)
+        financial_year_id       = financial_year_data.objects.filter(branch_id=branch_id,active=True)
+        financial_year_id       = None if not financial_year_id else financial_year_data.objects.get(branch_id=branch_id,active=True)
         debit_ledger_id         = data.get('debit_ledger_id')
         credit_ledger_id        = data.get('credit_ledger_id')
         debit_ledger_id         = None if not debit_ledger_id else accounting_ledger_data.objects.get(id=debit_ledger_id)
@@ -14334,7 +14687,11 @@ def addVoucherTransactionUserPortal(request):
         # missed
 
         order_id                = data.get('order_id',None)
-        against                 = data.get('against','')
+        against                 = data.get('against',None)
+        if against:
+            against             = invoice_data.objects.get(pk=against)
+        else:
+            against             = None
         cgst                    = data.get('cgst','')
         sgst                    = data.get('sgst','')
         igst                    = data.get('igst','')
@@ -14370,7 +14727,7 @@ def addVoucherTransactionUserPortal(request):
             credit_amount   = pretax_amount 
             debit_amount    = total_amount 
 
-        elif voucher_series_id.voucher_type_id.name in ['purchase','Sales Return'] :
+        elif voucher_series_id.voucher_type_id.name in ['Purchase','Sales Return']:
             debit_amount        = pretax_amount
             credit_amount       = total_amount 
 
@@ -14380,7 +14737,6 @@ def addVoucherTransactionUserPortal(request):
 
             elif debit_ledger_id:
                 debit_amount    = total_amount
-
         
         check_get_data          = voucher_number_data.objects.all().filter(voucher_series_id=voucher_series_id).exists()
 
@@ -14499,7 +14855,7 @@ def addVoucherTransactionUserPortal(request):
 
 
             if check_golden_rule:
-                get_golden_rule               = golden_rules.objects.get(voucher_type_id__name=voucher_series_id.voucher_type_id)
+                get_golden_rule               = golden_rules.objects.get(voucher_type_id=voucher_series_id.voucher_type_id)
 
                 if get_golden_rule.debit_account_ledger_ids:
                     debit_account_ledger_ids        = get_golden_rule.debit_account_ledger_ids.split(",")
@@ -14509,64 +14865,61 @@ def addVoucherTransactionUserPortal(request):
                             sumfield    = acc_leger.sumfield
                             if sumfield:
                                 field_value = getattr(insert_invoice_data, sumfield)
-                                debit_invoice_data = invoice_data(
-                                    user_id                 = user_id,
-                                    entity_id               = entity_id,
-                                    branch_id               = branch_id,
-                                    voucher_type_id         = voucher_series_id.voucher_type_id,
-                                    due_date                = due_date,
-                                    due_days                = due_days,
-                                    description             = description,
-                                    total_amount            = total_amount,
-                                    
-                                    financial_year_id       = financial_year_id,
-                                    voucher_number_id       = insert_voucher_number,
-                                    voucher_series_id       = voucher_series_id,
-                                    created_by              = created_by,
-                                    debit_ledger_id         = debit_ledger_id,
-                                    credit_ledger_id        = None,
-                                    against                 = against,
-                                    
-                                    is_child                = 1,
-                                    parent_id               = insert_invoice_data,
-                                    is_amented              = is_amented,
-                                    amented_upward          = amented_upward,
-                                    amented_downward        = amented_downward,
-                                    created_at              = now,
-                                    updated_at              = now,
-                                    
-
-                                    # additional
-                                    roundoff                = roundoff,
-                                    shipping_address        = shipping_address,
-                                    receiver_address        = receiver_address,
-                                    discount_value          = discount_value,
-                                    customer_type_id        = customer_type_id,
-                                    
-                                    ewaybill_number         = ewaybill_number,
-                                    
-                                    
-                                    weight                  = weight,
-                                    is_parent               = 0,
-                                    manuel_invoice_number   = manuel_invoice_number,
-                                    gstin                   = gstin,
-                                    gst_state_id            = gst_state_id,
-                                    gst_treatment_id        = gst_treatment_id,
-                                    
-                                    voucher_number_appended = voucher_number_appened,
-                                    branch_gst_state_id     = branch_gst_state_id,
-                                    branch_gst_treatment_id = branch_gst_treatment_id,
-                                    latest                  = 1,
-                                    status                  = status,
-                                    date                    = date,
-                                    pricing_lvl             = pricing_lvl,
-                                    entry_description       = entry_description,  
-                                    debit_amount            = 0,
-                                    credit_amount           = field_value
+                                if field_value:
+                                    debit_invoice_data = invoice_data(
+                                        user_id                 = user_id,
+                                        entity_id               = entity_id,
+                                        branch_id               = branch_id,
+                                        voucher_type_id         = voucher_series_id.voucher_type_id,
+                                        due_date                = due_date,
+                                        due_days                = due_days,
+                                        description             = description,                                    
+                                        financial_year_id       = financial_year_id,
+                                        voucher_number_id       = insert_voucher_number,
+                                        voucher_series_id       = voucher_series_id,
+                                        created_by              = created_by,
+                                        debit_ledger_id         = acc_leger,
+                                        credit_ledger_id        = None,
+                                        against                 = against,
                                         
-                                )
+                                        is_child                = 1,
+                                        parent_id               = insert_invoice_data,
+                                        is_amented              = is_amented,
+                                        amented_upward          = amented_upward,
+                                        amented_downward        = amented_downward,
+                                        created_at              = now,
+                                        updated_at              = now,
+                                    
+                                        # additional
+                                        roundoff                = roundoff,
+                                        shipping_address        = shipping_address,
+                                        receiver_address        = receiver_address,
+                                        discount_value          = discount_value,
+                                        customer_type_id        = customer_type_id,
+                                        
+                                        ewaybill_number         = ewaybill_number,
+                                        
+                                        
+                                        weight                  = weight,
+                                        is_parent               = 0,
+                                        manuel_invoice_number   = manuel_invoice_number,
+                                        gstin                   = gstin,
+                                        gst_state_id            = gst_state_id,
+                                        gst_treatment_id        = gst_treatment_id,
+                                        
+                                        voucher_number_appended = voucher_number_appened,
+                                        branch_gst_state_id     = branch_gst_state_id,
+                                        branch_gst_treatment_id = branch_gst_treatment_id,
+                                        latest                  = 1,
+                                        status                  = status,
+                                        date                    = date,
+                                        pricing_lvl             = pricing_lvl,
+                                        entry_description       = entry_description,  
+                                        debit_amount            = field_value,
+                                        credit_amount           = 0
+                                    )
 
-                                debit_invoice_data.save()
+                                    debit_invoice_data.save()
 
 
                 if get_golden_rule.credit_account_ledger_ids:
@@ -14577,57 +14930,57 @@ def addVoucherTransactionUserPortal(request):
                             sumfield    = acc_leger.sumfield
                             if sumfield:
                                 field_value = getattr(insert_invoice_data, sumfield)
-                                credit_invoice_data = invoice_data(
-                                    user_id                 = user_id,
-                                    entity_id               = entity_id,
-                                    branch_id               = branch_id,
-                                    voucher_type_id         = voucher_series_id.voucher_type_id,
-                                    due_date                = due_date,
-                                    due_days                = due_days,
-                                    description             = description,
-                                    total_amount            = total_amount,  
-                                    financial_year_id       = financial_year_id,
-                                    voucher_number_id       = insert_voucher_number,
-                                    voucher_series_id       = voucher_series_id,
-                                    created_by              = created_by,
-                                    debit_ledger_id         = None,
-                                    credit_ledger_id        = credit_ledger_id,
-                                    against                 = against,  
-                                    is_child                = 1,
-                                    parent_id               = insert_invoice_data,
-                                    is_amented              = is_amented,
-                                    amented_upward          = amented_upward,
-                                    amented_downward        = amented_downward,
-                                    created_at              = now,
-                                    updated_at              = now,
-                                    # additional
-                                    roundoff                = roundoff,
-                                    shipping_address        = shipping_address,
-                                    receiver_address        = receiver_address,
-                                    discount_value          = discount_value,
-                                    customer_type_id        = customer_type_id, 
-                                    ewaybill_number         = ewaybill_number,      
-                                    weight                  = weight,
-                                    is_parent               = 0,
-                                    manuel_invoice_number   = manuel_invoice_number,
-                                    gstin                   = gstin,
-                                    gst_state_id            = gst_state_id,
-                                    gst_treatment_id        = gst_treatment_id,
-                                    
-                                    voucher_number_appended = voucher_number_appened,
-                                    branch_gst_state_id     = branch_gst_state_id,
-                                    branch_gst_treatment_id = branch_gst_treatment_id,
-                                    latest                  = 1,
-                                    status                  = status,
-                                    date                    = date,
-                                    pricing_lvl             = pricing_lvl,
-                                    entry_description       = entry_description,  
-                                    debit_amount            = 0,
-                                    credit_amount           = field_value
+                                if field_value:
+                                    credit_invoice_data = invoice_data(
+                                        user_id                 = user_id,
+                                        entity_id               = entity_id,
+                                        branch_id               = branch_id,
+                                        voucher_type_id         = voucher_series_id.voucher_type_id,
+                                        due_date                = due_date,
+                                        due_days                = due_days,
+                                        description             = description,
+                                        financial_year_id       = financial_year_id,
+                                        voucher_number_id       = insert_voucher_number,
+                                        voucher_series_id       = voucher_series_id,
+                                        created_by              = created_by,
+                                        debit_ledger_id         = None,
+                                        credit_ledger_id        = acc_leger,
+                                        against                 = against,  
+                                        is_child                = 1,
+                                        parent_id               = insert_invoice_data,
+                                        is_amented              = is_amented,
+                                        amented_upward          = amented_upward,
+                                        amented_downward        = amented_downward,
+                                        created_at              = now,
+                                        updated_at              = now,
+                                        # additional
+                                        roundoff                = roundoff,
+                                        shipping_address        = shipping_address,
+                                        receiver_address        = receiver_address,
+                                        discount_value          = discount_value,
+                                        customer_type_id        = customer_type_id, 
+                                        ewaybill_number         = ewaybill_number,      
+                                        weight                  = weight,
+                                        is_parent               = 0,
+                                        manuel_invoice_number   = manuel_invoice_number,
+                                        gstin                   = gstin,
+                                        gst_state_id            = gst_state_id,
+                                        gst_treatment_id        = gst_treatment_id,
                                         
-                                )
+                                        voucher_number_appended = voucher_number_appened,
+                                        branch_gst_state_id     = branch_gst_state_id,
+                                        branch_gst_treatment_id = branch_gst_treatment_id,
+                                        latest                  = 1,
+                                        status                  = status,
+                                        date                    = date,
+                                        pricing_lvl             = pricing_lvl,
+                                        entry_description       = entry_description,  
+                                        debit_amount            = 0,
+                                        credit_amount           = field_value
+                                            
+                                    )
 
-                                credit_invoice_data.save()
+                                    credit_invoice_data.save()
 
 
 
@@ -14787,7 +15140,7 @@ def addVoucherTransactionUserPortal(request):
                                         latest                  = 1,
                                         status                  = status,
                                         index_number            = index_number,
-                                        d_total_amount          = d_total_amount
+                                        debit_amount            = d_total_amount
                                         
                                     )
                 insert_credit_ledger_data.save()
@@ -15199,7 +15552,7 @@ def getOtherVouchers(request):
 
         invoice_list        = invoice_data.objects.exclude(voucher_type_id=voucher_type)
         voucher_type_list   = voucher_type_data.objects.exclude(pk=voucher_type)
-        invoice_list        = invoice_list.filter(is_parent=1)
+        invoice_list        = invoice_list.filter(latest=1)
         print(voucher_type_list)
         print(invoice_list)
         voucher = []
@@ -15208,11 +15561,20 @@ def getOtherVouchers(request):
             list_invoice =[]
             list_invoice = list(invoice_list.filter(
                         (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id)) & Q(voucher_type_id=i.id)
-                    ).values('total_amount','status','date','pk','voucher_number_appended'))
-            
+                    ))
+           
+            related_invoices    = []
+            for invoice in list_invoice:
+                get_invoice = list(invoice_data.objects.filter(is_parent=1,latest=1,voucher_number_id=invoice.voucher_number_id).values('total_amount','status','date','pk','voucher_number_appended'))
+                print(get_invoice)
+                if get_invoice:
+                    related_invoices.append(get_invoice[0])
+                    print(related_invoices)
+            print(related_invoices)
+
             voucher.append({
                 'voucher_type':i.name,
-                'voucher_related':list_invoice
+                'voucher_related':related_invoices
             }
             )
              
@@ -15431,7 +15793,7 @@ def getVoucherTransactionUserPortal(request):
                                         'total_amount'              : get_invoice_data.total_amount,
                                         'entry_type'                : get_invoice_data.entry_type,
                                         'status'                    : get_invoice_data.status,
-                                        'against'                   : get_invoice_data.against,
+                                        'against'                   : None if not get_invoice_data.against else get_invoice_data.against.id,
                                         'cheque_number'             : get_invoice_data.cheque_number,
                                         'cheque_date'               : get_invoice_data.cheque_date,
                                         'cgst'                      : get_invoice_data.cgst,
@@ -15556,7 +15918,8 @@ def updateVoucherTransactionUserPortal(request):
         total_amount            = data.get('total_amount')
         entry_type              = data.get('entry_type')
         updated_by              = user_data.objects.get(id=user_id.id)
-        financial_year_id       = financial_year_data.objects.get(active=True)
+        financial_year_id       = financial_year_data.objects.filter(active=True,branch_id=branch_id)
+        financial_year_id       = None if not financial_year_id else financial_year_data.objects.get(active=True,branch_id=branch_id)
         debit_ledger_id         = data.get('debit_ledger_id')
         credit_ledger_id        = data.get('credit_ledger_id')
         debit_ledger_id         = None if not debit_ledger_id else accounting_ledger_data.objects.get(id=debit_ledger_id)
@@ -15659,7 +16022,12 @@ def updateVoucherTransactionUserPortal(request):
         else:
             order_id            = None
 
-        against                 = data.get('against','')
+        against                 = data.get('against',None)
+        if against:
+            against             = invoice_data.objects.get(pk=against)
+        else:
+            against             = None
+
         cgst                    = data.get('cgst','')
         sgst                    = data.get('sgst','')
         igst                    = data.get('igst','')
@@ -15681,6 +16049,25 @@ def updateVoucherTransactionUserPortal(request):
         additional_subtotal     = data.get('additional_subtotal',0)
         tax_value               = data.get('tax_value',0)
         reverse_tax_value       = data.get('reverse_tax_value',0)
+
+        credit_amount       = 0
+        debit_amount        = 0
+
+        if voucher_series_id.voucher_type_id.name in ['Sales','Purchase Return']:
+            credit_amount   = pretax_amount 
+            debit_amount    = total_amount 
+
+        elif voucher_series_id.voucher_type_id.name in ['Purchase','Sales Return']:
+            debit_amount        = pretax_amount
+            credit_amount       = total_amount 
+        
+        else:
+            if credit_ledger_id:
+                credit_amount   = total_amount
+
+            elif debit_ledger_id:
+                debit_amount    = total_amount
+
 
         # check_get_data          = voucher_number_data.objects.all().filter(voucher_series_id=voucher_series_id).exists()
         
@@ -15710,12 +16097,9 @@ def updateVoucherTransactionUserPortal(request):
         for parent in parent_invoices:
             print(parent)
             print(parent.pk)
-            childs = invoice_data.objects.filter(parent_id=parent.pk)
-            print(childs)
             childs = invoice_data.objects.filter(parent_id=parent.pk).update(latest=False,updated_at=now)
             if parent.invoice_id:
                 all_history = invoice_data.objects.filter(Q(invoice_id=parent.invoice_id) | Q(parent_id=parent.invoice_id)).update(latest=False,updated_at=now)
-                break
 
         
 
@@ -15794,9 +16178,142 @@ def updateVoucherTransactionUserPortal(request):
                                 status                  = status,
                                 date                    = date,
                                 pricing_lvl             =pricing_lvl,
-                                entry_description       = entry_description
+                                entry_description       = entry_description,
+                                debit_amount            = debit_amount,
+                                credit_amount           = credit_amount
                             )
         insert_invoice_data.save()
+
+
+        if voucher_series_id.voucher_type_id.name in ['Sales','Purchase Return','Purchase','Sales Return']:
+            check_golden_rule       = golden_rules.objects.filter(voucher_type_id=voucher_series_id.voucher_type_id).exists()
+
+
+            if check_golden_rule:
+                get_golden_rule               = golden_rules.objects.get(voucher_type_id=voucher_series_id.voucher_type_id)
+
+                if get_golden_rule.debit_account_ledger_ids:
+                    debit_account_ledger_ids        = get_golden_rule.debit_account_ledger_ids.split(",")
+                    if debit_account_ledger_ids:
+                        for ledger in debit_account_ledger_ids:
+                            acc_leger   = accounting_ledger_data.objects.get(pk=ledger)
+                            sumfield    = acc_leger.sumfield
+                            if sumfield:
+                                field_value = getattr(insert_invoice_data, sumfield)
+                                if field_value:
+                                    debit_invoice_data = invoice_data(
+                                        user_id                 = user_id,
+                                        entity_id               = entity_id,
+                                        branch_id               = branch_id,
+                                        voucher_type_id         = voucher_series_id.voucher_type_id,
+                                        due_date                = due_date,
+                                        due_days                = due_days,
+                                        description             = description,                                    
+                                        financial_year_id       = financial_year_id,
+                                        voucher_number_id       = voucher_number_id,
+                                        voucher_series_id       = voucher_series_id,
+                                        created_by              = created_by,
+                                        debit_ledger_id         = acc_leger,
+                                        credit_ledger_id        = None,
+                                        against                 = against,
+                                        
+                                        is_child                = 1,
+                                        parent_id               = insert_invoice_data,
+                                        is_amented              = is_amented,
+                                        amented_upward          = amented_upward,
+                                        amented_downward        = amented_downward,
+                                        created_at              = now,
+                                        updated_at              = now,
+                                    
+                                        # additional
+                                        roundoff                = roundoff,
+                                        shipping_address        = shipping_address,
+                                        receiver_address        = receiver_address,
+                                        discount_value          = discount_value,
+                                        customer_type_id        = customer_type_id,
+                                        
+                                        ewaybill_number         = ewaybill_number,
+                                        
+                                        
+                                        weight                  = weight,
+                                        is_parent               = 0,
+                                        manuel_invoice_number   = manuel_invoice_number,
+                                        gstin                   = gstin,
+                                        gst_state_id            = gst_state_id,
+                                        gst_treatment_id        = gst_treatment_id,
+                                        
+                                        branch_gst_state_id     = branch_gst_state_id,
+                                        branch_gst_treatment_id = branch_gst_treatment_id,
+                                        latest                  = 1,
+                                        status                  = status,
+                                        date                    = date,
+                                        pricing_lvl             = pricing_lvl,
+                                        entry_description       = entry_description,  
+                                        debit_amount            = field_value,
+                                        credit_amount           = 0
+                                    )
+
+                                    debit_invoice_data.save()
+
+
+                if get_golden_rule.credit_account_ledger_ids:
+                    credit_account_ledger_ids          = get_golden_rule.credit_account_ledger_ids.split(",")
+                    if credit_account_ledger_ids:
+                        for ledger in credit_account_ledger_ids:
+                            acc_leger   = accounting_ledger_data.objects.get(pk=ledger)
+                            sumfield    = acc_leger.sumfield
+                            if sumfield:
+                                field_value = getattr(insert_invoice_data, sumfield)
+                                if field_value:
+                                    credit_invoice_data = invoice_data(
+                                        user_id                 = user_id,
+                                        entity_id               = entity_id,
+                                        branch_id               = branch_id,
+                                        voucher_type_id         = voucher_type_id,
+                                        due_date                = due_date,
+                                        due_days                = due_days,
+                                        description             = description,
+                                        financial_year_id       = financial_year_id,
+                                        voucher_number_id       = voucher_number_id,
+                                        voucher_series_id       = voucher_series_id,
+                                        created_by              = created_by,
+                                        debit_ledger_id         = None,
+                                        credit_ledger_id        = acc_leger,
+                                        against                 = against,  
+                                        is_child                = 1,
+                                        parent_id               = insert_invoice_data,
+                                        is_amented              = is_amented,
+                                        amented_upward          = amented_upward,
+                                        amented_downward        = amented_downward,
+                                        created_at              = now,
+                                        updated_at              = now,
+                                        # additional
+                                        roundoff                = roundoff,
+                                        shipping_address        = shipping_address,
+                                        receiver_address        = receiver_address,
+                                        discount_value          = discount_value,
+                                        customer_type_id        = customer_type_id, 
+                                        ewaybill_number         = ewaybill_number,      
+                                        weight                  = weight,
+                                        is_parent               = 0,
+                                        manuel_invoice_number   = manuel_invoice_number,
+                                        gstin                   = gstin,
+                                        gst_state_id            = gst_state_id,
+                                        gst_treatment_id        = gst_treatment_id,
+                                        
+                                        branch_gst_state_id     = branch_gst_state_id,
+                                        branch_gst_treatment_id = branch_gst_treatment_id,
+                                        latest                  = 1,
+                                        status                  = status,
+                                        date                    = date,
+                                        pricing_lvl             = pricing_lvl,
+                                        entry_description       = entry_description,  
+                                        debit_amount            = 0,
+                                        credit_amount           = field_value
+                                            
+                                    )
+
+                                    credit_invoice_data.save()
 
         if get_debit_ledgers:
             for debit_ledger in get_debit_ledgers:
@@ -20249,11 +20766,16 @@ def filterCustomerUserPortal(request):
     if user_id and app_token == get_token.token:
         customer_list       = customer_data.objects.all().order_by('-id')
         selected_type       = int(data.get('selected_type',0))
+        pk                  = int(data.get('pk',0))
         search_name         = data.get('name','') 
         start_date          = data.get('start','')
         end_date            = data.get('end','')
+
+        if pk:
+            customer_list   = customer_list.filter(pk=pk)
+
             
-        if selected_type or search_name or start_date or end_date:    
+        elif selected_type or search_name or start_date or end_date:    
         
             if selected_type and search_name:     
                 customer_list             = customer_list.filter(customer_type_id=selected_type,name__istartswith=search_name).order_by('-id')
@@ -20358,8 +20880,12 @@ def filterSupplierUserPortal(request):
         name             = data.get('name','') 
         start_date       = data.get('start_date','') 
         end_date         = data.get('end_date','')
+        pk               = int(data.get('pk',0))
 
-        if selected_type or name or start_date or end_date:    
+        if pk:
+            supplier_list             = supplier_list.filter(pk=pk)
+
+        elif selected_type or name or start_date or end_date:    
                             
             if selected_type and name:     
                 supplier_list             = supplier_list.filter(supplier_type_id=selected_type,name__istartswith=name).order_by('-id')
@@ -22567,57 +23093,27 @@ def accledgeropening_balance(ledger_id,end_date):
         # opening_balance     = 0.0
 
         balance     = opening_balance
-        amountfield = getledger.sumfield
         acc_type    = getledger.entry_type
 
         for row in list_invoice_data:
-            if amountfield=='total_amount':
-                amount  = row.total_amount
-            elif amountfield=='pretax_amount':
-                amount  = row.pretax_amount
-            if not amount:
-                amount  = 0
+            
+        
+            amount  = 0
 
-            debit_account = None if not row.debit_ledger_id else row.debit_ledger_id.id
+            debit_account  = None if not row.debit_ledger_id else row.debit_ledger_id.id
             credit_account = None if not row.credit_ledger_id else row.credit_ledger_id.id
             if debit_account==search_acc_ledger:
-                    if row.is_child:
-                        parent  = invoice_data.objects.get(pk=row.parent_id.id)
-                        if parent.debit_ledger_id:
-                            if parent.debit_ledger_id.id==debit_account:
-                                pass
-                            elif acc_type=='Dr':
-                                balance = balance+ float(amount)
-                            else:
-                                balance = balance - float(amount) 
-                        elif acc_type=='Dr':
-                                balance = balance+ float(amount)
-                        else:
-                            balance = balance - float(amount) 
-                        
-                    elif acc_type=='Dr':
-                        balance = balance+ float(amount)
-                    else:
-                        balance = balance - float(amount)      
-            else:
-                if row.is_child:
-                    parent  = invoice_data.objects.get(pk=row.parent_id.id)
-                    if parent.credit_ledger_id:
-                        if parent.credit_ledger_id.id==credit_account:
-                            pass
-                        elif acc_type=='Cr':
-                            balance = balance+ float(amount)
-                        else:
-                            balance = balance - float(amount) 
-                    elif acc_type=='Cr':
-                            balance = balance+ float(amount)
-                    else:
-                        balance = balance - float(amount) 
                     
-                elif acc_type=='Cr':
-                    balance = balance+ float(amount)
+                    if acc_type=='Dr':
+                        balance = balance+ float(row.debit_amount)
+                    else:
+                        balance = balance - float(row.debit_amount)      
+            else:
+                 
+                if acc_type=='Cr':
+                    balance = balance+ float(row.credit_amount)
                 else:
-                    balance = balance - float(amount)  
+                    balance = balance - float(row.credit_amount)  
              
         return balance
 
@@ -22666,60 +23162,25 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
        
 
         balance     = opening_balance
-        amountfield = getledger.sumfield
         acc_type    = getledger.entry_type
+        print(search_acc_ledger)
+
 
         for row in list_invoice_data:
-            if amountfield=='total_amount':
-                amount  = row.total_amount
-            elif amountfield=='pretax_amount':
-                amount  = row.pretax_amount
-            if not amount:
-                amount  = 0
-
+            
             debit_account = None if not row.debit_ledger_id else row.debit_ledger_id.id
             credit_account = None if not row.credit_ledger_id else row.credit_ledger_id.id
-            if debit_account==search_acc_ledger:
-                    if row.is_child:
-                        parent  = invoice_data.objects.get(pk=row.parent_id.id)
-                        if parent.debit_ledger_id:
-                            if parent.debit_ledger_id.id==debit_account:
-                                pass
-                            elif acc_type=='Dr':
-                                balance = balance+ float(amount)
-                            else:
-                                balance = balance - float(amount) 
-                        elif acc_type=='Dr':
-                                balance = balance+ float(amount)
-                        else:
-                            balance = balance - float(amount) 
-                        
-                    elif acc_type=='Dr':
-                        balance = balance+ float(amount)
-                    else:
-                        balance = balance - float(amount)      
-            else:
-                if row.is_child:
-                    parent  = invoice_data.objects.get(pk=row.parent_id.id)
-                    if parent.credit_ledger_id:
-                        if parent.credit_ledger_id.id==credit_account:
-                            pass
-                        elif acc_type=='Cr':
-                            balance = balance+ float(amount)
-                        else:
-                            balance = balance - float(amount) 
-                    elif acc_type=='Cr':
-                            balance = balance+ float(amount)
-                    else:
-                        balance = balance - float(amount) 
-                    
-                elif acc_type=='Cr':
-                    balance = balance+ float(amount)
+            if debit_account==search_acc_ledger:        
+                if acc_type=='Dr':
+                    balance = balance+ float(row.debit_amount)
                 else:
-                    balance = balance - float(amount)  
+                    balance = balance - float(row.debit_amount)      
+            else:   
+                if acc_type=='Cr':
+                    balance = balance+ float(row.credit_amount)
+                else:
+                    balance = balance - float(row.credit_amount)  
             
-                
-   
         return balance
 
 
@@ -22908,7 +23369,7 @@ def report_trail_balance(request):
 
 
             # liability
-
+            
             get_acc_group_liability   = accounting_group_data.objects.filter(Q(nature="Liabilities") & Q(under_group__isnull=True) & (Q(branch_id=search_branch) | Q(is_default=1)))
             liability_parent_account= []
 
@@ -22927,7 +23388,6 @@ def report_trail_balance(request):
                     liability_parent_account[parent_counter]['amount'] = 0
 
                     diracc_ledgers   = accounting_ledger_data.objects.filter(Q(accounting_group_id=parent_account_group.id) & (Q(branch_id=search_branch) | Q(is_default=1)))
-
                     if diracc_ledgers:
                         liability_parent_account[parent_counter]['dir_ledgers'] = list(diracc_ledgers.values('id','name'))
                         ledger_counter  = 0
@@ -23063,7 +23523,9 @@ def report_trail_balance(request):
                     equity_parent_account[parent_counter]['amount']=parent_balance
                     parent_counter= parent_counter+1
 
-        
+        pandl           =   p_and_l_balancesheet(search_branch,from_date,to_date)
+        credit_total    = credit_total+float(pandl)
+
         if 'download' in request.POST:
             wb      = openpyxl.Workbook()
             ws      = wb.active
@@ -23250,12 +23712,13 @@ def report_trail_balance(request):
         request.session['debit_total']              = debit_total
         request.session['credit_total']             = credit_total
         request.session['stock']                    = stock
+        request.session['pandl']                    = pandl
         
         print(asset_parent_account)
         print("_________")
 
         print(equity_parent_account)
-        return render(request,'users/pages/report_trail_balance.html',{'stock':stock,'equity_parent_account':equity_parent_account,'total_equity':total_equity,'asset_parent_account':asset_parent_account,'total_asset':total_asset,'liability_parent_account':liability_parent_account,'total_liability':total_liability,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'debit_total':debit_total,'credit_total':credit_total})
+        return render(request,'users/pages/report_trail_balance.html',{'pandl':pandl,'stock':stock,'equity_parent_account':equity_parent_account,'total_equity':total_equity,'asset_parent_account':asset_parent_account,'total_asset':total_asset,'liability_parent_account':liability_parent_account,'total_liability':total_liability,'search_branch':search_branch,'branch_filter':branch_filter,'from_date':from_date,'to_date':to_date,'debit_total':debit_total,'credit_total':credit_total})
     else:
         return redirect('user-login')
 
@@ -24047,10 +24510,8 @@ def p_and_l_balancesheet(search_branch,from_date,to_date):
 
         cogs    = opening_stock+purchase_total-closing_stock
         
-        if cogs==0:
-            cogs = opening_stock+purchase_total
 
-        gross_profit    = total_sales_amount+ (total_income-total_expense) + cogs
+        gross_profit    = (total_sales_amount+ closing_stock + total_income) - (opening_stock+total_expense)
         print(parent_account)
 
 
@@ -24694,94 +25155,38 @@ def report_account_ledger(request):
                 reference       = row.voucher_number_appended
                 skip            = 0
                 amount          = 0
-                voucher_type_single_row        = voucher_type_data.objects.filter(name__in=['Purchase','Sales']).values_list('id', flat=True)
-                print(voucher_type_single_row)
-                print(row.voucher_type_id)
-                if row.voucher_type_id.id in voucher_type_single_row:
-
-                    debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
-                    debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
-                    credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
-                    credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
-                    
-                    
-                    if debit_account==search_acc_ledger:
-                        if credit_account:
-                            credit_account  = accounting_ledger_data.objects.get(pk=credit_account)
-                            amount_field    = credit_account.sumfield
-                            if amount_field=='total_amount':
-                                amount  = row.total_amount
-                            elif amount_field=='pretax_amount':
-                                amount  = row.pretax_amount
-                            if not amount:
-                                amount  = 0
-
-                        if acc_type=='Dr':
-                                balance = balance+ float(amount)
-                        else:
-                            balance = balance - float(amount) 
-                            
-                         
-                    else:   
-                        if debit_account:
-                            debit_account  = accounting_ledger_data.objects.get(pk=debit_account)
-                            amount_field    = debit_account.sumfield
-                        if amount_field=='total_amount':
-                            amount  = row.total_amount
-                        elif amount_field=='pretax_amount':
-                            amount  = row.pretax_amount
-                        if not amount:
-                            amount  = 0        
-                        if acc_type=='Cr':
-                            balance = balance+ float(amount)
-                        else:
-                            balance = balance - float(amount)  
-                    
-                    data_to_display_child.extend([debit_account_name,credit_account_name,description,reference,amount,balance])
-                    data_to_display.extend([data_to_display_child])
-
-                elif row.is_child:
-
-                    debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
-                    debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
-                    credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
-                    credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
-                    
-                    
-                    if debit_account==search_acc_ledger:
-
-                        if credit_account:
-                            credit_account  = accounting_ledger_data.objects.get(pk=credit_account)
-                            amount_field    = credit_account.sumfield
-                            if amount_field=='total_amount':
-                                amount  = row.total_amount
-                            elif amount_field=='pretax_amount':
-                                amount  = row.pretax_amount
-                            if not amount:
-                                amount  = 0
+    
+                debit_account   = None if not row.debit_ledger_id else row.debit_ledger_id.id
+                debit_account_name  = None if not row.debit_ledger_id else row.debit_ledger_id.name
+                credit_account  = None if not row.credit_ledger_id else row.credit_ledger_id.id
+                credit_account_name = None if not row.credit_ledger_id else row.credit_ledger_id.name
+                
+                
+                if debit_account==search_acc_ledger:
+                    amount  = row.debit_amount
+                    if acc_type=='Dr':
+                        balance = balance+ float(row.debit_amount)
                         
-                        if acc_type=='Dr':
-                                balance = balance+ float(amount)
-                        else:
-                            balance = balance - float(amount) 
-                                 
-                    else:       
-                        if debit_account:
-                            debit_account  = accounting_ledger_data.objects.get(pk=debit_account)
-                            amount_field    = debit_account.sumfield
-                        if amount_field=='total_amount':
-                            amount  = row.total_amount
-                        elif amount_field=='pretax_amount':
-                            amount  = row.pretax_amount
-                        if not amount:
-                            amount  = 0       
-                        if acc_type=='Cr':
-                            balance = balance+ float(amount)
-                        else:
-                            balance = balance - float(amount)  
-                    
-                    data_to_display_child.extend([debit_account_name,credit_account_name,description,reference,amount,balance])
-                    data_to_display.extend([data_to_display_child])
+                    else:
+                        balance = balance - float(row.debit_amount)      
+                else:
+                    amount  = row.credit_amount
+                    if acc_type=='Cr':
+                        balance = balance+ float(row.credit_amount)
+                    else:
+                        balance = balance - float(row.credit_amount)
+                
+                if not debit_account_name:
+                    debit_account_name  = invoice_data_list.filter(Q(voucher_number_id=row.voucher_number_id) & Q(debit_ledger_id__isnull=False))
+                    if debit_account_name:
+                        debit_account_name = debit_account_name[0].debit_ledger_id.name
+                if not credit_account_name:
+                    credit_account_name  = invoice_data_list.filter(Q(voucher_number_id=row.voucher_number_id) & Q(credit_ledger_id__isnull=False))
+                    if credit_account_name:
+                        credit_account_name = credit_account_name[0].credit_ledger_id.name
+                        
+                data_to_display_child.extend([debit_account_name,credit_account_name,description,reference,amount,balance])
+                data_to_display.extend([data_to_display_child])
 
 
         request.session['data_to_display'] = data_to_display
@@ -24908,31 +25313,27 @@ def get_AccountLedger_balance(request):
             opening_balance     = float(getledger.opening_balance)
         else:
             opening_balance     = 0
-
+        acc_type    = getledger.entry_type
         balance     = opening_balance
         for row in list_invoice_data:
-            amount  = row.pretax_amount
-            if not amount:
-                amount  = 0
-
-            row_debit_ledger_id = None if not row.debit_ledger_id else row.debit_ledger_id.id
-            row_credit_ledger_id = None if not row.credit_ledger_id else row.credit_ledger_id.id
             
-            print(row_debit_ledger_id)
-            if row_debit_ledger_id==ledger_id:
-                
-                if getledger.entry_type=='Dr':
-                    balance = balance+ float(amount)
+
+            debit_account = None if not row.debit_ledger_id else row.debit_ledger_id.id
+            credit_amount = None if not row.credit_ledger_id else row.credit_ledger_id.id
+            
+            if debit_account==ledger_id:
+                amount  = row.debit_amount
+                if acc_type=='Dr':
+                    balance = balance+ float(row.debit_amount)
+                    
                 else:
-                    balance = balance - float(amount)      
-    
+                    balance = balance - float(row.debit_amount)      
             else:
-                if row_debit_ledger_id and row.is_child:
-                    pass 
-                elif getledger.entry_type=='Cr':
-                    balance = balance+ float(amount)
+                amount  = row.credit_amount
+                if acc_type=='Cr':
+                    balance = balance+ float(row.credit_amount)
                 else:
-                    balance = balance - float(amount)  
+                    balance = balance - float(row.credit_amount)
             
 
    

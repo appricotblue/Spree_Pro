@@ -35,6 +35,8 @@
                                         </label>
                                     </div>
 
+                                    
+
                                     <div class="form-group">
                                         <div class="form-check form-check-primary">
                                             <label class="form-check-label">
@@ -958,6 +960,32 @@
                                         </div>
                                     </div>
                                     <!-- end of location -->
+                                    <!-- gst treatment -->
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Gst Treatment
+                                                <input type="checkbox" class="form-check-input checkbox permission_general"  id="gst_treatment" name="gst_treatment_active" value="true" {% if role_data.gst_treatment_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_gst_treatment permission_general" name="gst_treatment_read" value="true" {% if role_data.gst_treatment_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_gst_treatment permission_general" name="gst_treatment_write" value="true" {% if role_data.gst_treatment_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- end of gst treatment -->
                                 </div>
                             </div>
                         </div>
@@ -1013,7 +1041,7 @@
                             <div class="form-check form-check-primary">
                                 <label class="form-check-label">
                                     Transactions
-                                    <input type="checkbox" class="form-check-input checkbox"  id="transactions" name="transactions_active" value="true" {% if role_data.client_access == True %} checked {% endif %}>
+                                    <input type="checkbox" class="form-check-input checkbox"  id="transactions" name="transactions_active" value="true" {% if role_data.transactions_active == True %} checked {% endif %}>
                                 </label>
                             </div>
                             <div class="transactions" {% if not role_data.sales_active %} style="display: none;" {% endif %}>
@@ -1033,6 +1061,30 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <div class="form-check form-check-primary">
+                                <label class="form-check-label">
+                                    Report
+                                    <input type="checkbox" class="form-check-input checkbox"  id="report" name="report_active" value="true" {% if role_data.report_active == True %} checked {% endif %}>
+                                </label>
+                            </div>
+                            <div class="report" {% if not role_data.sales_active %} style="display: none;" {% endif %}>
+                                <div class="form-group" style="margin-left: 30px;">
+                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                        <label class="form-check-label">
+                                            Read
+                                            <input type="checkbox" class="form-check-input permission_report" name="report_read" value="true" {% if role_data.report_read == True %} checked {% endif %}>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                        <label class="form-check-label">
+                                            Write
+                                            <input type="checkbox" class="form-check-input permission_report" name="report_write" value="true" {% if role_data.report_write == True %} checked {% endif %}>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
 
@@ -1043,12 +1095,14 @@
     </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
     $(document).ready(function() {
         $('.checkbox').change(function() {
             var checkboxId  = $(this).attr('id');
             if ($(this).is(':checked')) {
                 $('.'+checkboxId).show(); 
+                $('.permission_'+checkboxId).prop('checked', true);
             } else {
                 $('.'+checkboxId).hide(); 
                 $('.permission_'+checkboxId).prop('checked', false);

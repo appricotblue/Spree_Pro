@@ -390,10 +390,18 @@ window.addEventListener('DOMContentLoaded', function() {
                         </a>
                         <div class="collapse" id="ui-basic">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity-type' %}">Entity Types</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity' %}">Entity</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity-category' %}">Entity Category</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-branch' %}">Branch</a></li>
+                                {% if all_user_role_permission.entity_type_read|booltoint:all_user_role_permission.entity_type_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity-type' %}">Entity Types</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.entity_list_write|booltoint:all_user_role_permission.entity_list_read  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity' %}">Entity</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.entity_category_read|booltoint:all_user_role_permission.entity_category_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-entity-category' %}">Entity Category</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.branch_read|booltoint:all_user_role_permission.branch_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-branch' %}">Branch</a></li>
+                                {%endif%}
                             </ul>
                         </div>
                     </li>
@@ -409,10 +417,18 @@ window.addEventListener('DOMContentLoaded', function() {
                         </a>
                         <div class="collapse" id="ui-basic1">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user-roles' %}">User Roles</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user-role-permissions' %}">Role Permissions</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user' %}">Users</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-series' %}">Series</a></li>
+                                {% if all_user_role_permission.user_role_read|booltoint:all_user_role_permission.user_role_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-user-roles' %}">User Roles</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.role_permission_read|booltoint:all_user_role_permission.role_permission_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-user-role-permissions' %}">Role Permissions</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.user_list_write|booltoint:all_user_role_permission.user_list_read %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-user' %}">Users</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.series_read|booltoint:all_user_role_permission.series_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-series' %}">Series</a></li>
+                                {%endif%}
                             </ul>
                         </div>
                     </li>
@@ -429,8 +445,12 @@ window.addEventListener('DOMContentLoaded', function() {
                         </a>
                         <div class="collapse" id="ui-basic2">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer-type' %}">Customer Type</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer' %}">Customer</a></li>
+                                {% if all_user_role_permission.customer_type_read|booltoint:all_user_role_permission.customer_type_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer-type' %}">Customer Type</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.customer_list_read|booltoint:all_user_role_permission.customer_list_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer' %}">Customer</a></li>
+                                {%endif%}
                             </ul>
                         </div>
                     </li>
@@ -444,8 +464,12 @@ window.addEventListener('DOMContentLoaded', function() {
                         </a>
                         <div class="collapse" id="ui-basic3">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-supplier-type' %}">Supplier Type</a></li>
+                                {% if all_user_role_permission.supplier_type_read|booltoint:all_user_role_permission.supplier_type_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-supplier-type' %}">Supplier Type</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.supplier_list_read|booltoint:all_user_role_permission.supplier_list_write %}
                                 <li class="nav-item"> <a class="nav-link" href="{% url 'list-supplier' %}">Supplier</a></li>
+                                {%endif%}
                             </ul>
                         </div>
                     </li>
@@ -460,9 +484,15 @@ window.addEventListener('DOMContentLoaded', function() {
                         </a>
                         <div class="collapse" id="ui-basic4">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-accounting-group' %}">Accounting Group</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-accounting-ledger' %}">Accounting Ledger</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-financial-year' %}">Financial Year</a></li>
+                                {% if all_user_role_permission.accounting_group_read|booltoint:all_user_role_permission.accounting_group_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-accounting-group' %}">Accounting Group</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.accounting_ledger_write|booltoint:all_user_role_permission.accounting_ledger_read %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-accounting-ledger' %}">Accounting Ledger</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.financial_year_read|booltoint:all_user_role_permission.financial_year_write %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-financial-year' %}">Financial Year</a></li>
+                                {%endif%}
                             </ul>
                         </div>
                     </li>
@@ -478,17 +508,39 @@ window.addEventListener('DOMContentLoaded', function() {
                         </a>
                         <div class="collapse" id="ui-basic5">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-warehouse' %}">Warehouse</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-brand' %}">Brand</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-model-number' %}">Model Number</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-size' %}">Size</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-unit' %}">Unit</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-godown' %}">Godown</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-rack' %}">Rack</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-product-group' %}">Product Group</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-product' %}">Products</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-pricing-level' %}">Pricing Level</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-batch' %}">Batch</a></li>
+                                {% if all_user_role_permission.warehouse_read|booltoint:all_user_role_permission.warehouse_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-warehouse' %}">Warehouse</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.brand_read|booltoint:all_user_role_permission.brand_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-brand' %}">Brand</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.model_number_write|booltoint:all_user_role_permission.model_number_read  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-model-number' %}">Model Number</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.size_read|booltoint:all_user_role_permission.size_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-size' %}">Size</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.unit_read|booltoint:all_user_role_permission.unit_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-unit' %}">Unit</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.godown_read|booltoint:all_user_role_permission.godown_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-godown' %}">Godown</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.rack_write|booltoint:all_user_role_permission.rack_read  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-rack' %}">Rack</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.product_group_read|booltoint:all_user_role_permission.product_group_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-product-group' %}">Product Group</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.product_read|booltoint:all_user_role_permission.product_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-product' %}">Products</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.pricing_level_read|booltoint:all_user_role_permission.pricing_level_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-pricing-level' %}">Pricing Level</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.batch_read|booltoint:all_user_role_permission.batch_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-batch' %}">Batch</a></li>
+                                {%endif%}
                             </ul>
                         </div>
                     </li>
@@ -505,11 +557,21 @@ window.addEventListener('DOMContentLoaded', function() {
                         </a>
                         <div class="collapse" id="ui-basic6">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-tax-data' %}">Tax</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-voucher-type' %}">Voucher Type</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-voucher-series' %}">Voucher Series</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-location' %}">Location</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{% url 'list-gst-treatment' %}">GST Treatment</a></li>
+                                {% if all_user_role_permission.tax_read|booltoint:all_user_role_permission.tax_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-tax-data' %}">Tax</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.voucher_type_write|booltoint:all_user_role_permission.voucher_type_read  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-voucher-type' %}">Voucher Type</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.voucher_series_read|booltoint:all_user_role_permission.voucher_series_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-voucher-series' %}">Voucher Series</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.location_read|booltoint:all_user_role_permission.location_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-location' %}">Location</a></li>
+                                {%endif%}
+                                {% if all_user_role_permission.gst_treatment_read|booltoint:all_user_role_permission.gst_treatment_write  %}
+                                    <li class="nav-item"> <a class="nav-link" href="{% url 'list-gst-treatment' %}">GST Treatment</a></li>
+                                {%endif%}
 
                             </ul>
                         </div>
@@ -591,6 +653,7 @@ window.addEventListener('DOMContentLoaded', function() {
                             </ul>
                         </div>
                     </li>
+                    {% if all_user_role_permission.report_write|booltoint:all_user_role_permission.report_read  %}
                     <li class="nav-item nav-category">Reports</li>
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic11" aria-expanded="false" aria-controls="ui-basic11">
@@ -617,6 +680,7 @@ window.addEventListener('DOMContentLoaded', function() {
                             </ul>
                         </div>
                     </li>
+                    {%endif%}
                     
                 </ul>
             </nav>

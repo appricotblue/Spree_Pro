@@ -1,5 +1,14 @@
 {% extends "users/layout/app.html" %}
 {% block content %}
+
+
+<style>
+   
+    .w-100{
+        width: 400px !important;
+    }
+
+</style>
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
@@ -24,8 +33,8 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id"  required>
-                                        <option value="" disabled>Select Entity</option>
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" id="entity_id"  required>
+                                        <option value="" selected>Select Entity</option>
                                         {% for x in list_entity %}
                                         <option value="{{x.id}}" {% if x.id|slugify == get_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
                                         {% endfor %}
@@ -37,7 +46,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Branch</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" id="branch_id" required>
                                         <option value="" disabled selected>Select Branch</option>
                                         {% for x in list_branch %}
                                         <option value="{{x.id}}" {% if x.id|slugify == get_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -61,7 +70,42 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Rate(%)</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Rate(%)" name="rate_perc" value="{{get_data.rate_perc}}" required>
+                                    <input type="text" class="form-control" id="rateInput" placeholder="Rate(%)" name="rate_perc" value="{{get_data.rate_perc}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">CGST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control tax" id="exampleInputName1" placeholder="CGST" value="{{get_data.cgst}}" readonly>
+                                    <input type=hidden name="cgst" class="tax" value="{{get_data.cgst}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">SGST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control tax" id="exampleInputName1" placeholder="SGST" value="{{get_data.sgst}}" readonly>
+                                    <input type=hidden name="sgst" class="tax" value="{{get_data.sgst}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">IGST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control taxigst" id="exampleInputName1" placeholder="IGST" value="{{get_data.igst}}" readonly>
+                                    <input type=hidden name="igst" class="taxigst" value="{{get_data.igst}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Cess</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Cess" name="cess" value="{{get_data.cess}}">
                                 </div>
                             </div>
                         </div>
@@ -74,6 +118,16 @@
                             </div>
                         </div>
                     </div>
+                    {% if not get_user_data.user_role_id %}
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Set Default
+                                <input type="checkbox" class="form-check-input"  id="default" name="default" value="true" {% if get_data.default == True %} checked {% endif %}>
+                            </label>
+                        </div>
+                    </div>
+                    {% endif %}
                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
             </div>
@@ -111,4 +165,47 @@
         });
     });
 </script>
+<script>
+    $(document).ready(function() {
+        $('#rateInput').on('input', function() {
+            var rate = parseFloat($(this).val());
+            if (!isNaN(rate)) {
+                var tax = rate / 2;
+                $('.tax').val(tax);
+                $('.taxigst').val(rate)
+            }
+        });
+    });
+</script>
+
+
+<script>
+    $(document).ready(function() {
+          const entityIdField = $('#entity_id');
+          const defaultCheckbox = $('#default');
+          const branch_idField    = $('#branch_id')
+
+          // Function to toggle the required attribute based on checkbox state
+          function toggleRequired() {
+              if (defaultCheckbox.is(':checked')) {
+                  entityIdField.removeAttr('required');
+                  branch_idField.removeAttr('required');
+
+              } else {
+                  entityIdField.attr('required', true);
+                  branch_idField.attr('required',true);
+              }
+          }
+
+          // Initial check in case the checkbox is already checked on page load
+          toggleRequired();
+
+          // Listen for changes on the checkbox to toggle the required attribute
+          defaultCheckbox.change(toggleRequired);
+
+          // Form submission handler
+         
+      });
+</script>
+
 {% endblock %}
