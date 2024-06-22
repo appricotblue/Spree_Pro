@@ -35,6 +35,8 @@ urlpatterns = [
     path('get-branchs/', views.get_branchs ,name='get_branchs'),
     path('get-branchs-details/', views.get_branch_details ,name='get-branchs-details'),
 
+    path('view-branch',views.ViewBranch,name='view-branch'),
+
     
 
     path('list-user-roles/', views.listUserRole ,name='list-user-roles'),
@@ -448,6 +450,7 @@ urlpatterns = [
     path('view-debitnote/',views.ViewDebitNote,name='view-debitnote'),
     path('view-warehouse/',views.ViewWarehouse,name='view-warehouse'),
     path('view-userpermission/',views.ViewUserRolePermission,name='view-userpermission'),
+    path('view-gst-treatment/',views.viewGstTreatment,name='view-gst-treatment'),
 
 
     

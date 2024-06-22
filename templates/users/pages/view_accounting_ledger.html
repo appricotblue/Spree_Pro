@@ -2,100 +2,24 @@
 
 {% extends "users/layout/app.html" %}
 {% block content %}
-
+<!-- 
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">View Account Ledger</h4>
+                <h4 class="card-title">Update Accounting Group</h4>
                 <p class="card-description">
-                View customer from here
+                Update accounting group from here
                 </p>
-                <form class="forms-sample"  method="post" enctype="multipart/form-data">
+                <form class="forms-sample" action="{% url 'update-accounting-ledger' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" name="id" value="{{get_data.id}}">
-                    <div class="form-group">
-                        <div class="form-check form-check-primary">
-                            <label class="form-check-label">
-                                Active
-                                <input type="checkbox" class="form-check-input"  id="checkBox" name="active" value="true" {% if customer_get_data.active == True %} checked {% endif %}>
-                            </label>
-                        </div>
-                    </div>
-                    
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Entity</label>
-                                <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id"  required>
-                                        <option value="" disabled>Select Entity</option>
-                                        {% for x in list_entity %}
-                                        <option value="{{x.id}}" {% if x.id|slugify == customer_get_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Branch</label>
-                                <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
-                                        <option value="" disabled selected>Select Branch</option>
-                                        {% for x in list_branch %}
-                                        <option value="{{x.id}}" {% if x.id|slugify == customer_get_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Type</label>
-                                <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="customer_type_id" required>
-                                        <option value="" disabled selected>Select Customer Type</option>
-                                        {% for x in list_customer_type %}
-                                        <option value="{{x.id}}" {% if x.id|slugify == customer_get_data.customer_type_id.id|slugify %} selected {% endif %}>{{x.type}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
                         <div class="col-md-6">
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Name</label>
                                 <div class="col-sm-9">
                                     <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{get_data.name}}" required>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Customer Code</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Customer Code" name="customer_code" value="{{customer_get_data.customer_code}}" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Location</label>
-                                <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="location_id">
-                                        <option value="" disabled selected>Select Location</option>
-                                        {% for x in list_location %}
-                                        <option value="{{x.id}}" {% if x.id|slugify == customer_get_data.location_id.id|slugify %} selected {% endif %}>{{x.location}}</option>
-                                        {% endfor %}
-                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -113,7 +37,201 @@
                             </div>
                         </div>
                     </div>
-                
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Opening Balance</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Opening Balance" name="opening_balance" value="{{get_data.opening_balance}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entry Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="entry_type">
+                                        <option value="" disabled selected>Entry Type</option>
+                                        <option value="Dr" {% if get_data.entry_type == 'Dr' %} selected {% endif %}>Dr</option>
+                                        <option value="Cr" {% if get_data.entry_type == 'Cr' %} selected {% endif %}>Cr</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Bill by bill</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="bill_by_bill">
+                                        <option value="" disabled selected>Bill by bill</option>
+                                        <option value="Yes" {% if get_data.bill_by_bill == 'Yes' %} selected {% endif %}>Yes</option>
+                                        <option value="No" {% if get_data.bill_by_bill == 'No' %} selected {% endif %}>No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary me-2">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+ -->
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">View Accounting Ledger</h4>
+                <p class="card-description">
+                    View Accounting Ledger from here
+                </p>
+                <form class="forms-sample"  method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="id" id="acid" value="{{get_data.id}}">
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Active
+                                <input type="checkbox" class="form-check-input"  id="checkBox" name="active" value="true" {% if customer_get_data.active == True %} checked {% endif %}>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Entity</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" >
+                                        <option value="" disabled selected>Select Entity</option>
+                                        {% for x in list_entity %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Branch</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" >
+                                        <option value="" disabled selected>Select Branch</option>
+                                        {% for x in list_branch %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.branch_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        {% if customer_get_data %}
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="customer_type_id" required>
+                                        <option value="" disabled selected>Select Customer Type</option>
+                                        {% for x in list_customer_type %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == customer_get_data.customer_type_id.id|slugify %} selected {% endif %}>{{x.type}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Customer Code</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Customer Code" name="customer_code" value="{{customer_get_data.customer_code}}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        {% elif supplier_get_data %}
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="supplier_type_id" required>
+                                        <option value="" disabled selected>Select Supplier Type</option>
+                                        {% for x in list_supplier_type %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == supplier_get_data.supplier_type_id.id|slugify %} selected {% endif %}>{{supplier_get_data.supplier_type_id.id}} || {{x.type}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Supplier Code</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Supplier Code" name="supplier_code" value="{{supplier_get_data.supplier_code}}" readonly >
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        
+                    </div>
+                    
+
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{get_data.name}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                        
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Accounting Group</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100 accounting_group_id" name="accounting_group_id" required>
+                                        <option value="" disabled selected>Select Accounting Group</option>
+                                        {% for x in list_all_group %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.accounting_group_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6" style="display: none;">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Location</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="location_id">
+                                        <option value="" disabled selected>Select Location</option>
+                                        {% for x in list_location %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == customer_get_data.location_id.id|slugify %} selected {% endif %}>{{x.location}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="form-group" id="additional">
+                            <div class="form-check form-check-primary">
+                                <label class="form-check-label">
+                                    Show in Additional Expense Section
+                                    <input type="checkbox" class="form-check-input"  id="expense" name="additional" {% if get_data.additional_expense %} checked {% endif%}>
+                                </label>
+                            </div>
+                        </div>
+                    </div> 
             </div>
         </div>
     </div>
@@ -134,10 +252,10 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Entry Type</label>
                             <div class="col-sm-9">
-                                <select class="js-example-basic-single w-100" name="entry_type">
+                                <select class="js-example-basic-single w-100" name="entry_type" required>
                                     <option value="" disabled selected>Entry Type</option>
-                                    <option value="Dr" {% if get_data.get_data.entry_type == 'Dr' %} selected {% endif %}>Dr</option>
-                                    <option value="Cr" {% if get_data.get_data.entry_type == 'Cr' %} selected {% endif %}>Cr</option>
+                                    <option value="Dr" {% if get_data.entry_type == 'Dr' %} selected {% endif %}>Dr</option>
+                                    <option value="Cr" {% if get_data.entry_type == 'Cr' %} selected {% endif %}>Cr</option>
                                 </select>
                             </div>
                         </div>
@@ -150,8 +268,8 @@
                             <div class="col-sm-9">
                                 <select class="js-example-basic-single w-100" name="bill_by_bill">
                                     <option value="" disabled selected>Bill by bill</option>
-                                    <option value="Yes" {% if get_data.get_data.bill_by_bill == 'Yes' %} selected {% endif %}>Yes</option>
-                                    <option value="No" {% if get_data.get_data.bill_by_bill == 'No' %} selected {% endif %}>No</option>
+                                    <option value="Yes" {% if get_data.bill_by_bill == 'Yes' %} selected {% endif %}>Yes</option>
+                                    <option value="No" {% if get_data.bill_by_bill == 'No' %} selected {% endif %}>No</option>
                                 </select>
                             </div>
                         </div>
@@ -160,7 +278,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Credit Period</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Credit Period" name="credit_period" value="{{customer_get_data.credit_period}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Credit Period" name="credit_period" value="{{get_data.credit_period}}">
                             </div>
                         </div>
                     </div>
@@ -170,7 +288,28 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Credit Limit</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Credit Limit" name="credit_limit" value="{{customer_get_data.credit_limit}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Credit Limit" name="credit_limit" value="{{get_data.credit_limit}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Pricing Level</label>
+                            <div class="col-sm-9">
+                                <select class="js-example-basic-single w-100 pricing_level" name="pricing_level" >
+                                    <option value="" disabled selected>Select Pricing Level</option>
+                                    {% for x in list_pricing_level %}
+                                    <option value="{{x.id}}" {% if x.id|slugify == get_data.pricing_level.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Current Balance</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="current_bal" placeholder="Current Balance" name="curret_balance" value="{{get_data.opening_balance}}" readonly>
                             </div>
                         </div>
                     </div>
@@ -187,7 +326,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Address</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Address" name="address" value="{{customer_get_data.address}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Address" name="address" value="{{commondata.address}}">
                             </div>
                         </div>
                     </div>
@@ -195,7 +334,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">City</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="City" name="city" value="{{customer_get_data.city}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="City" name="city" value="{{commondata.city}}">
                             </div>
                         </div>
                     </div>
@@ -205,7 +344,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">State</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="State" name="state" value="{{customer_get_data.state}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="State" name="state" value="{{commondata.state}}">
                             </div>
                         </div>
                     </div>
@@ -213,7 +352,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Country</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Country" name="country" value="{{customer_get_data.country}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Country" name="country" value="{{commondata.country}}">
                             </div>
                         </div>
                     </div>
@@ -223,7 +362,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Pincode</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Pincode" name="pincode" value="{{customer_get_data.pincode}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Pincode" name="pincode" value="{{commondata.pincode}}">
                             </div>
                         </div>
                     </div>
@@ -231,7 +370,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Email</label>
                             <div class="col-sm-9">
-                                <input type="email" class="form-control" id="exampleInputName1" placeholder="Email" name="email" value="{{customer_get_data.email}}">
+                                <input type="email" class="form-control" id="exampleInputName1" placeholder="Email" name="email" value="{{commondata.email}}">
                             </div>
                         </div>
                     </div>
@@ -241,7 +380,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">phone</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Phone" name="phone" value="{{customer_get_data.phone}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Phone" name="phone" value="{{commondata.phone}}">
                             </div>
                         </div>
                     </div>
@@ -258,7 +397,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Account Number</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Account Number" name="account_number" value="{{customer_get_data.account_number}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Account Number" name="account_number" value="{{commondata.account_number}}">
                             </div>
                         </div>
                     </div>
@@ -266,7 +405,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Branch Name</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Branch Name" name="branch_name" value="{{customer_get_data.branch_name}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Branch Name" name="branch_name" value="{{commondata.branch_name}}">
                             </div>
                         </div>
                     </div>
@@ -276,7 +415,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Branch Code</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Branch Code" name="branch_code" value="{{customer_get_data.branch_code}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Branch Code" name="branch_code" value="{{commondata.branch_code}}">
                             </div>
                         </div>
                     </div>
@@ -293,7 +432,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">CIN</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="CIN" name="cin" value="{{customer_get_data.cin}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="CIN" name="cin" value="{{commondata.cin}}">
                             </div>
                         </div>
                     </div>
@@ -301,7 +440,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">PAN</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="PAN" name="pan" value="{{customer_get_data.pan}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="PAN" name="pan" value="{{commondata.pan}}">
                             </div>
                         </div>
                     </div>
@@ -311,11 +450,83 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">GST</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="exampleInputName1" placeholder="GST" name="gst" value="{{customer_get_data.gst}}">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="GST" name="gst" value="{{commondata.gst}}">
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">State</label>
+                            <div class="col-sm-9">
+                                <select id="states" name="states" class="js-example-basic-single w-100">
+                                    {% for state in state_list %}
+                                        {% if customer_get_data %}
+                                            <option value="{{state.id}}" {% if state.id|slugify == customer_get_data.state_code|slugify %} selected {% endif %}>{{state.name}}</option>
+                                        {% elif supplier_get_data %}
+                                            <option value="{{state.id}}" {% if state.id|slugify == supplier_get_data.state_code|slugify %} selected {% endif %}>{{state.name}}</option>
+                                        {% endif %}
+                                    {% endfor%}
+                                </select>
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Gst Treatment</label>
+                            <div class="col-sm-9">
+                                <select id="gst" name="gst_treatment" class="js-example-basic-single w-100">
+                                    {% for gst_treatment in gst_treatment_list %}
+
+                                    <option value="{{gst_treatment.id}}" {% if gst_treatment.id|slugify == commondata.gst_treatment.id|slugify %} selected {% endif %}> {{gst_treatment.name}}</option>
+                                    {% endfor%}
+                                </select>     
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Aggregate Field</label>
+                            <div class="col-sm-9">
+                                <select id="aggre" name="sumfield" class="js-example-basic-single w-100">
+                                    <option value="">Select</option>
+
+                                   <option value="total_amount" {% if get_data.sumfield|slugify == 'total_amount' %} selected {% endif %}>total_amount</option>
+                                   <option value="pretax_amount" {% if get_data.sumfield|slugify == 'pretax_amount' %} selected {% endif %}>pretax_amount</option>
+                                    <option value="cgst" {% if get_data.sumfield|slugify == 'cgst' %} selected {% endif %}>cgst</option>
+                                    <option value="sgst" {% if get_data.sumfield|slugify == 'sgst' %} selected {% endif %}>sgst</option>
+                                    <option value="igst" {% if get_data.sumfield|slugify == 'igst' %} selected {% endif %}>igst</option>
+                                    <option value="ses" {% if get_data.sumfield|slugify == 'ses' %} selected {% endif %}>ses</option>
+                                    <option value="reverse_cgst" {% if get_data.sumfield|slugify == 'reverse_cgst' %} selected {% endif %}>reverse_cgst</option>
+                                    <option value="reverse_sgst" {% if get_data.sumfield|slugify == 'reverse_sgst' %} selected {% endif %}>reverse_sgst</option>
+                                    <option value="reverse_igst" {% if get_data.sumfield|slugify == 'reverse_igst' %} selected {% endif %}>reverse_igst</option>
+                                 </select>  
+                                </select>     
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Show Tax
+                                <input type="checkbox" class="form-check-input"  id="checkBox" name="showtax" {% if get_data.taxshow == 1 %} checked {% endif %}>
+                            </label>
+                         </div>
+                    </div>
+                    
                 </div>
+                {% if not get_user_data.user_role_id %}
+                <div class="form-group">
+                    <div class="form-check form-check-primary">
+                        <label class="form-check-label">
+                            Set Default
+
+                            <input type="checkbox" class="form-check-input"  id="checkBox" name="default" {% if get_data.is_default %} checked {% endif%}>
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+
             </form>
             </div>
         </div>
@@ -324,6 +535,78 @@
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+
+        // balance check
+        var value = $('#acid').val();
+        console.log(value);
+        $.ajax({
+                type: 'POST',
+                url: "{% url 'get-AccountLedger-balance' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'ledger_id': value,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var balance        = data
+                    $('#current_bal').val = balance   
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+            
+        $('#additional').hide()
+       
+        function checkConditions() {
+            var accgroup      =$('select[name="accounting_group_id"]').val()
+            console.log(accgroup)
+            
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-account-nature' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'accgroup': accgroup,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var nature        = data
+                    console.log(nature)
+                   console.log(nature['expense']) 
+                   if(nature['expense']){
+
+                    $('#additional').show()
+        
+                   } 
+                   else{
+                    $('#expense').prop("checked",false)
+                    $('#additional').hide()
+
+                   }
+                    
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        checkConditions()
+// onchange  call check nature to display additional,call checkcondition function to type field visible
+        $('select[name="accounting_group_id"]').change(function() {
+            
+            checkConditions()
+            
+        });
+    });
+
+</script>
+
+
+
 <script type="text/javascript">
     $(document).ready(function () {
         $(document).on('change', '.entity_data', function(event){
@@ -350,6 +633,71 @@
                 }
             });
         });
+    });
+</script>
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+       
+
+        // additional
+        $(document).on('change', '.branch', function(event){
+            var branch_id = $(this).val();
+            console.log(branch_id)
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-pricing-level' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var pricing_levels        = data.data;
+                    console.log(pricing_levels)
+                    var pricing_level_select    = $('.pricing_level');
+                    pricing_level_select.empty();  // Clear previous options
+                    pricing_level_select.append('<option value="" disabled selected>Select Pricing Level</option>');
+                    $.each(pricing_levels, function (index, pricing_level) {
+                        pricing_level_select.append('<option value="' + pricing_level.id + '">' + pricing_level.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-accounting-group' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var accgroup        = data.group_list;
+                    var accgroup_select    = $('.accounting_group_id');
+                    accgroup_select.empty();  // Clear previous options
+                    accgroup_select.append('<option value="" disabled selected>Select Accounting Group</option>');
+                    $.each(accgroup, function (index, accgroup) {
+                        accgroup_select.append('<option value="' + accgroup.id + '">' + accgroup.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+
+
+
+
+        });
+
+        // additional end
     });
 </script>
 {% endblock %}

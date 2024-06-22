@@ -80,12 +80,14 @@
                                 {{type.type}}
                             </td>
                             <td>
+                                {% if  write %}
                                 <a href="{% url 'update-customer-type' %}?id={{type.id}}" class="adec">
                                     <i class="mdi mdi-grease-pencil  me-3 lupdate hidethis"></i>
                                 </a>
                                 <a class="delete-btn" href="#" id="{{type.id}}" onclick="showModalAndChangeColor(this)">
                                     <i class="mdi mdi-delete ldelete hidethis"></i>
                                 </a>
+                                {%endif%}
                                 {% if not write %}
                                 <a class="delete-btn" href="{% url 'view-customer-type' %}?id={{type.id}}" >
                                     <i class="mdi mdi mdi-eye lview"></i>

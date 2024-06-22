@@ -216,9 +216,6 @@ class user_role_permission(models.Model):
     gst_treatment_active    = models.BooleanField(max_length=100,default=0)
     gst_treatment_read      = models.BooleanField(max_length=100,default=0)
     gst_treatment_write     = models.BooleanField(max_length=100,default=0)
-    report_active           = models.BooleanField(max_length=100,default=0)
-    report_read             = models.BooleanField(max_length=100,default=0)
-    report_write            = models.BooleanField(max_length=100,default=0)
     created_at          = models.DateTimeField(max_length=100,default='')
     updated_at          = models.DateTimeField(max_length=100,default='')
 

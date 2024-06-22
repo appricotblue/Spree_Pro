@@ -35,9 +35,11 @@
                                 {{data.role}}
                             </td>
                             <td>
+                                {% if write%}
                                 <a href="{% url 'update-user-role-permission' %}?id={{data.id}}" class="adec">
                                     <i class="mdi mdi-grease-pencil  me-3 lupdate hidethis"></i>
                                 </a>
+                                {% endif%}
                                 {% if not write %}
                                 <a class="delete-btn" href="{% url 'view-userpermission' %}?id={{data.id}}" >
                                     <i class="mdi mdi mdi-eye lview"></i>

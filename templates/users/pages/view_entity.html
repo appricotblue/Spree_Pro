@@ -1,20 +1,28 @@
 {% extends "users/layout/app.html" %}
 {% block content %}
+<style>
+
+    .w-100{
+        width: 400px !important;
+    }
+</style>
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">View Entity</h4>
                 <p class="card-description">
-                View entity from here
+                    View entity from here
                 </p>
-                    <input readonly type="hidden" name="id" value="{{entity_data.id}}">
+                <form class="forms-sample" action="{% url 'update-entity' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="id" value="{{entity_data.id}}">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Name</label>
                                 <div class="col-sm-9">
-                                    <input readonly type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{entity_data.name}}" required>
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Name" name="name" value="{{entity_data.name}}" required>
                                 </div>
                             </div>
                         </div>
@@ -22,7 +30,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity Type</label>
                                 <div class="col-sm-9">
-                                    <select  disabled class="js-example-basic-single w-100" name="type_id" required >
+                                    <select class="js-example-basic-single w-100" name="type_id" required>
                                         <option value="" disabled selected>Select Entity Type</option>
                                         {% for x in entity_types %}
                                         <option value="{{x.id}}" {% if x.id|slugify == entity_data.entity_type_id.id|slugify %} selected {% endif %}>{{x.type}}</option>
@@ -37,7 +45,54 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Description</label>
                                 <div class="col-sm-9">
-                                    <textarea readonly class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="4">{{entity_data.description}}</textarea>
+                                    <textarea class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="4">{{entity_data.description}}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Location</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="location_id" required>
+                                        <option value="" disabled selected>Select Location</option>
+                                        {% for x in location_list %}
+                                        <option value="{{x.id}}" {% if x.id|slugify == entity_data.location.id|slugify %} selected {% endif %}>{{x.location}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">GST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="gst" placeholder="GST Number" name="gst" value="{{entity_data.gst}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <p class="mb-3">
+                                    {% if entity_data.logo %}
+                                    <img src="{{entity_data.logo.url}}" height="auto" data-enlargeable width="100" style="cursor: zoom-in">
+                                    {% endif %}
+                                </p>
+                                <label class="col-sm-3 col-form-label">Logo</label>
+                                <div class="col-sm-9">
+                                    <input type="file" name="image" class="file-upload-default" id="image">
+                                    <div class="input-group col-xs-12">
+                                        <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Logo" style="height: 45px;">
+                                        <span class="input-group-append">
+                                        <button class="file-upload-browse btn btn-primary btn-sm" type="button" style="
+                                        margin-left: 300px;
+                                        margin-top: -6em;
+                                    ">Upload</button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

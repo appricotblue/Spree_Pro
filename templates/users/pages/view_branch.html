@@ -6,7 +6,7 @@
             <div class="card-body">
                 <h4 class="card-title">View Branch</h4>
                 <p class="card-description">
-                View branch from here
+                    View branch from here
                 </p>
                 <form class="forms-sample" action="{% url 'update-branch' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -65,7 +65,12 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">State</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="State" name="state" value="{{get_branch_data.state}}" required>
+                                    <select id="states" name="states" class="js-example-basic-single w-100">
+                                        {% for state in state_list %}
+        
+                                        <option value="{{state.id}}" {% if state.id|slugify == get_branch_data.state|slugify %} selected {% endif %}>{{state.name}}</option>
+                                        {% endfor%}
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -87,13 +92,31 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Gst Treatment</label>
+                                <div class="col-sm-9">
+                                    <select id="gst" name="gst_treatment" class="js-example-basic-single w-100">
+                                        {% for gst_treatment in gst_treatment_list %}
+    
+                                        <option value="{{gst_treatment.id}}" {% if gst_treatment.id|slugify == get_branch_data.gst_treatment.id|slugify %} selected {% endif %}>{{gst_treatment.name}}</option>
+                                        {% endfor%}
+                                    </select>     
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">GST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="gst" placeholder="GST Number" name="gst" value="{{get_branch_data.gst}}" required>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
-
-
 {% endblock %}

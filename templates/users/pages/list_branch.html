@@ -104,11 +104,16 @@
                             </td>
                             <td>
                                 <a href="{% url 'update-branch' %}?id={{data.id}}" class="adec">
-                                    <i class="mdi mdi-grease-pencil  me-3 lupdate"></i>
+                                    <i class="mdi mdi-grease-pencil  me-3 lupdate hidethis"></i>
                                 </a>
                                 <a class="delete-btn" href="#" id="{{data.id}}" onclick="showModalAndChangeColor(this)">
-                                    <i class="mdi mdi-delete ldelete"></i>
+                                    <i class="mdi mdi-delete ldelete hidethis"></i>
                                 </a>
+
+                                {% if not write %}
+                                    <a class="delete-btn" href="{% url 'view-branch' %}?id={{data.id}}" >
+                                        <i class="mdi mdi mdi-eye lview"></i>
+                                {%endif%}
                                 
                             </td>
                         </tr>

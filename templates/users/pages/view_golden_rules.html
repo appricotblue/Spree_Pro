@@ -6,7 +6,7 @@
             <div class="card-body">
                 <h4 class="card-title">View Golden Rule</h4>
                 <p class="card-description">
-                View golden rule from here
+                    View golden rule from here
                 </p>
                 <form class="forms-sample" action="{% url 'update-golden-rule' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -38,6 +38,7 @@
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -53,7 +54,37 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Debit Accounting Ledgers</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-multiple w-100"  multiple="multiple" name="debit_accounting_ldeger_ids[]" >
+                                        <option value="" disabled>Select Ledger</option>
+                                        {% for x in debit_accounts %}
+                                        <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Credit Accounting Ledgers</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-multiple w-100"  multiple="multiple" name="credit_accounting_ldeger_ids[]" >
+                                        <option value="" disabled>Select Ledgers</option>
+                                        {% for x in credit_accounts %}
+                                        <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    
                 </form>
             </div>
         </div>

@@ -4,9 +4,9 @@
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Update Voucher Type</h4>
+                <h4 class="card-title">View Voucher Type</h4>
                 <p class="card-description">
-                Update voucher type from here
+                View voucher type from here
                 </p>
                 <form class="forms-sample" action="{% url 'update-voucher-type' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -71,7 +71,6 @@
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary me-2">Submit</button>
                 </form>
             </div>
         </div>

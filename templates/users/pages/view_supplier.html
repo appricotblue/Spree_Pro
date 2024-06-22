@@ -6,7 +6,7 @@
             <div class="card-body">
                 <h4 class="card-title">View Supplier</h4>
                 <p class="card-description">
-                    View supplier from here
+                View supplier from here
                 </p>
                 <form class="forms-sample" action="{% url 'update-supplier' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -101,8 +101,8 @@
                             <div class="col-sm-9">
                                 <select class="js-example-basic-single w-100" name="entry_type">
                                     <option value="" disabled selected>Entry Type</option>
-                                    <option value="Dr" {% if get_data.get_data.entry_type == 'Dr' %} selected {% endif %}>Dr</option>
-                                    <option value="Cr" {% if get_data.get_data.entry_type == 'Cr' %} selected {% endif %}>Cr</option>
+                                    <option value="Dr" {% if get_data.entry_type == 'Dr' %} selected {% endif %}>Dr</option>
+                                    <option value="Cr" {% if get_data.entry_type == 'Cr' %} selected {% endif %}>Cr</option>
                                 </select>
                             </div>
                         </div>
@@ -115,8 +115,8 @@
                             <div class="col-sm-9">
                                 <select class="js-example-basic-single w-100" name="bill_by_bill">
                                     <option value="" disabled selected>Bill by bill</option>
-                                    <option value="Yes" {% if get_data.get_data.bill_by_bill == 'Yes' %} selected {% endif %}>Yes</option>
-                                    <option value="No" {% if get_data.get_data.bill_by_bill == 'No' %} selected {% endif %}>No</option>
+                                    <option value="Yes" {% if get_data.bill_by_bill == 'Yes' %} selected {% endif %}>Yes</option>
+                                    <option value="No" {% if get_data.bill_by_bill == 'No' %} selected {% endif %}>No</option>
                                 </select>
                             </div>
                         </div>
@@ -137,6 +137,19 @@
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" id="exampleInputName1" placeholder="Credit Limit" name="credit_limit" value="{{get_data.credit_limit}}">
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Pricing Level</label>
+                        <div class="col-sm-9">
+                            <select class="js-example-basic-single w-100 pricing_level" name="pricing_level" required>
+                                <option value="" disabled selected>Select Pricing Level</option>
+                                {% for x in list_pricing_level %}
+                                <option value="{{x.id}}" {% if x.id|slugify == account_ledger.pricing_level.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -280,7 +293,34 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">State</label>
+                            <div class="col-sm-9">
+                                <select id="states" name="states" class="js-example-basic-single w-100">
+                                    {% for state in state_list %}
+    
+                                    <option value="{{state.id}}" {% if state.id|slugify == get_data.state_code|slugify %} selected {% endif %}>{{state.name}}</option>
+                                    {% endfor%}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Gst Treatment</label>
+                            <div class="col-sm-9">
+                                <select id="gst" name="gst_treatment" class="js-example-basic-single w-100">
+                                    {% for gst_treatment in gst_treatment_list %}
+
+                                    <option value="{{gst_treatment.id}}" {% if gst_treatment.id|slugify == get_data.gst_treatment.id|slugify %} selected {% endif %}> {{gst_treatment.name}}</option>
+                                    {% endfor%}
+                                </select>     
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
             </form>
             </div>
         </div>
@@ -314,6 +354,36 @@
                 }
             });
         });
+
+        // additional
+        $(document).on('change', '.branch', function(event){
+            var branch_id = $(this).val();
+            console.log(branch_id)
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-pricing-level' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var pricing_levels        = data.data;
+                    console.log(pricing_levels)
+                    var pricing_level_select    = $('.pricing_level');
+                    pricing_level_select.empty();  // Clear previous options
+                    pricing_level_select.append('<option value="" disabled selected>Select Pricing Level</option>');
+                    $.each(pricing_levels, function (index, pricing_level) {
+                        pricing_level_select.append('<option value="' + pricing_level.id + '">' + pricing_level.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+        // additional end
     });
 </script>
 {% endblock %}

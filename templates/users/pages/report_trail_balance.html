@@ -71,7 +71,7 @@
                     <div class="col-md text-md-right">
                         <form method="post">
                             {% csrf_token %}
-                            <!-- <input type="submit" name="download" value="Download Excel" class="btn btn-sm font-weight-medium auth-form-btn download"> -->
+                            <input type="submit" name="download" value="Download Excel" class="btn btn-sm font-weight-medium auth-form-btn download">
                         </form>
                     </div>
                 </div>
@@ -260,22 +260,7 @@
 
                             <!-- end  -->
 
-                            {% if data.dir_ledgers %}
-                                {% for ledgers in data.dir_ledgers %}
-                                   
-                                    <tr>
-                                        <td>&emsp14;&emsp14;&emsp14;&emsp14;{{ledgers.name}}</td>
-                                        {% if ledgers.type == 'Cr' %}
-                                            <td>{{ledgers.amount}}</td>
-                                            <td></td>
-                                        {% else %}
-                                            <td></td>
-                                            <td>{{ledgers.amount}}</td>
-                                        {% endif %}
-                                    </tr>
-                                       
-                                {%endfor%} 
-                            {%endif%}
+                            
 
                             <!-- <tr>
                                 <th><b><u>{{data.name}}</u></b></th>
@@ -309,7 +294,7 @@
                            
                             {%endif%}
                         {%endfor%}   
-
+ 
                         <tr>
                             <th>Reserves and Surplus</th>
                             <th>{{pandl}}</th>

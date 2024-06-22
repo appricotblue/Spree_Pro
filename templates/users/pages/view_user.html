@@ -8,6 +8,10 @@
     .select2-selection__choice{
         color: black;
     }
+    .w-100{
+        width: 400px !important;
+    }
+
 
 </style>
 <div class="row">
@@ -16,7 +20,7 @@
             <div class="card-body">
                 <h4 class="card-title">View User</h4>
                 <p class="card-description">
-                    View user from here
+                View user from here
                 </p>
                 <form class="forms-sample" action="{% url 'update-user' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -65,7 +69,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-multiple w-100 entity_data" name="entity_ids[]" multiple required>
+                                    <select class="js-example-basic-multiple w-100 entity_data" name="entity_ids[]" multiple >
                                         <option value="" disabled>Select Entity</option>
                                         {% for x in list_entity %}
                                         <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
@@ -78,7 +82,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Branch</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-multiple w-100 branch" name="branch_ids[]" multiple required>
+                                    <select class="js-example-basic-multiple w-100 branch" name="branch_ids[]" multiple >
                                         <option value="" disabled>Select Branch</option>
                                         {% for x in list_branch %}
                                         <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>

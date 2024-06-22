@@ -6,7 +6,7 @@
             <div class="card-body">
                 <h4 class="card-title">View Product</h4>
                 <p class="card-description">
-                    View product from here
+                View product from here
                 </p>
                 <form class="forms-sample" action="{% url 'update-product' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -117,6 +117,40 @@
                         </div>
                         
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label ">Product Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="product_type">
+                                        
+                                        <option value="Goods or Service" {% if get_data.product_type == "Goods or Service" %} selected {% endif %}>Goods or Service</option>
+                                        <option value="Service Only" {% if get_data.product_type == "Service Only" %} selected {% endif %}>Service Only</option>
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="hsn">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">HSN</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control hsn" id="exampleInputName1" placeholder="HSN" name="hsn" value="{{get_data.hsn}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 " id="sac">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">SAC</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control sac" id="exampleInputName1" placeholder="SAC" name="sac" value="{{get_data.sac}}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">
@@ -135,10 +169,9 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Godown</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="godown_id">
-                                        <option value="" disabled selected>Select Godown</option>
+                                    <select class="js-example-basic-multiple w-100 godown_data" name="godown_id[]" multiple>
                                         {% for x in list_godown %}
-                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.godown_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -151,10 +184,9 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Rack</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="rack_id">
-                                        <option value="" disabled selected>Select Rack</option>
+                                    <select class="js-example-basic-multiple w-100 rack" name="rack_id[]" multiple>
                                         {% for x in list_rack %}
-                                        <option value="{{x.id}}" {% if x.id|slugify == get_data.rack_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
+                                        <option value="{{x.id}}" {{x.selected}}>{{x.name}}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -175,6 +207,29 @@
                         </div>
                         
                     </div>
+                    <!-- <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Discount Type</label>
+                                <div class="col-sm-9">
+                                    <select class="js-example-basic-single w-100" name="discount_type">
+                                        <option value="" disabled selected>Select Discount Type</option>
+                                        <option value="Percentage" {% if get_data.discount_type|slugify == "Percentage"|slugify %} selected {% endif %}>Percentage( % )</option>
+                                        <option value="Amount" {% if get_data.discount_type|slugify == "Amount"|slugify %} selected {% endif %}>Amount</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Discount</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Discount" name="discount" value="{{get_data.discount}}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div> -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">
@@ -237,7 +292,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Tax</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100" name="tax_id">
+                                    <select class="js-example-basic-single w-100 tax" name="tax_id">
                                         <option value="" disabled selected>Select Tax</option>
                                         {% for x in list_tax %}
                                         <option value="{{x.id}}" {% if x.id|slugify == get_data.tax_id.id|slugify %} selected {% endif %}>{{x.tax}}</option>
@@ -297,5 +352,131 @@
             });
         });
     });
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).on('change', '.godown_data', function(event){
+            var godown_id = $(this).val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-godown-rack' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'godown_id': godown_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var racks           = data.racks;
+                    var rackSelect    = $('.rack');
+                    rackSelect.empty();  // Clear previous options
+                    rackSelect.append('<option value="" disabled>Select rack</option>');
+                    $.each(racks, function (index, rack) {
+                        rackSelect.append('<option value="' + rack.id + '">' + rack.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+        $(document).on('change', '.branch', function(event){
+            var branch_id = $(this).val();
+            console.log(branch_id)
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-Godowns' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch_id': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var godwons        = data.godowns;
+                    console.log(godwons)
+                    var rackSelect    = $('.rack');
+                    rackSelect.empty();  // Clear previous options
+                    var godwonSelect    = $('.godown_data');
+                    godwonSelect.empty();  // Clear previous options
+                    $.each(godwons, function (index, godwon) {
+                        godwonSelect.append('<option value="' + godwon.id + '">' + godwon.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-tax-data' %}",  // Update the URL based on your Django URL configuration
+                data: {
+                    'branch_id': branch_id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
+                },
+                success: function (data) {
+                    var tax        = data.tax;
+                    var taxSelect    = $('.tax');
+                    taxSelect.empty();  // Clear previous options
+                    $.each(tax, function (index, tax) {
+                        taxSelect.append('<option value="' + tax.id + '">' + tax.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+
+        });
+
+
+    });
+</script>
+
+
+
+
+<script>
+    $(document).ready(function() {
+        $('#hsn').hide();
+        $('#sac').hide();
+       
+
+        function checkConditions() {
+            var selectedName = $('select[name="product_type"]').find('option:selected').text();
+            $('#hsn').hide();
+            $('#sac').hide();
+            $('.hsn').prop('required', false);
+            $('.sac').prop('required', false);
+            
+
+            console.log(selectedName)            
+            if (selectedName === 'Goods or Service') {
+                $('#hsn').show();
+                $('.hsn').prop('required', true);
+                $('.sac').prop('required', false);
+                $('.sac').val("")
+
+
+            }
+            else if (selectedName === 'Service Only') {
+                $('#sac').show();
+                $('.sac').prop('required', true);
+                $('.hsn').prop('required', false);
+                $('.hsn').val("")
+
+
+            }
+        }
+
+        checkConditions()
+
+        $('select[name="product_type"]').change(function() {
+            var selectedName = $(this).find('option:selected').text();
+            checkConditions()
+        });
+    });
+
+
 </script>
 {% endblock %}

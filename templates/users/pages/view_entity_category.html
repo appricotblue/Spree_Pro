@@ -6,15 +6,17 @@
             <div class="card-body">
                 <h4 class="card-title">View Entity Category</h4>
                 <p class="card-description">
-                View entity category from here
+                    View entity category from here
                 </p>
+                <form class="forms-sample" action="{% url 'update-entity-category' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
                     <input type="hidden" name="id" value="{{category_data.id}}">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Category</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Category" name="category" value="{{category_data.category}}" required readonly>
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Category" name="category" value="{{category_data.category}}" required>
                                 </div>
                             </div>
                         </div>
@@ -22,11 +24,12 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Description</label>
                                 <div class="col-sm-9">
-                                    <textarea class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="4" readonly>{{category_data.description}}</textarea>
+                                    <textarea class="form-control" id="exampleTextarea1" placeholder="Description" name="description" rows="4">{{category_data.description}}</textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </form>
             </div>
         </div>
     </div>
