@@ -36,6 +36,8 @@ from django.db import connection
 from django.apps import apps
 from django.db.models.functions import Concat
 from django.db.models import Q
+import pdfkit
+
 
 
 
@@ -708,15 +710,78 @@ def addNewEntity(request):
 
                 get_entity_type = entity_type.objects.get(id=type_id)
 
-                insert_data     = entity_data(name=name,entity_type_id=get_entity_type,description=description,created_at=now,updated_at=now,location=location_id,gst=gst,logo=logo)
+                # additional
+                address         = request.POST['address']
+                city            = request.POST['city']
+                state           = request.POST['states']
+                country         = request.POST['country']
+                pincode         = request.POST['pincode']
+                gst             = request.POST['gst']
+
+
+                dlno            = request.POST['dlno']
+                udyam           = request.POST['udyam']
+                pan             = request.POST['pan']
+                fssai           = request.POST['fssai']
+                email           = request.POST['email']
+                phone           = request.POST['phone']
+                account_holder  = request.POST['account_holder']
+                account_number  = request.POST['account_number']
+                branch_name     = request.POST['branch_name']
+                ifsc_code            = request.POST['ifsc_code']
+                gst_treatment       = request.POST.get('gst_treatment')
+                gst_treatment   = None if not gst_treatment else gst_treatment_data.objects.get(id=gst_treatment)
+ 
+
+                insert_data     = entity_data(
+
+                    name=name,entity_type_id=get_entity_type,description=description,created_at=now,updated_at=now,location=location_id,gst=gst,logo=logo)
                 insert_data.save()
 
+                # add branch
+                latest_id       = 1 if not branch_data.objects.all().exists() else int(branch_data.objects.latest('id').id) + 1
+                get_series      = series_data.objects.get(type="Branch")
+                branch_code     = get_series.pre_text+str(latest_id)+get_series.post_text
+
+                insert_branch   = branch_data(name="Main",
+                                              logo=logo,
+                                              ifsc_code=ifsc_code,
+                                              account_holder=account_holder,
+                                              account_number=account_number,
+                                              dlno=dlno,
+                                              udyam=udyam,
+                                              email=email,
+                                              pan=pan,
+                                              fssai=fssai,
+                                              phone=phone,
+                                              address=address,
+                                              city=city,
+                                              state=state,
+                                              branch_name=branch_name,
+                                              country=country,
+                                              pincode=pincode,
+                                              gst_treatment=gst_treatment,
+                                              branch_code=branch_code,entity_id=insert_data,created_at=now,updated_at=now,gst=gst)
+
+                insert_branch.save()
+                # add godwon
+                insert_godown         = godown_data(name="Main",entity_id=insert_data,description=description,branch_id=insert_branch,created_at=now,updated_at=now)
+                insert_godown.save()
+
+
+                # add rack
+                insert_rack         = rack_data(entity_id=insert_data,branch_id=insert_branch,name="Main",description=description,godown_id=insert_godown,created_at=now,updated_at=now)
+                insert_rack.save()
+
+
                 messages.success(request, 'Successfully added.')
+
                 return redirect('list-entity')
             else:
                 entity_types    = entity_type.objects.all()
                 location_list   = location_data.objects.all()
-                return render(request,'users/pages/add_entity.html',{'entity_types' : entity_types,'location_list':location_list})
+                gst_treatment_list  = gst_treatment_data.objects.all()
+                return render(request,'users/pages/add_entity.html',{'gst_treatment_list':gst_treatment_list,'entity_types' : entity_types,'location_list':location_list,'state_list':state_list})
         else:
             raise Http404("Access to this is not permitted")
     else:
@@ -844,17 +909,21 @@ def listBanch(request):
                 enitity_pks         = list(listEntity.values_list('pk',flat=True))
                 branch_list         = branch_data.objects.filter(entity_id__in=enitity_pks)
             
+            print("*******")
+            print(branch_list)
             user_branch             = user_details.branch_id
             
             if user_branch:
                 user_branches       = user_details.branch_id.split(',')
                 branch_list         = branch_list.filter(pk__in=user_branches)
 
+            print(branch_list)
+
             user_default_entity     = user_details.default_entity_id
             if user_default_entity:
                 branch_list     = branch_list.filter(entity_id=user_default_entity)
                 
-            
+            print(branch_list) 
             if 'search' in request.POST: 
                 
                 selected_enitity        = int(request.POST.get('select_entity')) if request.POST.get('select_entity') else None
@@ -903,7 +972,7 @@ def listBanch(request):
 
 
 
-@cache_control(no_cache=True,must_revalidate=True,no_store=True)
+# @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def addNewBranch(request):
     if request.session.has_key('userId'):
         get_role_permission     = getUserPermissions(request)
@@ -921,17 +990,52 @@ def addNewBranch(request):
                 pincode         = request.POST['pincode']
                 gst             = request.POST['gst']
 
-                now             = datetime.now()
 
+                dlno            = request.POST['dlno']
+                udyam           = request.POST['udyam']
+                pan             = request.POST['pan']
+                fssai           = request.POST['fssai']
+                email           = request.POST['email']
+                phone           = request.POST['phone']
+                account_holder  = request.POST['account_holder']
+                account_number  = request.POST['account_number']
+                branch_name     = request.POST['branch_name']
+                ifsc_code            = request.POST['ifsc_code']
+                image_file      = imgForm(request.POST,request.FILES)
+                logo            = None
+                if image_file.is_valid():
+                    logo   = image_file.cleaned_data['image']
+                now             = datetime.now()
                 get_entity      = entity_data.objects.get(id=entity_id)
                 gst_treatment       = request.POST.get('gst_treatment')
-
-                    
                 gst_treatment   = None if not gst_treatment else gst_treatment_data.objects.get(id=gst_treatment)
 
-                insert_data     = branch_data(name=name,branch_code=branch_code,entity_id=get_entity,address=address,city=city,state=state,country=country,pincode=pincode,created_at=now,updated_at=now,gst_treatment=gst_treatment,gst=gst)
+                insert_data     = branch_data(
+                                              logo=logo,
+                                              ifsc_code=ifsc_code,
+                                              account_holder=account_holder,
+                                              account_number=account_number,
+                                              branch_code=branch_code,
+                                              dlno=dlno,
+                                              udyam=udyam,
+                                              email=email,
+                                              pan=pan,
+                                              fssai=fssai,
+                                              phone=phone,
+                                              name=name,
+                                              entity_id=get_entity,
+                                              branch_name=branch_name,
+                                              address=address,
+                                              city=city,
+                                              state=state,
+                                              country=country,
+                                              pincode=pincode,
+                                              gst_treatment=gst_treatment,
+                                              gst=gst,
+                                              created_at=now,updated_at=now,)
                 insert_data.save()
 
+            
                 messages.success(request, 'Successfully added.')
                 return redirect('list-branch')
             else:
@@ -977,12 +1081,46 @@ def updateBranch(request):
                 gst             = request.POST['gst']
                 now             = datetime.now()
                 gst_treatment   = request.POST.get('gst_treatment')
+
+
+                dlno            = request.POST['dlno']
+                udyam           = request.POST['udyam']
+                pan             = request.POST['pan']
+                fssai           = request.POST['fssai']
+                email           = request.POST['email']
+                phone           = request.POST['phone']
+                account_holder  = request.POST['account_holder']
+                account_number  = request.POST['account_number']
+                branch_name     = request.POST['branch_name']
+                ifsc_code            = request.POST['ifsc_code']
+                image_file      = imgForm(request.POST,request.FILES)
+                logo            = None
+                if image_file.is_valid():
+                    logo   = image_file.cleaned_data['image']
+                    branch = branch_data.objects.get(id=branch_id)
+                    branch.logo = logo
+                    branch.save()
+                    
+
+
         
                 gst_treatment   = None if not gst_treatment else gst_treatment_data.objects.get(id=gst_treatment)
 
                 get_entity      = entity_data.objects.get(id=entity_id)
 
-                branch_data.objects.all().filter(id=branch_id).update(name=name,branch_code=branch_code,entity_id=get_entity,address=address,city=city,state=state,country=country,pincode=pincode,updated_at=now,gst_treatment=gst_treatment,gst=gst)
+                branch_data.objects.all().filter(id=branch_id).update(
+                                              
+                                              ifsc_code=ifsc_code,
+                                              account_holder=account_holder,
+                                              account_number=account_number,
+                                              branch_name=branch_name,
+                                              dlno=dlno,
+                                              udyam=udyam,
+                                              email=email,
+                                              pan=pan,
+                                              fssai=fssai,
+                                              phone=phone,
+                    name=name,branch_code=branch_code,entity_id=get_entity,address=address,city=city,state=state,country=country,pincode=pincode,updated_at=now,gst_treatment=gst_treatment,gst=gst)
 
                 messages.success(request, 'Changes successfully updated.')
                 return redirect('list-branch')
@@ -1397,6 +1535,46 @@ def updateUserRolePermission(request):
                 supplier_list_read   = True if request.POST.get('supplier_list_read') == 'true' else False
                 supplier_list_write  = True if request.POST.get('supplier_list_write') == 'true' else False
 
+                purchase_order_active = True if request.POST.get('purchase_order_active') == 'true' else False
+                purchase_order_read   = True if request.POST.get('purchase_order_read') == 'true' else False
+                purchase_order_write  = True if request.POST.get('purchase_order_write') == 'true' else False
+
+                purchase_invoice_active = True if request.POST.get('purchase_invoice_active') == 'true' else False
+                purchase_invoice_read   = True if request.POST.get('purchase_invoice_read') == 'true' else False
+                purchase_invoice_write  = True if request.POST.get('purchase_invoice_write') == 'true' else False
+
+                payment_voucher_active = True if request.POST.get('payment_voucher_active') == 'true' else False
+                payment_voucher_read   = True if request.POST.get('payment_voucher_read') == 'true' else False
+                payment_voucher_write  = True if request.POST.get('payment_voucher_write') == 'true' else False
+
+                receipt_voucher_active = True if request.POST.get('receipt_voucher_active') == 'true' else False
+                receipt_voucher_read   = True if request.POST.get('receipt_voucher_read') == 'true' else False
+                receipt_voucher_write  = True if request.POST.get('receipt_voucher_write') == 'true' else False
+
+                contra_active = True if request.POST.get('contra_active') == 'true' else False
+                contra_read   = True if request.POST.get('contra_read') == 'true' else False
+                contra_write  = True if request.POST.get('contra_write') == 'true' else False
+
+                journal_active = True if request.POST.get('journal_active') == 'true' else False
+                journal_read   = True if request.POST.get('journal_read') == 'true' else False
+                journal_write  = True if request.POST.get('journal_write') == 'true' else False
+
+                credit_note_active = True if request.POST.get('credit_note_active') == 'true' else False
+                credit_note_read   = True if request.POST.get('credit_note_read') == 'true' else False
+                credit_note_write  = True if request.POST.get('credit_note_write') == 'true' else False
+
+                debit_note_active = True if request.POST.get('debit_note_active') == 'true' else False
+                debit_note_read   = True if request.POST.get('debit_note_read') == 'true' else False
+                debit_note_write  = True if request.POST.get('debit_note_write') == 'true' else False
+
+                sales_return_active = True if request.POST.get('sales_return_active') == 'true' else False
+                sales_return_read   = True if request.POST.get('sales_return_read') == 'true' else False
+                sales_return_write  = True if request.POST.get('sales_return_write') == 'true' else False
+
+                purchase_return_active = True if request.POST.get('purchase_return_active') == 'true' else False
+                purchase_return_read   = True if request.POST.get('purchase_return_read') == 'true' else False
+                purchase_return_write  = True if request.POST.get('purchase_return_write') == 'true' else False
+
                 if not role_id:
                     insert_data     = user_role_permission(
                                         user_id                 = user_id,
@@ -1528,7 +1706,37 @@ def updateUserRolePermission(request):
                                         gst_treatment_write     	=	gst_treatment_write     ,
                                         report_active           	=	report_active           ,
                                         report_read             	=	report_read             ,
-                                        report_write            	=	report_write            
+                                        report_write            	=	report_write            ,
+                                        purchase_order_active       =	purchase_order_active 	,
+                                        purchase_order_read         =	purchase_order_read 	,
+                                        purchase_order_write        =	purchase_order_write 	,
+                                        purchase_invoice_active     =	purchase_invoice_active 	,
+                                        purchase_invoice_read       =	purchase_invoice_read 	,
+                                        purchase_invoice_write      =	purchase_invoice_write 	,
+                                        payment_voucher_active      =	payment_voucher_active 	,
+                                        payment_voucher_read        =	payment_voucher_read 	,
+                                        payment_voucher_write       =	payment_voucher_write 	,
+                                        receipt_voucher_active      =	receipt_voucher_active 	,
+                                        receipt_voucher_read        =	receipt_voucher_read 	,
+                                        receipt_voucher_write       =	receipt_voucher_write 	,
+                                        contra_active               =	contra_active 	,
+                                        contra_read                 =	contra_read 	,
+                                        contra_write                =	contra_write 	,
+                                        journal_active              =	journal_active 	,
+                                        journal_write               =	journal_write 	,
+                                        journal_read                =	journal_read 	,
+                                        credit_note_active          =	credit_note_active 	,
+                                        credit_note_read            =	credit_note_read 	,
+                                        credit_note_write           =	credit_note_write 	,
+                                        debit_note_active           =	debit_note_active 	,
+                                        debit_note_write            =	debit_note_write 	,
+                                        debit_note_read             =	debit_note_read 	,
+                                        sales_return_active         =	sales_return_active 	,
+                                        sales_return_read           =	sales_return_read 	,
+                                        sales_return_write          =	sales_return_write 	,
+                                        purchase_return_active      =	purchase_return_active 	,
+                                        purchase_return_read        =	purchase_return_read 	,
+                                        purchase_return_write       =	purchase_return_write 	,
 
                                         )
                     insert_data.save()
@@ -1661,20 +1869,50 @@ def updateUserRolePermission(request):
                                             gst_treatment_active    	=	gst_treatment_active    ,
                                             gst_treatment_read      	=	gst_treatment_read      ,
                                             gst_treatment_write     	=	gst_treatment_write     ,
+                                            purchase_order_active       =	purchase_order_active 	,
+                                            purchase_order_read         =	purchase_order_read 	,
+                                            purchase_order_write        =	purchase_order_write 	,
+                                            purchase_invoice_active     =	purchase_invoice_active 	,
+                                            purchase_invoice_read       =	purchase_invoice_read 	,
+                                            purchase_invoice_write      =	purchase_invoice_write 	,
+                                            payment_voucher_active      =	payment_voucher_active 	,
+                                            payment_voucher_read        =	payment_voucher_read 	,
+                                            payment_voucher_write       =	payment_voucher_write 	,
+                                            receipt_voucher_active      =	receipt_voucher_active 	,
+                                            receipt_voucher_read        =	receipt_voucher_read 	,
+                                            receipt_voucher_write       =	receipt_voucher_write 	,
+                                            contra_active               =	contra_active 	,
+                                            contra_read                 =	contra_read 	,
+                                            contra_write                =	contra_write 	,
+                                            journal_active              =	journal_active 	,
+                                            journal_write               =	journal_write 	,
+                                            journal_read                =	journal_read 	,
+                                            credit_note_active          =	credit_note_active 	,
+                                            credit_note_read            =	credit_note_read 	,
+                                            credit_note_write           =	credit_note_write 	,
+                                            debit_note_active           =	debit_note_active 	,
+                                            debit_note_write            =	debit_note_write 	,
+                                            debit_note_read             =	debit_note_read 	,
+                                            sales_return_active         =	sales_return_active 	,
+                                            sales_return_read           =	sales_return_read 	,
+                                            sales_return_write          =	sales_return_write 	,
+                                            purchase_return_active      =	purchase_return_active 	,
+                                            purchase_return_read        =	purchase_return_read 	,
+                                            purchase_return_write       =	purchase_return_write 	,
 
-                                            updated_at              = now,
+                                        updated_at              = now,
                                         )
-
+ 
                 messages.success(request, 'Changes successfully updated.')
                 return redirect('list-user-role-permissions')
             else:
                 role_id         = request.GET['id']
                 user_id         = request.session.get('userId')
                 role_data       = []
-                check_exist     = user_role_permission.objects.filter(user_role_id=role_id,user_id=user_id).exists()
+                check_exist     = user_role_permission.objects.filter(user_role_id=role_id).exists()
 
                 if check_exist:
-                    role_data   = user_role_permission.objects.get(user_role_id=role_id,user_id=user_id)
+                    role_data   = user_role_permission.objects.get(user_role_id=role_id)
                 
                 return render(request,'users/pages/update_user_role_permission.html',{'role_data' : role_data,'role_id':role_id})
         else:
@@ -14432,6 +14670,9 @@ def userPortalLogin(request):
 
 
 
+
+
+
 @api_view(['POST'])
 def userforgot_passwordUserPortal(request): ##admin users
         data            = request.data
@@ -14478,6 +14719,7 @@ def getUserUserPortal(request):
     if user_id and app_token == get_token.token:
         get_user            = user_data.objects.get(id=user_id)
         list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
         
         all_entities        = []
         user_entity         = get_user.entity_id
@@ -14489,7 +14731,7 @@ def getUserUserPortal(request):
             list_entity     = list_entity.filter(pk__in=user_entities)
         
             enitity_pks     = list(list_entity.values_list('pk',flat=True))
-            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+            list_branch     = list_branch.filter(entity_id__in=enitity_pks)
         
             user_branch         = get_user.branch_id
             
@@ -14499,6 +14741,107 @@ def getUserUserPortal(request):
                 list_branch     = list_branch.filter(pk__in=user_branches)
         user_branches = list(list_branch.values('pk','name'))
         user_entities   = list(list_entity.values('pk','name'))
+
+    # permissions
+        purchase_order_read =	False
+        purchase_order_write =	False
+        purchase_invoice_read =	False
+        purchase_invoice_write =	False
+        payment_voucher_read =	False
+        payment_voucher_write =	False
+        receipt_voucher_read =	False
+        receipt_voucher_write =	False
+        contra_read =	False
+        contra_write =	False
+        journal_write =	False
+        journal_read =	False
+        credit_note_read =	False
+        credit_note_write =	False
+        debit_note_write =	False
+        debit_note_read =	False
+        sales_return_read =	False
+        sales_return_write =	False
+        purchase_return_read =	False
+        purchase_return_write =	False
+
+        if not get_user.user_role_id:
+            purchase_order_read =	True
+            purchase_order_write =	True
+            purchase_invoice_read =	True
+            purchase_invoice_write =	True
+            payment_voucher_read =	True
+            payment_voucher_write =	True
+            receipt_voucher_read =	True
+            receipt_voucher_write =	True
+            contra_read =	True
+            contra_write =	True
+            journal_write =	True
+            journal_read =	True
+            credit_note_read =	True
+            credit_note_write =	True
+            debit_note_write =	True
+            debit_note_read =	True
+            sales_return_read =	True
+            sales_return_write =	True
+            purchase_return_read =	True
+            purchase_return_write =	True
+
+        else:  
+            role_permission         = user_role_permission.objects.filter(user_role_id=get_user.user_role_id.id).exists()
+
+            if role_permission:
+                role_permission     = user_role_permission.objects.get(user_role_id=get_user.user_role_id.id)
+
+                purchase_order_read     =	role_permission.purchase_order_read 
+                purchase_order_write    =	role_permission.purchase_order_write 
+                purchase_invoice_read   =	role_permission.purchase_invoice_read 
+                purchase_invoice_write  =	role_permission.purchase_invoice_write 
+                payment_voucher_read    =	role_permission.payment_voucher_read 
+                payment_voucher_write   =	role_permission.payment_voucher_write 
+                receipt_voucher_read    =	role_permission.receipt_voucher_read 
+                receipt_voucher_write   =	role_permission.receipt_voucher_write 
+                contra_read             =	role_permission.contra_read 
+                contra_write            =	role_permission.contra_write 
+                journal_write           =	role_permission.journal_write 
+                journal_read            =	role_permission.journal_read 
+                credit_note_read        =	role_permission.credit_note_read 
+                credit_note_write       =	role_permission.credit_note_write 
+                debit_note_write        =	role_permission.debit_note_write 
+                debit_note_read         =	role_permission.debit_note_read 
+                sales_return_read       =	role_permission.sales_return_read 
+                sales_return_write      =	role_permission.sales_return_write 
+                purchase_return_active  =	role_permission.purchase_return_active 
+                purchase_return_read    =	role_permission.purchase_return_read 
+                purchase_return_write   =	role_permission.purchase_return_write 
+
+        user_permissions   ={
+
+            'purchase_order_read' 	    :	purchase_order_read  ,
+            'purchase_order_write' 	    :	purchase_order_write ,
+            'purchase_invoice_read' 	:	purchase_invoice_read ,
+            'purchase_invoice_write' 	:	purchase_invoice_write ,
+            'payment_voucher_read' 	    :	payment_voucher_read ,
+            'payment_voucher_write' 	:	payment_voucher_write ,
+            'receipt_voucher_read' 	    :	receipt_voucher_read ,
+            'receipt_voucher_write' 	:	receipt_voucher_write ,
+            'contra_read' 	            :	contra_read ,
+            'contra_write' 	            :	contra_write ,
+            'journal_write' 	        :	journal_write ,
+            'journal_read' 	            :	journal_read ,
+            'credit_note_read' 	        :	credit_note_read ,
+            'credit_note_write' 	    :	credit_note_write ,
+            'debit_note_write' 	        :	debit_note_write ,
+            'debit_note_read' 	        :	debit_note_read ,
+            'sales_return_read' 	    :	sales_return_read ,
+            'sales_return_write' 	    :	sales_return_write ,
+            'purchase_return_active' 	:	purchase_return_active ,
+            'purchase_return_read' 	    :	purchase_return_read ,
+            'purchase_return_write' 	:	purchase_return_write ,
+
+
+        }
+
+
                 
         response ={
             'name':get_user.name,
@@ -14508,7 +14851,8 @@ def getUserUserPortal(request):
             'entities':user_entities,
             'branches':user_branches,
             'default_entity':None if not get_user.default_entity_id else get_user.default_entity_id.id,
-            'profile_image':request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None
+            'profile_image':request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None,
+            'user_permissions':user_permissions
         }
             
 
@@ -17953,6 +18297,7 @@ def deleteDebitNoteLedgerUserPortal(request):
 
 
 
+
 @api_view(['POST'])
 def deleteDebitNoteUserPortal(request):
     data            = request.data
@@ -19151,7 +19496,8 @@ def listBranchUserPortal(request):
         
             
         selected_enitity    = int(data.get('select_entity',0))
-        search_branch_name  = data.get('searched_branch','')    
+        search_branch_name  = data.get('searched_branch','')  
+        pk                  = data.get('pk',0)
         if selected_enitity or search_branch_name:    
                         
             if selected_enitity and search_branch_name:     
@@ -19162,18 +19508,31 @@ def listBranchUserPortal(request):
                         
             else:      
                 branch_list             = branch_list.filter(name__istartswith=search_branch_name).order_by('-id')
-                            
-    
+
+        logo    = None              
+        if pk:
+            branch_list             = branch_list.filter(pk=pk).order_by('-id')
+            print("[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]")
+            print(branch_list)
+            if branch_list[0].logo:
+                logo                    = request.build_absolute_uri(branch_list[0].logo.url)  
+
+
         #Session set for query result for excel based on last search    
         request.session['branch_list']  = json.dumps(list(branch_list.values('pk','name','branch_code','address','city','state','country','pincode',entity=F('entity_id_id__name'))), cls=DjangoJSONEncoder)
         
-        branch_list                     = list(branch_list.values('pk','name','branch_code','address','city','state','country','pincode',entity=F('entity_id_id__name')))               
+        branch_list                     = list(branch_list.values('pk','name','gst','branch_code','address','city','state','country','pincode','branch_name','account_number','account_holder','ifsc_code','email','dlno','udyam','fssai','pan','cin','phone',entity=F('entity_id_id__name')))               
+        
+        
+        
         response                        =   {
                                                 "success"                   : True,
                                                 "list_branch"               : branch_list,
                                                 "selected_entity_type_id"   : selected_enitity,
-                                                "search_branch_name"        : search_branch_name      
+                                                "search_branch_name"        : search_branch_name,      
                                             }
+
+        response['logo']=logo
         
     else:
         response    =   {
@@ -22537,6 +22896,7 @@ def listVoucherTransactionUserPortal(request):
                         'debit_ledger_id'   : None if not child.debit_ledger_id else child.debit_ledger_id.name,
                         'credit_ledger_id'  : None if not child.credit_ledger_id else child.credit_ledger_id.name,
                         'cheque_number'     : child.cheque_number,
+                        'cheque_date'       : child.cheque_date,
                         'total_amount'      : child.total_amount
                     })
 
@@ -23974,9 +24334,70 @@ def listTrasnsactionReport(request):
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_gstr1(request):
     if request.session.has_key('userId'):
-       
+        user_id         = request.session.get('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
 
-        return render(request,'users/pages/report_gstr1.html',{'get_data':'just'})
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity     = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
+            
+        
+        branch_filter       = list_branch.values('pk','name')  
+        branch_pks          = list(list_branch.values_list('pk', flat=True))
+
+        if 'search' in request.POST:
+            search_branch   = request.POST.get('search_branch')
+            from_date       = request.POST.get('from_date') 
+            to_date         = request.POST.get('to_date')
+
+        elif 'download' in request.POST:
+            search_branch   = request.POST.get('search_branch')
+            from_date       = request.POST.get('from_date') 
+            to_date         = request.POST.get('to_date')
+            
+        
+        else:
+            from_date       = ''
+            to_date         = ''
+            search_branch   = branch_pks[0]
+            financial    = financial_year_data.objects.filter(active=1,branch_id=search_branch).order_by('-id')
+            if financial:
+                
+                from_date  = financial[0].from_date
+                to_date     = financial[0].to_date
+        
+        
+
+
+        branch_get                      = branch_data.objects.get(pk=search_branch)
+        voucher_type_id_sales           = voucher_type_data.objects.get(name="Sales")
+        vouchet_type_id_sales_return    = voucher_type_data.objects.get(name="Sales Return")
+        invoice_list  = invoice_data.objects.filter(branch_id=search_branch,date__range=(from_date,to_date),status="Approved",latest=1)
+        invoice_list_sales  = invoice_list.filter(voucher_type_id=voucher_type_id_sales)
+
+        invoice_list_sales_return= invoice_list.filter(voucher_type_id=vouchet_type_id_sales_return)
+
+        if 'download' in request.POST:
+            prev_turn_over  = request.POST.get('prev_turn_over')
+            period_turn_over= request.POST.get('period_turn_over')
+            responce        = downloadpdfgst1and2("GSTR 1",branch_get,invoice_list_sales,invoice_list_sales_return,state_list,from_date,to_date,prev_turn_over,period_turn_over)
+            return responce
+
+        return render(request,'users/pages/report_gstr1.html',{'state_list':state_list,'invoice_list_sales':invoice_list_sales,'invoice_list_sales_return':invoice_list_sales_return,'branch_get':branch_get,'get_data':'just','branch_filter':branch_filter,'search_branch':search_branch,'from_date':from_date,'to_date':to_date})
     else:
         return redirect('user-login')
 
@@ -24361,48 +24782,96 @@ def downloadexcel(report_name,labels,row_get_data):
         return response
 
 
-# import pdfkit
-# def downloadpdf(report_name,labels,data_to_pass):
-#     html_content =  f"""
-#                     <!DOCTYPE html>
-#                     <html>
-#                     <head>
-#                         <title>HTML to PDF</title>
-#                     </head>
-#                     <body>
-#                         <h1>{report_name}!</h1>
-#                         <table border='1'><tr>
-#                         """
+def downloadpdf(report_name,labels,data_to_pass):
+    import os
+    css_path = os.path.join(os.path.dirname(__file__), 'style.css')
+    
+    # Read the CSS file content
+    with open(css_path) as css_file:
+        css_content = css_file.read()
+    html_content =  f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>HTML to PDF</title>
+                        <style>
+                            {css_content}
+                        </style>
+                        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+        <style>
+            body {{
+                font-family: 'Playfair Display', serif;
+            }}
+        </style>
 
-#                     # Iterating over the list to include each item in HTML content
-#     for item in labels:
-#         html_content += f"<td>{item}</td>"
+                    </head>
+                    <body >
+                        <h1>{report_name}!</h1>
+                        <table class="border" border="1"><tr>
+                        """
 
-#     html_content += """</tr>"""
+                    # Iterating over the list to include each item in HTML content
+    for item in labels:
+        html_content += f"<td>{item}</td>"
+
+    html_content += """</tr>"""
     
 
 
-#     for row in data_to_pass:
-#         html_content += f"<tr>"
-#         for column in row:
-#             html_content += f"<td>{column}</td>"
-#         html_content += f"</tr>"
-#     # Closing HTML tags
-#     html_content += """
-#     </table>
-#         </body>
-#         </html>
-#         """
+    for row in data_to_pass:
+        html_content += f"<tr>"
+        for column in row:
+            html_content += f"<td>{column}</td>"
+        html_content += f"</tr>"
+    # Closing HTML tags
+    html_content += """
+    </table>
+        </body>
+        </html>
+        """
     
-#     path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 
-#     # Generate PDF from HTML content
-#     pdf = pdfkit.from_string(html_content, False, configuration=pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf))
+    # Generate PDF from HTML content
+    pdf = pdfkit.from_string(html_content, False, configuration=pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf))
 
-#     # Create HTTP response with PDF content
-#     response = HttpResponse(pdf, content_type='application/pdf')
-#     response['Content-Disposition'] = 'attachment; filename=output.pdf'  # Force download
-#     return response
+    # Create HTTP response with PDF content
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=output.pdf'  # Force download
+    return response
+
+
+
+def downloadpdfgst1and2(report_name,branch_get,invoice_list_sales,invoice_list_sales_return,state_list,from_date,to_date,prev_turn_over,period_turn_over):
+    # Data to be passed to the template
+    data = {
+        'report_name': report_name,
+        'branch_get': branch_get,
+        'invoice_list_sales':invoice_list_sales,
+        'invoice_list_sales_return':invoice_list_sales_return,
+        'state_list':state_list,
+        'from_date':from_date,
+        'to_date':to_date,
+        'prev_turn_over':prev_turn_over,
+        'period_turn_over':period_turn_over
+    }
+
+    # Render the HTML template with the data
+    html_string = render_to_string('email/gstr1and2.html', data)
+    # Create a response object with the PDF
+    
+    
+    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+
+    # Generate PDF from HTML content
+    pdf = pdfkit.from_string(html_string, False, configuration=pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf))
+
+    # Create HTTP response with PDF content
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=output.pdf'  # Force download
+    return response
 
 
 def view_custom_report(request):

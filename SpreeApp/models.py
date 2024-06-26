@@ -40,6 +40,29 @@ class entity_data(models.Model):
     logo            = models.ImageField(upload_to='image',null=True)
 
 
+    # # additional
+    # address         = models.CharField(max_length=100,default='',null=True)
+    # city            = models.CharField(max_length=100,default='',null=True)
+    # state           = models.CharField(max_length=100,default='32',null=True)
+    # country         = models.CharField(max_length=100,default='',null=True)
+    # pincode         = models.CharField(max_length=100,default='',null=True)
+    # created_at      = models.DateTimeField(max_length=100,default='')
+    # updated_at      = models.DateTimeField(max_length=100,default='')
+    # gst_treatment       = models.ForeignKey(gst_treatment_data,on_delete=models.SET_NULL,null=True)
+    # gst             = models.CharField(max_length=100,default='',null=True)
+    # # additional
+    # account_number  = models.CharField(max_length=100,default='',null=True)
+    # account_holder  = models.CharField(max_length=100,default='',null=True)
+    # ifsc_code       = models.CharField(max_length=100,default='',null=True)
+    # email           = models.CharField(max_length=100,default='',null=True)
+    # dlno            = models.CharField(max_length=100,default='',null=True)
+    # udyam           = models.CharField(max_length=100,default='',null=True)
+    # fssai           = models.CharField(max_length=100,default='',null=True)
+    # pan             = models.CharField(max_length=100,default='',null=True)
+    # cin             = models.CharField(max_length=100,default='',null=True)
+    # phone           = models.CharField(max_length=100,default='',null=True)
+
+
 class branch_data(models.Model):
     entity_id       = models.ForeignKey(entity_data,on_delete=models.CASCADE,default='',null=True)
     name            = models.CharField(max_length=100,default='',null=True)
@@ -53,6 +76,19 @@ class branch_data(models.Model):
     updated_at      = models.DateTimeField(max_length=100,default='')
     gst_treatment       = models.ForeignKey(gst_treatment_data,on_delete=models.SET_NULL,null=True)
     gst             = models.CharField(max_length=100,default='',null=True)
+    # additional
+    branch_name     = models.CharField(max_length=100,default='',null=True)
+    account_number  = models.CharField(max_length=100,default='',null=True)
+    account_holder  = models.CharField(max_length=100,default='',null=True)
+    ifsc_code       = models.CharField(max_length=100,default='',null=True)
+    email           = models.CharField(max_length=100,default='',null=True)
+    dlno            = models.CharField(max_length=100,default='',null=True)
+    udyam           = models.CharField(max_length=100,default='',null=True)
+    fssai           = models.CharField(max_length=100,default='',null=True)
+    pan             = models.CharField(max_length=100,default='',null=True)
+    cin             = models.CharField(max_length=100,default='',null=True)
+    phone           = models.CharField(max_length=100,default='',null=True)
+    logo            = models.ImageField(upload_to='image',null=True)
 
 
 class user_roles(models.Model):
@@ -216,6 +252,38 @@ class user_role_permission(models.Model):
     gst_treatment_active    = models.BooleanField(max_length=100,default=0)
     gst_treatment_read      = models.BooleanField(max_length=100,default=0)
     gst_treatment_write     = models.BooleanField(max_length=100,default=0)
+    # additional
+    purchase_order_active   = models.BooleanField(max_length=100,default=0)
+    purchase_order_read     = models.BooleanField(max_length=100,default=0)
+    purchase_order_write    = models.BooleanField(max_length=100,default=0)
+    purchase_invoice_active = models.BooleanField(max_length=100,default=0)
+    purchase_invoice_read   = models.BooleanField(max_length=100,default=0)
+    purchase_invoice_write  = models.BooleanField(max_length=100,default=0)
+    payment_voucher_active  = models.BooleanField(max_length=100,default=0)
+    payment_voucher_read    = models.BooleanField(max_length=100,default=0)
+    payment_voucher_write   = models.BooleanField(max_length=100,default=0)
+    receipt_voucher_active  = models.BooleanField(max_length=100,default=0)
+    receipt_voucher_read    = models.BooleanField(max_length=100,default=0)
+    receipt_voucher_write   = models.BooleanField(max_length=100,default=0)
+    contra_active           = models.BooleanField(max_length=100,default=0)
+    contra_read             = models.BooleanField(max_length=100,default=0)
+    contra_write            = models.BooleanField(max_length=100,default=0)
+    journal_active          = models.BooleanField(max_length=100,default=0)
+    journal_write           = models.BooleanField(max_length=100,default=0)
+    journal_read            = models.BooleanField(max_length=100,default=0)
+    credit_note_active      = models.BooleanField(max_length=100,default=0)
+    credit_note_read        = models.BooleanField(max_length=100,default=0)
+    credit_note_write       = models.BooleanField(max_length=100,default=0)
+    debit_note_active       = models.BooleanField(max_length=100,default=0)
+    debit_note_write        = models.BooleanField(max_length=100,default=0)
+    debit_note_read         = models.BooleanField(max_length=100,default=0)
+    sales_return_active     = models.BooleanField(max_length=100,default=0)
+    sales_return_read       = models.BooleanField(max_length=100,default=0)
+    sales_return_write      = models.BooleanField(max_length=100,default=0)
+    purchase_return_active  = models.BooleanField(max_length=100,default=0)
+    purchase_return_read    = models.BooleanField(max_length=100,default=0)
+    purchase_return_write   = models.BooleanField(max_length=100,default=0)
+
     created_at          = models.DateTimeField(max_length=100,default='')
     updated_at          = models.DateTimeField(max_length=100,default='')
 
