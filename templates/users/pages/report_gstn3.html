@@ -1,0 +1,367 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+
+<style>
+    td,th{
+        border: 1px solid #515151 !important;  
+    }
+</style>
+
+
+
+{% include "users/layout/filter.html" %}
+    <form method="post" >
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">Branch Name</label>
+                    <select class="js-example-basic-single w-100 input" name="search_branch" required>
+                        <option value="0" selected>Select</option>
+                        {% for branch in branch_filter%}
+                        <option value={{branch.pk}} {% if search_branch|slugify == branch.pk|slugify %} selected {% endif %}>{{branch.name}}</option>
+                        {%endfor%}
+                    </select>      
+                </div>
+            </div>
+
+            <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">From Date </label>
+                    <input  class="form-control" type="date" name="from_date" id="from_date" value="{{from_date}}">                               
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">To Date</label>
+                    <div id="map-canvas"></div>
+                    <input type="date" class="form-control" id="date" name="to_date" value="{{to_date}}"> 
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="form-group mx-auto">
+                <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        
+        </div>
+    </form>
+{% include  "users/layout/filter_end.html" %}
+
+
+
+
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row align-items-center" style="padding-top: 15px;">
+                <div class="col-md" style="margin-left: 10px;">
+                    <h4 class="card-title div-title mb-0" style="text-align: center;"></h4>
+                </div>
+                <div class="d-flex gap-3 mt-3 mt-md-0">
+                    <div class="col-md text-md-right">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="submit" name="download" value="Download PDF" class="btn btn-sm font-weight-medium auth-form-btn download">
+                        </form>
+                    </div>
+                </div>
+            </div> 
+            
+
+            <div class="d-flex flex-column flex-md-row align-items-center" style="padding-top: 15px;">
+                <div class="col-md" style="margin-left: 10px;">
+                    <h4 class="card-title div-title mb-0" style="text-align: center;">GSTR 3B Report</h4>
+                </div>
+                <!-- <div class="d-flex gap-3 mt-3 mt-md-0">
+                    <div class="col-md text-md-right">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="submit" name="download" value="Download Excel" class="btn btn-sm font-weight-medium auth-form-btn download">
+                        </form>
+                    </div>
+                </div> -->
+            </div> 
+
+            <div style="height: 20px;">
+                
+            </div>
+            
+
+            
+            
+            
+
+            <div style="height: 20px;">
+                
+            </div>
+            <div class="col-md">      
+                <label style="color: white;">1.Details of outward supplies and inward supplies liable to reverse charge</label> 
+            </div>
+            <div style="height: 20px;">
+                
+            </div>
+
+            <div class="table-responsive">
+                {% if get_data %}
+                <table class="table table-striped" style="border: none !important">
+                    <thead>
+                        <tr>
+                            <th>Nature Of supplies</th>
+                            <th>Total taxbale value</th>
+                            <th>Integrated Tax</th>
+                            <th>Central tax</th>
+                            <th>State/UT Tax</th>
+                            <th> Cess</th>
+                            <th>Place of Supply</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Outward taxable supplies (other than zero rated,<br>
+                                nil rated and exempted)</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Outward taxable supplies (zero rated)</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Other outward supplies (nil rated, exempted)</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Inward supplies (liable to reverse charge)</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Non-GST outward supplies</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+
+                    
+                </table>
+                {% else %}
+                <div style="text-align: center;" class="a">
+                    No Data Found
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="height: 20px;">
+                
+            </div>
+
+
+            <!-- second table -->
+            <div class="col-md">      
+                <label style="color: white;">2.Details of inter-State supplies made to unregistered persons, composition dealer and UIN
+                    holders</label> 
+            </div>
+            <div style="height: 20px;">
+                
+            </div>
+
+            <div class="table-responsive">
+              
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Place of supply (State/UT)</th>
+                            <th colspan="2">Supplies made to unregistered persons</th>
+                            <th colspan="2">Supplies made to composition taxable persons</th>
+                            <th colspan="2">Supplies made to UIN
+                                holders</th>
+                        </tr>
+                        <tr>
+                            <th>Total taxable value</th>
+                            <th>Amount of integrated tax</th>
+                            <th>Total taxable  value</th>
+                            <th>Amount of integrated tax</th>
+                            <th>Total  taxable  value</th>
+                            <th> Amount  of integrated tax</th>    
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        
+                    </thead>
+
+                    
+                </table>
+                
+            </div>
+             <!-- second table end -->
+
+             <div style="height: 20px;">
+                
+             </div>
+
+             <!-- third table -->
+            <div class="col-md">      
+                <label style="color: white;">3. Details of eligible Input Tax Credit</label> 
+            </div>
+            <div style="height: 20px;">
+                
+            </div>
+
+            <div class="table-responsive">
+               
+                <table class="table table-striped" >
+                    <thead>
+                        <tr>
+                            <th>Details</th>
+                            <th>Integrated Tax</th>
+                            <th>Central Tax</th>
+                            <th>State/UT Tax</th>
+                            <th>Cess</th>
+                        </tr>
+                        <tr>
+                           <th>(A) ITC Available (whether in full or part)</th>
+                           <td></td> 
+                           <td></td> 
+                           <td></td> 
+                           <td></td> 
+
+                        </tr>
+                        <tr>
+                            <th> &emsp14;(1) Import of goods</th>
+                            <td></td> 
+                            <td> </td> 
+                            <td> </td> 
+                            <td> </td> 
+ 
+                         </tr>
+
+                         <tr>
+                            <th>&emsp14;(2) Import of services</th>
+                            <td></td> 
+                            <td> </td> 
+                            <td> </td> 
+                            <td></td> 
+ 
+                         </tr>
+
+                         <tr>
+                            <th>&emsp14;(3) Inward supplies liable to reverse charge
+                                (other than 1 & 2 above)</th>
+                                <td></td> 
+                                <td> </td> 
+                                <td> </td> 
+                                <td></td> 
+ 
+                         </tr>
+
+                         <tr>
+                            <th>&emsp14;(4) Inward supplies from ISD</th>
+                            <td></td> 
+                            <td> </td> 
+                            <td> </td> 
+                            <td></td> 
+ 
+                         </tr>
+                         <tr>
+                            <th>&emsp14;(5) All other ITC</th>
+                            <td></td> 
+                            <td> </td> 
+                            <td> </td> 
+                            <td></td> 
+ 
+                         </tr>
+                         
+                        
+                        
+                    </thead>
+
+                    
+                </table>
+                
+            </div>
+            <!-- Third table end -->
+
+            <div style="height: 20px;">
+                
+            </div>
+
+            <!-- fourth table -->
+
+            <div class="col-md">      
+                <label style="color: white;">4. Details of exempt, nil-rated and non-GST inward supplies</label> 
+            </div>
+            <div style="height: 20px;">
+                
+            </div>
+
+            <div class="table-responsive">
+               
+                <table class="table table-striped" >
+                    <thead>
+                        <tr>
+                            <th>Nature of supplies</th>
+                            <th>Inter-State supplies</th>
+                            <th>Intra-State supplies</th>
+                            
+                        </tr>
+                        <tr>
+                           <th>From a supplier under composition scheme, Exempt and Nil
+                            rated supply</th>
+                           <td></td> 
+                           <td></td> 
+                        
+                        </tr>
+                        <tr>
+                            <th>Non GST supply</th>
+                               <td></td> 
+                               <td></td>    
+                        </tr>
+                                
+                    </thead>
+
+                    
+                </table>
+                
+            </div>
+
+
+
+            <!-- end of fourth -->
+           
+            
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

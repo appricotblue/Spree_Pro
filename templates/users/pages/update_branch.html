@@ -1,5 +1,7 @@
 {% extends "users/layout/app.html" %}
 {% block content %}
+<form class="forms-sample" action="{% url 'update-branch' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
@@ -8,8 +10,7 @@
                 <p class="card-description">
                 Update branch from here
                 </p>
-                <form class="forms-sample" action="{% url 'update-branch' %}" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
+                
                     <input type="hidden" name="id" value="{{get_branch_data.id}}">
                     <div class="row">
                         <div class="col-md-6">
@@ -92,6 +93,48 @@
                                 </div>
                             </div>
                         </div>
+
+                         <!-- additional -->
+
+
+                         <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">DL NO</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="DL NO" name="dlno" value="{{get_branch_data.dlno}}" required >
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Udyam</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Udyam" name="udyam" value="{{get_branch_data.udyam}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">PAN</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="PAN NUMBER" name="pan" value="{{get_branch_data.pan}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">FSSAI</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Fssai" name="fssai" value="{{get_branch_data.fssai}}" required>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- end -->
+
+
+
                         <div class="col-md-6">
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Gst Treatment</label>
@@ -114,10 +157,112 @@
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary me-2">Submit</button>
-                </form>
+
+                    <div class="row">
+                        
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Email</label>
+                                <div class="col-sm-9">
+                                    <input type="email" class="form-control" id="exampleInputName1" placeholder="Email" name="email" value="{{get_branch_data.email}}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Phone</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="ph" placeholder="Phone" name="phone" value="{{get_branch_data.phone}}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <p class="mb-3">
+                                    {% if get_branch_data.logo %}
+                                    <img src="{{get_branch_data.logo.url}}" height="auto" data-enlargeable width="100" style="cursor: zoom-in">
+                                    {% endif %}
+                                </p>
+                                <label class="col-sm-3 col-form-label">Logo</label>
+                                <div class="col-sm-9">
+                                    <input type="file" name="image" class="file-upload-default" id="image">
+                                    <div class="input-group col-xs-12">
+                                        <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Logo" style="height: 45px;">
+                                        <span class="input-group-append">
+                                        <button class="file-upload-browse btn btn-primary btn-sm" type="button" style="
+                                        margin-left: 300px;
+                                        margin-top: -6em;
+                                    ">Upload</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+
+
+                </div>
             </div>
         </div>
     </div>
+
+
+
+
+
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                    <h4 class="card-title">Bank Account Details</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Account Holder Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Account Holder Name" value="{{get_branch_data.account_holder}}" name="account_holder">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Account Number</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Account Number" name="account_number" value="{{get_branch_data.account_number}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Bank Branch Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Branch" name="branch_name"value="{{get_branch_data.branch_name}}">
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">IFSC Code</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Ifsc Code" name="ifsc_code" value="{{get_branch_data.ifsc_code}}">
+                                </div>
+                            </div>
+                        </div>
+
+                            
+
+                    </div>
+                    <button type="submit" class="btn btn-primary me-2">Submit</button>
+                    
+
+                    
+                </div>
+
+            </div>
+    </div>
 </div>
+</form>
 {% endblock %}

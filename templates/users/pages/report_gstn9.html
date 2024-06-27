@@ -1,0 +1,533 @@
+{% extends "users/layout/app.html" %}
+{% block content %}
+
+<style>
+    td,th{
+        border: 1px solid #515151 !important;  
+    }
+</style>
+
+
+
+{% include "users/layout/filter.html" %}
+    <form method="post" >
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">Branch Name</label>
+                    <select class="js-example-basic-single w-100 input" name="search_branch" required>
+                        <option value="0" selected>Select</option>
+                        {% for branch in branch_filter%}
+                        <option value={{branch.pk}} {% if search_branch|slugify == branch.pk|slugify %} selected {% endif %}>{{branch.name}}</option>
+                        {%endfor%}
+                    </select>      
+                </div>
+            </div>
+
+            <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">From Date </label>
+                    <input  class="form-control" type="date" name="from_date" id="from_date" value="{{from_date}}">                               
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="form-group">
+                    <label for="exampleInputName1">To Date</label>
+                    <div id="map-canvas"></div>
+                    <input type="date" class="form-control" id="date" name="to_date" value="{{to_date}}"> 
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="form-group mx-auto">
+                <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        
+        </div>
+    </form>
+{% include  "users/layout/filter_end.html" %}
+
+
+
+
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row align-items-center" style="padding-top: 15px;">
+                <div class="col-md" style="margin-left: 10px;">
+                    <h4 class="card-title div-title mb-0" style="text-align: center;"></h4>
+                </div>
+                <div class="d-flex gap-3 mt-3 mt-md-0">
+                    <div class="col-md text-md-right">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="submit" name="download" value="Download PDF" class="btn btn-sm font-weight-medium auth-form-btn download">
+                        </form>
+                    </div>
+                </div>
+            </div> 
+            
+
+            <div class="d-flex flex-column flex-md-row align-items-center" style="padding-top: 15px;">
+                <div class="col-md" style="margin-left: 10px;">
+                    <h4 class="card-title div-title mb-0" style="text-align: center;">GSTR-9</h4>
+                </div>
+                <!-- <div class="d-flex gap-3 mt-3 mt-md-0">
+                    <div class="col-md text-md-right">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="submit" name="download" value="Download Excel" class="btn btn-sm font-weight-medium auth-form-btn download">
+                        </form>
+                    </div>
+                </div> -->
+            </div> 
+
+            <div style="height: 20px;">
+                
+            </div>
+            
+
+            
+        
+
+            <div class="table-responsive">
+                <table class="table table-striped" style="border: none !important">
+                    <thead>
+                        <tr>
+                            <th width="5%"></th>
+                            <th width="45%">Pt I</th>
+                            <th width="50">Basic Details</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td> Financial Year</td>
+                            <td></td>
+                           
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>GSTIN</td>
+                            <td></td>
+                         
+                           
+                        </tr>
+                        <tr>
+                            <td>3A </td>
+                            <td> Legal Name</td>
+                            <td></td>
+                            
+                           
+                        </tr>
+                        <tr>
+                            <td>3B</td>
+                            <td> Trade Name (if any)</td>
+                            <td></td>
+                           
+                           
+                        </tr>
+                        
+                    </tbody>
+
+                    
+                </table>
+               
+            </div>
+
+            <div style="height: 20px;">
+                
+            </div>
+
+
+            <!-- second table -->
+            
+
+            
+
+            <div class="table-responsive">
+                <table class="table table-striped" style="border: none !important">
+                    <thead>
+                        <tr>
+                            <th>Pt II</th>
+                            <th colspan="6" style="text-align: center;"><b>Details of Outward and inward supplies declared during the financial year</b></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td colspan="5" style="text-align: center;">(Amount in Rupees in All Tables)</td>
+                           
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Nature of Supplies</td>
+                            <td>Taxable Value</td>
+                            <td>Central Tax</td>
+                            <td>State Tax/UT Tax</td>
+                            <td>Integrated Tax</td>
+                            <td>Cess</td> 
+                        </tr>
+
+                        <tr>
+                            <td></td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                            <td>5</td>
+                            <td>6</td> 
+                        </tr>
+                        
+             <!-- second table end -->
+
+             
+                    <tr>
+                        <th>4</th>
+                        <th colspan="6" style="text-align: center;">Details of advances, inward and outward supplies on which tax is payable as declared in returns filed during the
+                            financial year</th>
+                    </tr>
+                    
+                    <tr>
+                        <td>A</td>
+                        <td>Supplies made to un-registered persons(B2C)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        
+                    </tr>
+                    <tr>
+                        <td>B</td>
+                        <td>Supplies made to registered persons(B2B)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        
+                    </tr>
+
+                    <tr>
+                        <td>C</td>
+                        <td>Zero rated supply(Export) on payment of tax (except supplies to
+                            SEZs)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+
+                    <tr>
+                        <td>D</td>
+                        <td>Supplies to SEZs on payment of tax</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+
+                    <tr>
+                        <td>E</td>
+                        <td>Deemed Exports</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+
+                    <tr>
+                        <td>F</td>
+                        <td>Advances on which tax has been paid but invoice has not been
+                            issued (not cover under (A) to (E) above)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>G</td>
+                        <td>Inward supplies on which tax is to be paid on reverse charge basis</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>H</td>
+                        <td>Sub-total (A to G above)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>I</td>
+                        <td>Credit Notes issued in respect of transactions specified in (B) to (E)
+                            above (-)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>J</td>
+                        <td>Debit Notes issued in respect of transactions specified in (B) to (E)
+                            above (+)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>K</td>
+                        <td>Supplies/tax declared through Amendments(+)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>L</td>
+                        <td>Supplies/tax reduced through Amendments(+)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>M</td>
+                        <td>Sub-total (I to L above)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>N</td>
+                        <td>Supplies and advances on which tax is to be paid (H+M) above</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <th colspan="6">Details of Outward supplies on which tax is not payable as declared in returns filed during the financial year</th>
+                        
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>Zero rated supply (Export) without payment of tax</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>B</td>
+                        <td>Supply to SEZs without payment of tax</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>C</td>
+                        <td>Supplies on which tax is to be paid by the recipient on reverse
+                            charge basis</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>D</td>
+                        <td>Exempted</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>E</td>
+                        <td>Nil Rated</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                    <tr>
+                        <td>F</td>
+                        <td>Non-GST supply</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td> 
+                    </tr>
+                        
+                    </tbody>
+
+                    
+                </table>
+               
+            </div>
+
+             <!-- third table -->
+            <div class="col-md">      
+                <label style="color: white;">3. Details of eligible Input Tax Credit</label> 
+            </div>
+            <div style="height: 20px;">
+                
+            </div>
+
+            <div class="table-responsive">
+               
+                <table class="table table-striped" >
+                    <thead>
+                        <tr>
+                            <th>Details</th>
+                            <th>Integrated Tax</th>
+                            <th>Central Tax</th>
+                            <th>State/UT Tax</th>
+                            <th>Cess</th>
+                        </tr>
+                        <tr>
+                           <th>(A) ITC Available (whether in full or part)</th>
+                           <td></td> 
+                           <td></td> 
+                           <td></td> 
+                           <td></td> 
+
+                        </tr>
+                        <tr>
+                            <th> &emsp14;(1) Import of goods</th>
+                            <td></td> 
+                            <td> </td> 
+                            <td> </td> 
+                            <td> </td> 
+ 
+                         </tr>
+
+                         <tr>
+                            <th>&emsp14;(2) Import of services</th>
+                            <td></td> 
+                            <td> </td> 
+                            <td> </td> 
+                            <td></td> 
+ 
+                         </tr>
+
+                         <tr>
+                            <th>&emsp14;(3) Inward supplies liable to reverse charge
+                                (other than 1 & 2 above)</th>
+                                <td></td> 
+                                <td> </td> 
+                                <td> </td> 
+                                <td></td> 
+ 
+                         </tr>
+
+                         <tr>
+                            <th>&emsp14;(4) Inward supplies from ISD</th>
+                            <td></td> 
+                            <td> </td> 
+                            <td> </td> 
+                            <td></td> 
+ 
+                         </tr>
+                         <tr>
+                            <th>&emsp14;(5) All other ITC</th>
+                            <td></td> 
+                            <td> </td> 
+                            <td> </td> 
+                            <td></td> 
+ 
+                         </tr>
+                         
+                        
+                        
+                    </thead>
+
+                    
+                </table>
+                
+            </div>
+            <!-- Third table end -->
+
+            <div style="height: 20px;">
+                
+            </div>
+
+            <!-- fourth table -->
+
+            <div class="col-md">      
+                <label style="color: white;">4. Details of exempt, nil-rated and non-GST inward supplies</label> 
+            </div>
+            <div style="height: 20px;">
+                
+            </div>
+
+            <div class="table-responsive">
+               
+                <table class="table table-striped" >
+                    <thead>
+                        <tr>
+                            <th>Nature of supplies</th>
+                            <th>Inter-State supplies</th>
+                            <th>Intra-State supplies</th>
+                            
+                        </tr>
+                        <tr>
+                           <th>From a supplier under composition scheme, Exempt and Nil
+                            rated supply</th>
+                           <td></td> 
+                           <td></td> 
+                        
+                        </tr>
+                        <tr>
+                            <th>Non GST supply</th>
+                               <td></td> 
+                               <td></td>    
+                        </tr>
+                                
+                    </thead>
+
+                    
+                </table>
+                
+            </div>
+
+
+
+            <!-- end of fourth -->
+           
+            
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

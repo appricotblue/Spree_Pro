@@ -7,7 +7,8 @@
 }
 </style>
 
-
+<form class="forms-sample" action="{% url 'add-entity' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
@@ -16,8 +17,7 @@
                 <p class="card-description">
                 Add new entity from here
                 </p>
-                <form class="forms-sample" action="{% url 'add-entity' %}" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
+                
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">
@@ -118,15 +118,203 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Address</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Address" name="address" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary me-2">Submit</button>
-                </form>
+
+                    <!-- additional -->
+                    
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">City</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="City" name="city" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">State</label>
+                                <div class="col-sm-9">
+                                    <select id="states" name="states" class="js-example-basic-single w-100">
+                                        {% for state in state_list %}
+                                        <option value="{{state.id}}">{{state.name}}</option>
+                                        {% endfor%}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Country</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Country" name="country" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Pincode</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Pincode" name="pincode" required>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- additional -->
+
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">DL NO</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="DL NO" name="dlno" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Udyam</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Udyam" name="udyam" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">PAN</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="PAN NUMBER" name="pan" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">FSSAI</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="exampleInputName1" placeholder="Fssai" name="fssai" required>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- end -->
+                        
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Gst Treatment</label>
+                                <div class="col-sm-9">
+                                    <select id="gst" name="gst_treatment" class="js-example-basic-single w-100">
+                                        {% for gst_treatment in gst_treatment_list %}
+                                        <option value="{{gst_treatment.id}}">{{gst_treatment.name}}</option>
+                                        {% endfor%}
+                                    </select>     
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">GST</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control gst" id="gst" placeholder="GST Number" name="gst" required>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>  
+
+                    <div class="row">
+                        
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Email</label>
+                                <div class="col-sm-9">
+                                    <input type="email" class="form-control" id="exampleInputName1" placeholder="Email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Phone</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="ph" placeholder="Phone" name="phone" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                    <!--  additional end -->
+                    
+                    
             </div>
         </div>
     </div>
 </div>
+
+<div class="col-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+                <h4 class="card-title">Bank Account Details</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Account Holder Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Account Holder Name" name="account_holder">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Account Number</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Account Number" name="account_number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Bank Branch Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Branch" name="branch_name">
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">IFSC Code</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="exampleInputName1" placeholder="Ifsc Code" name="ifsc_code">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary me-2">Submit</button>
+                
+
+                
+            </div>
+
+        </div>
+    </div>
+</div>
+</form>
+
+
 <script>
     $(document).ready(function() {
         $('#Branch').on('input', function() {

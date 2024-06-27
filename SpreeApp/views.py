@@ -21011,7 +21011,7 @@ def filterTaxUserPortal(request):
             
         #Session set for query result for excel based on last search    
         request.session['tax_list']=json.dumps(list(tax_list.values('tax','rate_perc','description','active','branch_id__name')), cls=DjangoJSONEncoder)
-        tax_list                   = list(tax_list.values('tax','rate_perc','description','active','branch_id__name','branch_id'))              
+        tax_list                   = list(tax_list.values('pk','tax','rate_perc','description','active','branch_id__name','branch_id'))              
         response                        ={
                                             "success"                   :True,
                                             "tax_list"                  :tax_list,
@@ -22882,7 +22882,9 @@ def listVoucherTransactionUserPortal(request):
         if branch_id:
             get_invoice_data    = get_invoice_data.filter(branch_id=branch_id)
 
+        get_invoice_data    = get_invoice_data.order_by('-id')
         all_transactions    = []
+
         for invoice in get_invoice_data:
             invoice_id              = invoice.id
             child_data              = []
@@ -24394,7 +24396,14 @@ def report_gstr1(request):
         if 'download' in request.POST:
             prev_turn_over  = request.POST.get('prev_turn_over')
             period_turn_over= request.POST.get('period_turn_over')
-            responce        = downloadpdfgst1and2("GSTR 1",branch_get,invoice_list_sales,invoice_list_sales_return,state_list,from_date,to_date,prev_turn_over,period_turn_over)
+            print(request.build_absolute_uri())
+            scheme = request.scheme
+            # Get the host (including domain and port)
+            host = request.get_host()
+            # Combine scheme and host to get the server address
+            server_address = f"{scheme}://{host}/"
+
+            responce        = downloadpdfgst1and2(server_address,"GSTR 1",branch_get,invoice_list_sales,invoice_list_sales_return,state_list,from_date,to_date,prev_turn_over,period_turn_over)
             return responce
 
         return render(request,'users/pages/report_gstr1.html',{'state_list':state_list,'invoice_list_sales':invoice_list_sales,'invoice_list_sales_return':invoice_list_sales_return,'branch_get':branch_get,'get_data':'just','branch_filter':branch_filter,'search_branch':search_branch,'from_date':from_date,'to_date':to_date})
@@ -24405,9 +24414,78 @@ def report_gstr1(request):
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_gstr2(request):
     if request.session.has_key('userId'):
+        user_id         = request.session.get('userId')
+        user_details        = user_data.objects.get(id=user_id)
+        list_entity         = entity_data.objects.all()
+        list_branch         = branch_data.objects.all()
+
+        user_entity         = user_details.entity_id
+        if user_entity:
+            user_entities   = user_details.entity_id.split(',')
+            
+            list_entity     = list_entity.filter(pk__in=user_entities)
+           
+            enitity_pks     = list(list_entity.values_list('pk',flat=True))
+            list_branch     = branch_data.objects.filter(entity_id__in=enitity_pks)
+        
+        user_branch         = user_details.branch_id
+        
+        if user_branch:
+            user_branches   = user_details.branch_id.split(',')
+            
+            list_branch     = list_branch.filter(pk__in=user_branches)
+            
+        
+        branch_filter       = list_branch.values('pk','name')  
+        branch_pks          = list(list_branch.values_list('pk', flat=True))
+
+        if 'search' in request.POST:
+            search_branch   = request.POST.get('search_branch')
+            from_date       = request.POST.get('from_date') 
+            to_date         = request.POST.get('to_date')
+
+        elif 'download' in request.POST:
+            search_branch   = request.POST.get('search_branch')
+            from_date       = request.POST.get('from_date') 
+            to_date         = request.POST.get('to_date')
+            
+        
+        else:
+            from_date       = ''
+            to_date         = ''
+            search_branch   = branch_pks[0]
+            financial    = financial_year_data.objects.filter(active=1,branch_id=search_branch).order_by('-id')
+            if financial:
+                
+                from_date  = financial[0].from_date
+                to_date     = financial[0].to_date
+        
+        
+
+
+        branch_get                         = branch_data.objects.get(pk=search_branch)
+        voucher_type_id_purchase           = voucher_type_data.objects.get(name="Purchase")
+        vouchet_type_id_purchase_return    = voucher_type_data.objects.get(name="Purchase Return")
+        invoice_list  = invoice_data.objects.filter(branch_id=search_branch,date__range=(from_date,to_date),status="Approved",latest=1)
+        invoice_list_purchase              = invoice_list.filter(voucher_type_id=voucher_type_id_purchase)
+
+        invoice_list_purchase_return= invoice_list.filter(voucher_type_id=vouchet_type_id_purchase_return)
+
+        if 'download' in request.POST:
+            prev_turn_over  = request.POST.get('prev_turn_over')
+            period_turn_over= request.POST.get('period_turn_over')
+            print(request.build_absolute_uri())
+            scheme = request.scheme
+            # Get the host (including domain and port)
+            host = request.get_host()
+            # Combine scheme and host to get the server address
+            server_address = f"{scheme}://{host}/"
+
+            responce        = downloadpdfgst1and2(server_address,"GSTR 2",branch_get,invoice_list_purchase,invoice_list_purchase_return,state_list,from_date,to_date,prev_turn_over,period_turn_over)
+            return responce
        
 
-        return render(request,'users/pages/report_gstr2.html',{'get_data':'just'})
+        return render(request,'users/pages/report_gstr2.html',{'state_list':state_list,'invoice_list_purchase':invoice_list_purchase,'invoice_list_purchase_return':invoice_list_purchase_return,'branch_get':branch_get,'get_data':'just','branch_filter':branch_filter,'search_branch':search_branch,'from_date':from_date,'to_date':to_date})
     else:
         return redirect('user-login')
 
@@ -24415,8 +24493,23 @@ def report_gstr2(request):
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
 def report_gstn3(request):
     if request.session.has_key('userId'):
-       
 
+        if 'download' in request.POST:
+            data    ={"hello":"hh"} 
+            html_string = render_to_string('email/gstr3.html', data)
+            # Create a response object with the PDF
+            print("********************")
+            
+            path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+
+            # Generate PDF from HTML content
+            pdf = pdfkit.from_string(html_string, False, configuration=pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf))
+            
+            # Create HTTP response with PDF content
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename=GSTR3B.pdf'  # Force download
+            return response
+       
         return render(request,'users/pages/report_gstn3.html',{'get_data':'just'})
     else:
         return redirect('user-login')
@@ -24844,33 +24937,42 @@ def downloadpdf(report_name,labels,data_to_pass):
 
 
 
-def downloadpdfgst1and2(report_name,branch_get,invoice_list_sales,invoice_list_sales_return,state_list,from_date,to_date,prev_turn_over,period_turn_over):
+def downloadpdfgst1and2(url,report_name,branch_get,invoice_list,invoice_list_return,state_list,from_date,to_date,prev_turn_over,period_turn_over):
     # Data to be passed to the template
     data = {
+
         'report_name': report_name,
         'branch_get': branch_get,
-        'invoice_list_sales':invoice_list_sales,
-        'invoice_list_sales_return':invoice_list_sales_return,
+        'invoice_list':invoice_list,
+        'invoice_list_return':invoice_list_return,
         'state_list':state_list,
         'from_date':from_date,
         'to_date':to_date,
         'prev_turn_over':prev_turn_over,
         'period_turn_over':period_turn_over
     }
-
+    print(report_name)
     # Render the HTML template with the data
-    html_string = render_to_string('email/gstr1and2.html', data)
+    if report_name=='GSTR 1':
+        html_string = render_to_string('email/gstr1.html', data)
+    else:
+        html_string = render_to_string('email/gstr2.html', data)
     # Create a response object with the PDF
+    print(url)
+    print("********************")
     
-    
-    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+    if url=='http://127.0.0.1:8000/':
+        path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 
-    # Generate PDF from HTML content
-    pdf = pdfkit.from_string(html_string, False, configuration=pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf))
+        # Generate PDF from HTML content
+        pdf = pdfkit.from_string(html_string, False, configuration=pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf))
+    else:
+        pdf = pdfkit.from_string(html_string, False)
+        
 
     # Create HTTP response with PDF content
     response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename=output.pdf'  # Force download
+    response['Content-Disposition'] = f'attachment; filename={report_name}.pdf'  # Force download
     return response
 
 

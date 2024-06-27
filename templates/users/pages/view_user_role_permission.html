@@ -1,5 +1,11 @@
 {% extends "users/layout/app.html" %}
 {% block content %}
+
+<style>
+    .hidecheck{
+        display: none !important
+    }
+</style>
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
@@ -22,13 +28,13 @@
                             </div>
                             <div class="entity" {% if not role_data.entity_active %} style="display: none;" {% endif %}>
                                 <div class="form-group" style="margin-left: 30px;">
-                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                    <div class="form-check form-check-primary me-3 hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
                                             <input type="checkbox" class="form-check-input permission_entity" name="entity_read" value="true" {% if role_data.entity_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                    <div class="form-check form-check-primary hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
                                             <input type="checkbox" class="form-check-input permission_entity" name="entity_write" value="true" {% if role_data.entity_write == True %} checked {% endif %}>
@@ -151,13 +157,13 @@
                             </div>
                             <div class="users" {% if not role_data.users_active %} style="display: none;" {% endif %}>
                                 <div class="form-group" style="margin-left: 30px;">
-                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                    <div class="form-check form-check-primary me-3 hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
                                             <input type="checkbox" class="form-check-input permission_users" name="users_read" value="true" {% if role_data.users_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                    <div class="form-check form-check-primary hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
                                             <input type="checkbox" class="form-check-input permission_users" name="users_write" value="true" {% if role_data.users_write == True %} checked {% endif %}>
@@ -281,13 +287,13 @@
                             </div>
                             <div class="customers" {% if not role_data.customer_active %} style="display: none;" {% endif %}>
                                 <div class="form-group" style="margin-left: 30px;">
-                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                    <div class="form-check form-check-primary me-3 hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
-                                            <input type="checkbox" class="form-check-input permission_customers" name="customers_read" value="true" {% if role_data.customers_read == True %} checked {% endif %}>
+                                            <input type="checkbox" class="form-check-input permission_customers " name="customers_read" value="true" {% if role_data.customers_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                    <div class="form-check form-check-primary hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
                                             <input type="checkbox" class="form-check-input permission_customers" name="customers_write" value="true" {% if role_data.customers_write == True %} checked {% endif %}>
@@ -359,13 +365,13 @@
                                     <div class="form-check form-check-primary me-3" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
-                                            <input type="checkbox" class="form-check-input permission_supplier" name="supplier_read" value="true" {% if role_data.supplier_read == True %} checked {% endif %}>
+                                            <input type="checkbox" class="form-check-input permission_supplier hidecheck" name="supplier_read" value="true" {% if role_data.supplier_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
                                     <div class="form-check form-check-primary" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
-                                            <input type="checkbox" class="form-check-input permission_supplier" name="supplier_write" value="true" {% if role_data.supplier_write == True %} checked {% endif %}>
+                                            <input type="checkbox" class="form-check-input permission_supplier hidecheck" name="supplier_write" value="true" {% if role_data.supplier_write == True %} checked {% endif %}>
                                         </label>
                                     </div>
                                     <div class="form-group">
@@ -433,13 +439,13 @@
                                     <div class="form-check form-check-primary me-3" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
-                                            <input type="checkbox" class="form-check-input permission_accounting" name="accounting_read" value="true" {% if role_data.accounting_read == True %} checked {% endif %}>
+                                            <input type="checkbox" class="form-check-input permission_accounting hidecheck" name="accounting_read" value="true" {% if role_data.accounting_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
                                     <div class="form-check form-check-primary" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
-                                            <input type="checkbox" class="form-check-input permission_accounting" name="accounting_write" value="true" {% if role_data.accounting_write == True %} checked {% endif %}>
+                                            <input type="checkbox" class="form-check-input permission_accounting hidecheck" name="accounting_write" value="true" {% if role_data.accounting_write == True %} checked {% endif %}>
                                         </label>
                                     </div>
 
@@ -534,13 +540,13 @@
                             </div>
                             <div class="invendory" {% if not role_data.invendory_active %} style="display: none;" {% endif %}>
                                 <div class="form-group" style="margin-left: 30px;">
-                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                    <div class="form-check form-check-primary me-3 hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
                                             <input type="checkbox" class="form-check-input permission_invendory" name="invendory_read" value="true" {% if role_data.invendory_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                    <div class="form-check form-check-primary hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
                                             <input type="checkbox" class="form-check-input permission_invendory" name="invendory_write" value="true" {% if role_data.invendory_write == True %} checked {% endif %}>
@@ -844,13 +850,13 @@
                             </div>
                             <div class="general" {% if not role_data.general_active %} style="display: none;" {% endif %}>
                                 <div class="form-group" style="margin-left: 30px;">
-                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                    <div class="form-check form-check-primary me-3 hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
                                             <input type="checkbox" class="form-check-input permission_general" name="general_read" value="true" {% if role_data.general_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                    <div class="form-check form-check-primary hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
                                             <input type="checkbox" class="form-check-input permission_general" name="general_write" value="true" {% if role_data.general_write == True %} checked {% endif %}>
@@ -998,18 +1004,94 @@
                             </div>
                             <div class="purchase" {% if not role_data.purchase_active %} style="display: none;" {% endif %}>
                                 <div class="form-group" style="margin-left: 30px;">
-                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                    <div class="form-check form-check-primary me-3 hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
                                             <input type="checkbox" class="form-check-input permission_purchase" name="purchase_read" value="true" {% if role_data.purchase_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                    <div class="form-check form-check-primary hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
                                             <input type="checkbox" class="form-check-input permission_purchase" name="purchase_write" value="true" {% if role_data.purchase_write == True %} checked {% endif %}>
                                         </label>
                                     </div>
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Purchase Order
+                                                <input type="checkbox" class="form-check-input checkbox permission_purchase"  id="purchase_order" name="purchase_order_active" value="true" {% if role_data.purchase_order_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_purchase_order permission_purchase" name="purchase_order_read" value="true" {% if role_data.purchase_order_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_purchase_order permission_purchase" name="purchase_order_write" value="true" {% if role_data.purchase_order_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Purchase Invoice
+                                                <input type="checkbox" class="form-check-input checkbox permission_purchase"  id="purchase_invoice" name="purchase_invoice_active" value="true" {% if role_data.purchase_invoice_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_purchase_invoice permission_purchase" name="purchase_invoice_read" value="true" {% if role_data.purchase_invoice_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_purchase_invoice permission_purchase" name="purchase_invoice_write" value="true" {% if role_data.purchase_invoice_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Purchase Return
+                                                <input type="checkbox" class="form-check-input checkbox permission_purchase"  id="purchase_return" name="purchase_return_active" value="true" {% if role_data.purchase_return_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_purchase_return permission_purchase" name="purchase_return_read" value="true" {% if role_data.purchase_return_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_purchase_return permission_purchase" name="purchase_return_write" value="true" {% if role_data.purchase_return_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -1022,18 +1104,94 @@
                             </div>
                             <div class="sales" {% if not role_data.sales_active %} style="display: none;" {% endif %}>
                                 <div class="form-group" style="margin-left: 30px;">
-                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                    <div class="form-check form-check-primary me-3 hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
                                             <input type="checkbox" class="form-check-input permission_sales" name="sales_read" value="true" {% if role_data.sales_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                    <div class="form-check form-check-primary hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
                                             <input type="checkbox" class="form-check-input permission_sales" name="sales_write" value="true" {% if role_data.sales_write == True %} checked {% endif %}>
                                         </label>
                                     </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Sales Order
+                                                <input type="checkbox" class="form-check-input checkbox permission_sales"  id="sales_order" name="sales_order_active" value="true" {% if role_data.sales_order_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_sales_order permission_sales" name="sales_order_read" value="true" {% if role_data.sales_order_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_sales_order permission_sales" name="sales_order_write" value="true" {% if role_data.sales_order_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Sales Invoice
+                                                <input type="checkbox" class="form-check-input checkbox permission_sales"  id="sales_invoice" name="sales_invoice_active" value="true" {% if role_data.sales_invoice_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_sales_invoice permission_sales" name="sales_invoice_read" value="true" {% if role_data.sales_invoice_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_sales_invoice permission_sales" name="sales_invoice_write" value="true" {% if role_data.sales_invoice_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Sales Return
+                                                <input type="checkbox" class="form-check-input checkbox permission_sales"  id="sales_return" name="sales_return_active" value="true" {% if role_data.sales_return_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_sales_return permission_sales" name="sales_return_read" value="true" {% if role_data.sales_return_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_sales_return permission_sales" name="sales_return_write" value="true" {% if role_data.sales_return_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -1046,19 +1204,184 @@
                             </div>
                             <div class="transactions" {% if not role_data.sales_active %} style="display: none;" {% endif %}>
                                 <div class="form-group" style="margin-left: 30px;">
-                                    <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                    <div class="form-check form-check-primary me-3 hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Read
                                             <input type="checkbox" class="form-check-input permission_transactions" name="transactions_read" value="true" {% if role_data.transactions_read == True %} checked {% endif %}>
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-primary" style="display: inline-block;">
+                                    <div class="form-check form-check-primary hidecheck" style="display: inline-block;">
                                         <label class="form-check-label">
                                             Write
                                             <input type="checkbox" class="form-check-input permission_transactions" name="transactions_write" value="true" {% if role_data.transactions_write == True %} checked {% endif %}>
                                         </label>
                                     </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Receipt Voucher
+                                                <input type="checkbox" class="form-check-input checkbox permission_transactions"  id="receipt_voucher" name="receipt_voucher_active" value="true" {% if role_data.receipt_voucher_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_receipt_voucher permission_transactions" name="receipt_voucher_read" value="true" {% if role_data.receipt_voucher_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_receipt_voucher permission_transactions" name="receipt_voucher_write" value="true" {% if role_data.receipt_voucher_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Payment Voucher
+                                                <input type="checkbox" class="form-check-input checkbox permission_transactions"  id="payment_voucher" name="payment_voucher_active" value="true" {% if role_data.payment_voucher_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_payment_voucher permission_transactions" name="payment_voucher_read" value="true" {% if role_data.payment_voucher_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_payment_voucher permission_transactions" name="payment_voucher_write" value="true" {% if role_data.payment_voucher_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- contra -->
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                contra
+                                                <input type="checkbox" class="form-check-input checkbox permission_transactions"  id="contra" name="contra_active" value="true" {% if role_data.contra_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_contra permission_transactions" name="contra_read" value="true" {% if role_data.contra_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_contra permission_transactions" name="contra_write" value="true" {% if role_data.contra_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- contra end -->
+    
+                                    <!-- journal start -->
+    
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Journal
+                                                <input type="checkbox" class="form-check-input checkbox permission_transactions"  id="journal" name="journal_active" value="true" {% if role_data.journal_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_journal permission_transactions" name="journal_read" value="true" {% if role_data.journal_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_journal permission_transactions" name="journal_write" value="true" {% if role_data.journal_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- journal end -->
+    
+                                    <!-- credit note -->
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Credit Note
+                                                <input type="checkbox" class="form-check-input checkbox permission_transactions"  id="credit_note" name="credit_note_active" value="true" {% if role_data.credit_note_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_credit_note permission_transactions" name="credit_note_read" value="true" {% if role_data.credit_note_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_credit_note permission_transactions" name="credit_note_write" value="true" {% if role_data.credit_note_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- end credit note -->
+                                    <!-- debit note -->
+    
+                                    <div class="form-group">
+                                        <div class="form-check form-check-primary">
+                                            <label class="form-check-label">
+                                                Debit Note
+                                                <input type="checkbox" class="form-check-input checkbox permission_transactions"  id="debit_note" name="debit_note_active" value="true" {% if role_data.debit_note_active == True %}  checked {% endif %}>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <div class="form-group" style="margin-left: 30px;">
+                                                <div class="form-check form-check-primary me-3" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Read
+                                                        <input type="checkbox" class="form-check-input permission_debit_note permission_transactions" name="debit_note_read" value="true" {% if role_data.debit_note_read == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-primary" style="display: inline-block;">
+                                                    <label class="form-check-label">
+                                                        Write
+                                                        <input type="checkbox" class="form-check-input permission_debit_note permission_transactions" name="debit_note_write" value="true" {% if role_data.debit_note_write == True %} checked {% endif %}>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- end of debit note -->
                                 </div>
+                                
+                                 
+
+                                
                             </div>
                         </div>
                         <div class="form-group">
