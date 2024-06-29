@@ -112,7 +112,7 @@ class user_data(models.Model):
     default_entity_id   = models.ForeignKey(entity_data,on_delete=models.SET_NULL,default='',null=True)
     created_at          = models.DateTimeField(max_length=100,default='')
     updated_at          = models.DateTimeField(max_length=100,default='')
-    default_branch      = models.ForeignKey(branch_data,on_delete=models.SET_NULL,default='',null=True)
+    default_branch_id   = models.ForeignKey(branch_data,on_delete=models.SET_NULL,default='',null=True)
 
 
 

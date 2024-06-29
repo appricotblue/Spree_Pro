@@ -14735,6 +14735,41 @@ def userforgot_passwordUserPortal(request): ##admin users
         return Response(response)
 
 
+@api_view(['POST'])
+def UserportalsetDefaultUserEntity(request):
+    data            = request.data
+    user_id         = data.get('user_id')
+    app_token       = data.get('app_token')
+    get_token       = app_auth_token_tb.objects.first()
+
+    if user_id and app_token == get_token.token:
+        entity_id   = int(data.get('entity_id',0))
+        branch_id   = int(data.get('branch_id',0))
+        
+        if entity_id:
+            entity_id   =  entity_data.objects.get(id=entity_id)
+
+        if branch_id:
+            branch_id   =  branch_data.objects.get(id=branch_id)
+
+        if entity_id:
+            update      = user_data.objects.filter(id=user_id).update(default_entity_id=entity_id)
+
+        if branch_id:
+            update      = user_data.objects.filter(id=user_id).update(default_branch_id=branch_id)
+
+        response            = {
+                    "success" :True,
+                    "message" :"Updated Successfully"
+                }
+    else:
+        response            = {
+            "success"   : False,
+            "message"   : "Invalid Token Or User",
+        }
+            
+    return Response(response)
+
 
 
 @api_view(['POST'])
@@ -14899,11 +14934,11 @@ def getUserUserPortal(request):
             'entities':user_entities,
             'branches':user_branches,
             'default_entity':None if not get_user.default_entity_id else get_user.default_entity_id.id,
+            'default_branch':None if not get_user.default_branch_id else get_user.default_branch_id.id,
             'profile_image':request.build_absolute_uri(get_user.profile_image.url) if get_user.profile_image else None,
             'user_permissions':user_permissions
         }
             
-
         
     else:
         response    =   {
@@ -19319,7 +19354,7 @@ def get_account_ledgers(request):
 
             get_debit_account_ledger        = get_debit_account_ledger.filter(Q(branch_id=branch_id) | Q(is_default=1))
 
-            get_credit_account_ledger       = accounting_ledger_data.objects.filter(branch_id=branch_id,accounting_group_id__in=credit_accounting_group_ids)
+            get_credit_account_ledger       = accounting_ledger_data.objects.filter(accounting_group_id__in=credit_accounting_group_ids)
             
             get_credit_account_ledger       = get_credit_account_ledger.filter(Q(branch_id=branch_id) | Q(is_default=1))
             debit_ledgers                   = []
