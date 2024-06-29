@@ -10,12 +10,12 @@
                 </p>
                 <form class="forms-sample" action="{% url 'add-voucher-type' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <div class="row">
-                        <div class="col-md-6">
+                    <!-- <div class="row"> -->
+                        <!-- <div class="col-md-6">
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" required>
+                                    <select class="js-example-basic-single w-100 entity_data" name="entity_id" >
                                         <option value="" disabled selected>Select Entity</option>
                                         {% for x in list_entity %}
                                         <option value="{{x.id}}" {% if x.id|slugify == common_user_data.default_entity_id.id|slugify %} selected {% endif %}>{{x.name}}</option>
@@ -28,7 +28,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Branch</label>
                                 <div class="col-sm-9">
-                                    <select class="js-example-basic-single w-100 branch" name="branch_id" required>
+                                    <select class="js-example-basic-single w-100 branch" name="branch_id" >
                                         <option value="" disabled selected>Select Branch</option>
                                         {% for x in list_branch %}
                                         <option value="{{x.id}}">{{x.name}}</option>
@@ -36,9 +36,9 @@
                                     </select>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                         
-                    </div>
+                    <!-- </div> -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">

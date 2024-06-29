@@ -309,7 +309,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Current Balance</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" id="current_bal" placeholder="Current Balance" name="curret_balance" value="{{get_data.opening_balance}}" readonly>
+                                <input type="text" class="form-control" id="current_bal" placeholder="Current Balance" name="curret_balance" readonly>
                             </div>
                         </div>
                     </div>
@@ -551,8 +551,10 @@
                     'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure to include CSRF token
                 },
                 success: function (data) {
-                    var balance        = data
-                    $('#current_bal').val = balance   
+                    console.log(data.balance)
+                    var balance             = data.balance
+                    $('#current_bal').val(balance)   
+                    
                 },
                 error: function (xhr, status, error) {
                     console.error(xhr.responseText);

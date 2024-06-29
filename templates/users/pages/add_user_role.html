@@ -10,6 +10,15 @@
                 </p>
                 <form class="forms-sample" action="{% url 'add-user-role' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Active
+                                <input type="checkbox" class="form-check-input"  name="active">
+                            </label>
+                        </div>
+                    </div>
+                    
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">

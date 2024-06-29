@@ -156,7 +156,7 @@ th {
                     {{invoice.date}}
                 </td>
                 <td>
-                    {{invoice.tax_value}}
+                    {{invoice.total_amount}}
                 </td>
                 <td>
                     
@@ -164,6 +164,7 @@ th {
                 <td>
                 </td>
                 <td>
+                    {{invoice.pretax_amount}}
                 </td>
                 <td>
                     {{invoice.igst}}
@@ -250,14 +251,14 @@ th {
                     {{return.date}}
                 </td>
                 <td>
-                    {{return.tax_value}}
-                </td>
-                <td>
-                    
+                    {{return.total_amount}}
                 </td>
                 <td>
                 </td>
                 <td>
+                </td>
+                <td>
+                    {{return.pretax_amount}}
                 </td>
                 <td>
                     {{return.igst}}

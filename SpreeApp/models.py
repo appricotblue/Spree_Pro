@@ -287,6 +287,14 @@ class user_role_permission(models.Model):
     created_at          = models.DateTimeField(max_length=100,default='')
     updated_at          = models.DateTimeField(max_length=100,default='')
 
+    sales_order_active  =  models.BooleanField(max_length=100,default=0)
+    sales_order_read    =  models.BooleanField(max_length=100,default=0)
+    sales_order_write   =  models.BooleanField(max_length=100,default=0)
+    
+    sales_invoice_active = models.BooleanField(max_length=100,default=0)
+    sales_invoice_read  =  models.BooleanField(max_length=100,default=0)
+    sales_invoice_write =  models.BooleanField(max_length=100,default=0)
+
 
 
 
@@ -580,8 +588,8 @@ class batch_data(models.Model):
 
 
 class voucher_type_data(models.Model):
-    entity_id           = models.ForeignKey(entity_data,on_delete=models.CASCADE,default='',null=True)
-    branch_id           = models.ForeignKey(branch_data,on_delete=models.CASCADE,default='',null=True)
+    entity_id           = models.ForeignKey(entity_data,on_delete=models.SET_NULL,default='',null=True)
+    branch_id           = models.ForeignKey(branch_data,on_delete=models.SET_NULL,default='',null=True)
     name                = models.CharField(max_length=100,default='',null=True)
     description         = models.TextField(default='',null=True)
     type_of_voucher     = models.ForeignKey('self', on_delete=models.SET_NULL, default='', null=True, related_name='voucher_type')

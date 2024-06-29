@@ -382,6 +382,8 @@ urlpatterns = [
     path('user-portal-goldenrule-filter/',views.filterGoldenRulePortal,name='user-portal-goldenrule-filter'),
     path('user-portal-journal-filter/',views.filterJournalUserPortal,name='user-portal-journal-filter'),
     path('user-portal-contra-filter/',views.filterContraUserPortal,name='user-portal-contra-filter'),
+    path('user-portal-ledger-balance/',views.UserPortalgetLedgerBalance,name='user-portal-ledger-balance'),
+
 
 
     # api filter end
@@ -500,7 +502,8 @@ urlpatterns = [
     path('userforgot-password',views.userforgot_password,name='userforgot-password'),
     path('user-reset-password',views.userreset_password,name='user-reset-password'),
     path('get-user-details',views.getUserUserPortal,name='get-user-details'),
-    path('update-user-userportal',views.updateUserUserPortal,name='update-user-userportal')
+    path('update-user-userportal',views.updateUserUserPortal,name='update-user-userportal'),
+
 ]    
 
 

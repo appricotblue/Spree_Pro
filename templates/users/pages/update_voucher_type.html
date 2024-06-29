@@ -11,7 +11,7 @@
                 <form class="forms-sample" action="{% url 'update-voucher-type' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" name="id" value="{{get_data.id}}">
-                    <div class="row">
+                    <!-- <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Entity</label>
@@ -39,7 +39,7 @@
                             </div>
                         </div>
                         
-                    </div>
+                    </div> -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">

@@ -155,9 +155,11 @@ def userLogin(request): ##admin users
         if get_user_data:
             for x in get_user_data:
                 if(check_password(password,x.password) == True):
+                    
                     if x.active:
                         user_id         = x.id  
                         request.session['userId']   = x.id
+                        print(request.session['userId'])
                         return redirect('user-dashboard')
                     else:
                         messages.error(request, 'Your account has been deactivated. Please contact the administrator for further assistance.')
@@ -693,7 +695,6 @@ def addNewEntity(request):
     if request.session.has_key('userId'):
         get_role_permission     = getUserPermissions(request)
         role_permission         = get_role_permission['all_user_role_permission']
-
         if (role_permission['entity_list_write']):
             if request.method=="POST":
                 name            = request.POST['name']
@@ -738,6 +739,15 @@ def addNewEntity(request):
                     name=name,entity_type_id=get_entity_type,description=description,created_at=now,updated_at=now,location=location_id,gst=gst,logo=logo)
                 insert_data.save()
 
+                getuser    = user_data.objects.get(pk=request.session.get('userId'))
+                print(getuser.entity_id)
+                print(getuser.id)
+                current_entity  =  getuser.entity_id
+                if current_entity:
+                    updated_entity  =  current_entity+","+str(insert_data.id)
+                    getuser.entity_id = updated_entity
+                    getuser.save()
+
                 # add branch
                 latest_id       = 1 if not branch_data.objects.all().exists() else int(branch_data.objects.latest('id').id) + 1
                 get_series      = series_data.objects.get(type="Branch")
@@ -772,6 +782,8 @@ def addNewEntity(request):
                 # add rack
                 insert_rack         = rack_data(entity_id=insert_data,branch_id=insert_branch,name="Main",description=description,godown_id=insert_godown,created_at=now,updated_at=now)
                 insert_rack.save()
+
+
 
 
                 messages.success(request, 'Successfully added.')
@@ -1192,7 +1204,15 @@ def listUserRole(request):
         role_permission         = get_role_permission['all_user_role_permission']
 
         if (role_permission['user_role_read'] or role_permission['user_role_write']):
-            get_user_roles  = user_roles.objects.all().exclude(role="Super Admin").order_by('-id')
+            user_id         = request.session.get('userId')
+            get_user_data   = user_data.objects.get(id=user_id)
+
+            if not get_user_data.user_role_id:
+                get_user_roles  = user_roles.objects.all().exclude(role="Super Admin").order_by('-id')
+            elif get_user_data.user_role_id:
+                get_user_roles  = user_roles.objects.filter(pk=get_user_data.user_role_id.id).order_by('-id')
+
+            
             searched_role   =''
             if 'search' in request.POST: 
                 searched_role    = request.POST.get('role')
@@ -1231,7 +1251,11 @@ def addNewUserRole(request):
             if request.method=="POST":
                 role            = request.POST['role']
                 description     = request.POST['description']
-                client_access   = True if request.POST.get('active') == 'true' else False
+                client_access   = request.POST.get('active')
+                if client_access:
+                    client_access =1
+                else:
+                    client_access = 0
                 now             = datetime.now()
 
                 insert_data     = user_roles(role=role,description=description,client_access=client_access,created_at=now,updated_at=now)
@@ -1259,7 +1283,11 @@ def updateUserRole(request):
                 role_id         = request.POST['id']
                 role            = request.POST['role']
                 description     = request.POST['description']
-                client_access   = True if request.POST.get('active') == 'true' else False
+                client_access   = request.POST.get('active')
+                if client_access:
+                    client_access =1
+                else:
+                    client_access = 0
                 now             = datetime.now()
 
                 user_roles.objects.all().filter(id=role_id).update(role=role,description=description,client_access=client_access,updated_at=now)
@@ -1315,10 +1343,9 @@ def listUserRolePermissions(request):
 
             if not get_user_data.user_role_id:
                 get_user_roles  = user_roles.objects.all().exclude(role="Super Admin").order_by('-id')
-            elif get_user_data.user_role_id.client_access:
-                get_user_roles  = user_roles.objects.all().exclude(role="Super Admin").order_by('-id')
-            else:
-                get_user_roles  = user_roles.objects.all().filter(client_access=True).order_by('-id')
+            elif get_user_data.user_role_id:
+                get_user_roles  = user_roles.objects.all().filter(pk=get_user_data.user_role_id.id).order_by('-id')
+            
             write=0
             if role_permission['role_permission_write']:
                 write=1
@@ -1575,6 +1602,14 @@ def updateUserRolePermission(request):
                 purchase_return_read   = True if request.POST.get('purchase_return_read') == 'true' else False
                 purchase_return_write  = True if request.POST.get('purchase_return_write') == 'true' else False
 
+                sales_order_active      = True if request.POST.get('sales_order_active') == 'true' else False
+                sales_order_read        = True if request.POST.get('sales_order_read') == 'true' else False
+                sales_order_write       = True if request.POST.get('sales_order_write') == 'true' else False
+
+                sales_invoice_active    = True if request.POST.get('sales_invoice_active') == 'true' else False
+                sales_invoice_read      = True if request.POST.get('sales_invoice_read') == 'true' else False
+                sales_invoice_write     = True if request.POST.get('sales_invoice_write') == 'true' else False
+
                 if not role_id:
                     insert_data     = user_role_permission(
                                         user_id                 = user_id,
@@ -1737,6 +1772,13 @@ def updateUserRolePermission(request):
                                         purchase_return_active      =	purchase_return_active 	,
                                         purchase_return_read        =	purchase_return_read 	,
                                         purchase_return_write       =	purchase_return_write 	,
+                                        sales_order_active	=	sales_order_active ,
+                                        sales_order_read	=	sales_order_read,
+                                        sales_order_write	=	sales_order_write,
+
+                                        sales_invoice_active	=	sales_invoice_active   ,
+                                        sales_invoice_read	    =	sales_invoice_read,
+                                        sales_invoice_write	    =	sales_invoice_write,
 
                                         )
                     insert_data.save()
@@ -1899,6 +1941,13 @@ def updateUserRolePermission(request):
                                             purchase_return_active      =	purchase_return_active 	,
                                             purchase_return_read        =	purchase_return_read 	,
                                             purchase_return_write       =	purchase_return_write 	,
+                                            sales_order_active	=	sales_order_active ,
+                                            sales_order_read	=	sales_order_read,
+                                            sales_order_write	=	sales_order_write,
+
+                                            sales_invoice_active	=	sales_invoice_active   ,
+                                            sales_invoice_read	    =	sales_invoice_read,
+                                            sales_invoice_write	    =	sales_invoice_write,
 
                                         updated_at              = now,
                                         )
@@ -6314,6 +6363,7 @@ def listProducts(request):
                 start_date                  =request.POST.get('start')
                 end_date                    =request.POST.get('end')
                 name                        = request.POST.get('name')
+                print(start_date)
                 selected_group              = int(request.POST.get('selected_group'))
             else:
                 start_date                  =request.GET.get('start','')
@@ -6723,46 +6773,28 @@ def listVoucherType(request):
         if (role_permission['voucher_type_read'] or role_permission['voucher_type_write']):
             get_data            = voucher_type_data.objects.all().order_by('-id')
             voucher_type_list   =voucher_type_data.objects.filter(type_of_voucher=None).order_by('id')  
-            branch_list         =branch_data.objects.all().order_by('-id')
-            search_name         =''
-            selected_branch     =0
-            selected_voucher    =0
+            search_name         = ''
+            selected_voucher    = 0
 
             if 'search' in request.POST: 
-                selected_branch     = int(request.POST.get('selected_branch'))
                 search_name         = request.POST.get('name') 
                 selected_voucher    = int(request.POST.get('selected_type'))   
             else:
-                selected_branch     = int(request.POST.get('selected_branch',0))
-                search_name         = request.POST.get('name','') 
-                selected_voucher    = int(request.POST.get('selected_type',0))   
+                search_name         = request.GET.get('name','') 
+                selected_voucher    = int(request.GET.get('selected_type',0))   
 
-            if selected_branch or selected_voucher or search_name:    
+            if  selected_voucher or search_name:    
                     # we got pk from html post we need to get name to diaplay on popups
                 
-
-                if selected_branch and search_name and selected_voucher:     
-                    get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name,type_of_voucher=selected_voucher).order_by('-id')
-                    
-                elif  selected_branch and search_name:   
-                    get_data             = get_data.filter(branch_id=selected_branch,name__istartswith=search_name).order_by('-id')
-                    
-                elif  selected_branch and selected_voucher:   
-                    get_data             = get_data.filter(branch_id=selected_branch,type_of_voucher=selected_voucher).order_by('-id')
-                        
-                elif  search_name and selected_voucher:   
+                if  search_name and selected_voucher:     
                     get_data             = get_data.filter(name__istartswith=search_name,type_of_voucher=selected_voucher).order_by('-id')
-                    
-
+                
                 elif  search_name:   
                     get_data             = get_data.filter(name__istartswith=search_name).order_by('-id')
                     
                 elif  selected_voucher:   
                     get_data             = get_data.filter(type_of_voucher=selected_voucher).order_by('-id')
                     
-
-                else:      
-                    get_data             = get_data.filter(branch_id=selected_branch).order_by('-id')
                                 
             #Download Section 
             if 'download' in request.POST:
@@ -6780,7 +6812,7 @@ def listVoucherType(request):
                     default=F('type_of_voucher__name'),
                     output_field=CharField()  # Adjust the field type accordingly
                 )
-            ).values('name', 'branch_id__id', 'description', 'start_index', 'type_of_voucher_name')), cls=DjangoJSONEncoder)
+            ).values('name', 'description', 'start_index', 'type_of_voucher_name')), cls=DjangoJSONEncoder)
             
             page_number = request.GET.get("page",1)
 
@@ -6790,8 +6822,7 @@ def listVoucherType(request):
             write=0
             if role_permission['voucher_type_write']:
                 write=1
-            
-            return render(request,'users/pages/list_voucher_type.html',{'write':write,'get_data' : get_data,'voucher_type_list':voucher_type_list,'branch_list':branch_list,'search_name':search_name,'selected_branch':selected_branch,'selected_voucher':selected_voucher})
+            return render(request,'users/pages/list_voucher_type.html',{'write':write,'get_data' : get_data,'voucher_type_list':voucher_type_list,'search_name':search_name,'selected_voucher':selected_voucher})
         else:
             raise Http404("Access to this is not permitted")
     else:
@@ -6807,10 +6838,10 @@ def addNewVoucherType(request):
 
         if (role_permission['voucher_type_write']):
             if request.method=="POST":
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
-                branch_id           = request.POST['branch_id']
-                branch_id           = branch_data.objects.get(id=branch_id)
+                # entity_id           = request.POST['entity_id']
+                # entity_id           = entity_data.objects.get(id=entity_id)
+                # branch_id           = request.POST['branch_id']
+                # branch_id           = branch_data.objects.get(id=branch_id)
                 name                = request.POST['name']
                 description         = request.POST['description']
                 type_of_voucher     = request.POST.get('type_of_voucher')
@@ -6818,24 +6849,24 @@ def addNewVoucherType(request):
                 start_index         = request.POST.get('start_index')
                 now                 = datetime.now()
 
-                insert_data         = voucher_type_data(entity_id=entity_id,branch_id=branch_id,name=name,description=description,type_of_voucher=type_of_voucher,start_index=start_index,created_at=now,updated_at=now)
+                insert_data         = voucher_type_data(entity_id=None,branch_id=None,name=name,description=description,type_of_voucher=type_of_voucher,start_index=start_index,created_at=now,updated_at=now)
                 insert_data.save()
 
                 messages.success(request, 'Successfully added.')
                 return redirect('list-voucher-type')
             else:
                 list_voucher_types  = voucher_type_data.objects.all()
-                list_entity         = entity_data.objects.all()
+                # list_entity         = entity_data.objects.all()
 
                 user_id             = request.session.get('userId')
                 get_user_data       = user_data.objects.get(id=user_id)
 
-                if get_user_data.default_entity_id:
-                    list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
-                else:
-                    list_branch     = branch_data.objects.all()
+                # if get_user_data.default_entity_id:
+                #     list_branch     = branch_data.objects.all().filter(entity_id=get_user_data.default_entity_id.id)
+                # else:
+                #     list_branch     = branch_data.objects.all()
 
-                return render(request,'users/pages/add_voucher_type.html',{'list_entity':list_entity,'list_branch':list_branch,'list_voucher_types':list_voucher_types})
+                return render(request,'users/pages/add_voucher_type.html',{'list_voucher_types':list_voucher_types})
         else:
             raise Http404("Access to this is not permitted")
     else:
@@ -6851,10 +6882,10 @@ def updateVoucherType(request):
         if (role_permission['voucher_type_write']):
             if request.method=="POST":
                 get_id              = request.POST['id']
-                entity_id           = request.POST['entity_id']
-                entity_id           = entity_data.objects.get(id=entity_id)
-                branch_id           = request.POST['branch_id']
-                branch_id           = branch_data.objects.get(id=branch_id)
+                # entity_id           = request.POST['entity_id']
+                # entity_id           = entity_data.objects.get(id=entity_id)
+                # branch_id           = request.POST['branch_id']
+                # branch_id           = branch_data.objects.get(id=branch_id)
                 name                = request.POST['name']
                 description         = request.POST['description']
                 type_of_voucher     = request.POST.get('type_of_voucher')
@@ -6862,7 +6893,7 @@ def updateVoucherType(request):
                 start_index         = request.POST.get('start_index')
                 now                 = datetime.now()
 
-                voucher_type_data.objects.all().filter(id=get_id).update(entity_id=entity_id,branch_id=branch_id,name=name,description=description,type_of_voucher=type_of_voucher,start_index=start_index,updated_at=now)
+                voucher_type_data.objects.all().filter(id=get_id).update(entity_id=None,branch_id=None,name=name,description=description,type_of_voucher=type_of_voucher,start_index=start_index,updated_at=now)
 
                 messages.success(request, 'Changes successfully updated.')
                 return redirect('list-voucher-type')
@@ -6871,10 +6902,10 @@ def updateVoucherType(request):
                 get_data            = voucher_type_data.objects.get(id=get_id)
                 
                 list_voucher_types  = voucher_type_data.objects.all().exclude(id=get_id)
-                list_entity         = entity_data.objects.all()
-                list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
+                # list_entity         = entity_data.objects.all()
+                # list_branch         = branch_data.objects.all().filter(entity_id=get_data.entity_id)
 
-                return render(request,'users/pages/update_voucher_type.html',{'get_data' : get_data,'list_entity':list_entity,'list_branch':list_branch,'list_voucher_types':list_voucher_types})
+                return render(request,'users/pages/update_voucher_type.html',{'get_data' : get_data,'list_voucher_types':list_voucher_types})
         else:
             raise Http404("Access to this is not permitted")
     else:
@@ -14763,6 +14794,11 @@ def getUserUserPortal(request):
         sales_return_write =	False
         purchase_return_read =	False
         purchase_return_write =	False
+        sales_order_read	=	False
+        sales_order_write	=	False
+
+        sales_invoice_read	    =	False
+        sales_invoice_write	    =	False
 
         if not get_user.user_role_id:
             purchase_order_read =	True
@@ -14785,6 +14821,11 @@ def getUserUserPortal(request):
             sales_return_write =	True
             purchase_return_read =	True
             purchase_return_write =	True
+            sales_order_read	=	True
+            sales_order_write	=	True
+
+            sales_invoice_read	    =	True
+            sales_invoice_write	    =	True
 
         else:  
             role_permission         = user_role_permission.objects.filter(user_role_id=get_user.user_role_id.id).exists()
@@ -14810,9 +14851,13 @@ def getUserUserPortal(request):
                 debit_note_read         =	role_permission.debit_note_read 
                 sales_return_read       =	role_permission.sales_return_read 
                 sales_return_write      =	role_permission.sales_return_write 
-                purchase_return_active  =	role_permission.purchase_return_active 
                 purchase_return_read    =	role_permission.purchase_return_read 
                 purchase_return_write   =	role_permission.purchase_return_write 
+                sales_order_read	    =	    role_permission.sales_order_read
+                sales_order_write	    =	    role_permission.sales_order_write
+                sales_invoice_read	    =	    role_permission.sales_invoice_read
+                sales_invoice_write	    =	    role_permission.sales_invoice_write
+
 
         user_permissions   ={
 
@@ -14834,9 +14879,12 @@ def getUserUserPortal(request):
             'debit_note_read' 	        :	debit_note_read ,
             'sales_return_read' 	    :	sales_return_read ,
             'sales_return_write' 	    :	sales_return_write ,
-            'purchase_return_active' 	:	purchase_return_active ,
             'purchase_return_read' 	    :	purchase_return_read ,
             'purchase_return_write' 	:	purchase_return_write ,
+            'sales_order_read'	        :	sales_order_read     ,
+            'sales_order_write'	        :	sales_order_write ,
+            'sales_invoice_read'	    :	sales_invoice_read,
+            'sales_invoice_write'	    :	sales_invoice_write,
 
 
         }
@@ -19035,6 +19083,38 @@ def UserPortalgetAvailableProductQuantity(request):
     return Response(response)
 
 
+
+
+@api_view(['POST'])
+def UserPortalgetLedgerBalance(request):
+    data            = request.data
+    user_id         = data.get('user_id')
+    app_token       = data.get('app_token')
+    get_token       = app_auth_token_tb.objects.first()
+
+    if user_id and app_token == get_token.token:
+        ledger_id               = data.get('ledger_id')
+        start_date              = data.get('start_date')
+        end_date                = data.get('end_date')
+
+        balance   = AccountLedger_balance(ledger_id,start_date,end_date)
+
+        response    =   {
+                                "success"       : True,
+                                "message"       : "",
+                                "balance"       : balance
+                            }
+        
+    
+    else:
+
+        response    =   {
+                            "success"   : False,
+                            "message"   : "Invalid Token Or User"
+        }
+
+    return Response(response)
+
 @api_view(['POST'])
 def UserPortalAddProduct(request):
     data            = request.data
@@ -19235,10 +19315,13 @@ def get_account_ledgers(request):
             debit_accounting_group_ids      = get_puchase_rules.debit_account_group_ids.split(",")
 
 
-            get_debit_account_ledger        = accounting_ledger_data.objects.filter(branch_id=branch_id,accounting_group_id__in=debit_accounting_group_ids)
+            get_debit_account_ledger        = accounting_ledger_data.objects.filter(accounting_group_id__in=debit_accounting_group_ids)
+
+            get_debit_account_ledger        = get_debit_account_ledger.filter(Q(branch_id=branch_id) | Q(is_default=1))
 
             get_credit_account_ledger       = accounting_ledger_data.objects.filter(branch_id=branch_id,accounting_group_id__in=credit_accounting_group_ids)
             
+            get_credit_account_ledger       = get_credit_account_ledger.filter(Q(branch_id=branch_id) | Q(is_default=1))
             debit_ledgers                   = []
             credit_ledgers                  = []
             if get_debit_account_ledger:
@@ -19803,7 +19886,7 @@ def filterAccountLedgerUserPortal(request):
             
         #Session set for query result for excel based on last search    
         request.session['listledger']   = json.dumps(list(listledger.values('name','accounting_group_id','opening_balance','entry_type','bill_by_bill',entity=F('accounting_group_id_id__name'))), cls=DjangoJSONEncoder)
-        listledger                      =list(listledger.values('pk','name','accounting_group_id','opening_balance','entry_type','bill_by_bill',entity=F('accounting_group_id_id__name')))
+        listledger                      =list(listledger.values('pk','name','accounting_group_id','opening_balance','entry_type','bill_by_bill','pricing_level',entity=F('accounting_group_id_id__name')))
 
 
         response                        ={
@@ -20589,7 +20672,7 @@ def filterPriceLvlUserPortal(request):
             
         #Session set for query result for excel based on last search    
         request.session['price_level_list']=json.dumps(list(price_level_list.values('name','description','branch_id__name')), cls=DjangoJSONEncoder)
-        price_level_list                   =list(price_level_list.values('pk','name','description','branch_id__name','branch_id'))
+        price_level_list                   =list(price_level_list.values('pk','name','description','branch_id__name','branch_id','percentage'))
         response                        ={
                                             "success"                   :True,
                                             "price_level_list"          : price_level_list,
@@ -24331,6 +24414,18 @@ def listTrasnsactionReport(request):
     else:
         return redirect('user-login')
     
+from datetime import datetime
+import calendar
+
+def get_start_and_end_dates(year, month):
+    # Get the first day of the month
+    start_date = datetime(year, month, 1).strftime('%Y-%m-%d')
+    
+    # Get the last day of the month
+    last_day = calendar.monthrange(year, month)[1]
+    end_date = datetime(year, month, last_day).strftime('%Y-%m-%d')
+    
+    return start_date, end_date
 
 
 @cache_control(no_cache=True,must_revalidate=True,no_store=True)
@@ -24363,27 +24458,31 @@ def report_gstr1(request):
 
         if 'search' in request.POST:
             search_branch   = request.POST.get('search_branch')
-            from_date       = request.POST.get('from_date') 
-            to_date         = request.POST.get('to_date')
+            date            = request.POST.get('date') 
+            # to_date         = request.POST.get('to_date')
+            print(date)
+            # print(to_date)
 
         elif 'download' in request.POST:
             search_branch   = request.POST.get('search_branch')
-            from_date       = request.POST.get('from_date') 
-            to_date         = request.POST.get('to_date')
-            
+            date            = request.POST.get('date') 
+            # to_date         = request.POST.get('to_date')
+            print(date)
+            # print(to_date)    
+        
         
         else:
-            from_date       = ''
-            to_date         = ''
+            now = datetime.now()
             search_branch   = branch_pks[0]
-            financial    = financial_year_data.objects.filter(active=1,branch_id=search_branch).order_by('-id')
-            if financial:
-                
-                from_date  = financial[0].from_date
-                to_date     = financial[0].to_date
-        
-        
 
+            # Format the current year and month as YYYY-MM
+            date = now.strftime('%Y-%m')
+
+        year,month    = date.split("-")
+
+        from_date,to_date = get_start_and_end_dates(int(year),int(month)) 
+        
+        
 
         branch_get                      = branch_data.objects.get(pk=search_branch)
         voucher_type_id_sales           = voucher_type_data.objects.get(name="Sales")
@@ -24406,7 +24505,7 @@ def report_gstr1(request):
             responce        = downloadpdfgst1and2(server_address,"GSTR 1",branch_get,invoice_list_sales,invoice_list_sales_return,state_list,from_date,to_date,prev_turn_over,period_turn_over)
             return responce
 
-        return render(request,'users/pages/report_gstr1.html',{'state_list':state_list,'invoice_list_sales':invoice_list_sales,'invoice_list_sales_return':invoice_list_sales_return,'branch_get':branch_get,'get_data':'just','branch_filter':branch_filter,'search_branch':search_branch,'from_date':from_date,'to_date':to_date})
+        return render(request,'users/pages/report_gstr1.html',{'state_list':state_list,'invoice_list_sales':invoice_list_sales,'invoice_list_sales_return':invoice_list_sales_return,'branch_get':branch_get,'get_data':'just','branch_filter':branch_filter,'search_branch':search_branch,'date':date,'from_date':from_date,'to_date':to_date})
     else:
         return redirect('user-login')
 
@@ -24441,27 +24540,31 @@ def report_gstr2(request):
 
         if 'search' in request.POST:
             search_branch   = request.POST.get('search_branch')
-            from_date       = request.POST.get('from_date') 
-            to_date         = request.POST.get('to_date')
+            date            = request.POST.get('date') 
+            # to_date         = request.POST.get('to_date')
+            print(date)
+            # print(to_date)
 
         elif 'download' in request.POST:
             search_branch   = request.POST.get('search_branch')
-            from_date       = request.POST.get('from_date') 
-            to_date         = request.POST.get('to_date')
-            
+            date            = request.POST.get('date') 
+            # to_date         = request.POST.get('to_date')
+            print(date)
+            # print(to_date)    
+        
         
         else:
-            from_date       = ''
-            to_date         = ''
+            now = datetime.now()
             search_branch   = branch_pks[0]
-            financial    = financial_year_data.objects.filter(active=1,branch_id=search_branch).order_by('-id')
-            if financial:
-                
-                from_date  = financial[0].from_date
-                to_date     = financial[0].to_date
-        
-        
 
+            # Format the current year and month as YYYY-MM
+            date = now.strftime('%Y-%m')
+
+        year,month    = date.split("-")
+
+        from_date,to_date = get_start_and_end_dates(int(year),int(month))
+        
+        
 
         branch_get                         = branch_data.objects.get(pk=search_branch)
         voucher_type_id_purchase           = voucher_type_data.objects.get(name="Purchase")
@@ -24485,7 +24588,7 @@ def report_gstr2(request):
             return responce
        
 
-        return render(request,'users/pages/report_gstr2.html',{'state_list':state_list,'invoice_list_purchase':invoice_list_purchase,'invoice_list_purchase_return':invoice_list_purchase_return,'branch_get':branch_get,'get_data':'just','branch_filter':branch_filter,'search_branch':search_branch,'from_date':from_date,'to_date':to_date})
+        return render(request,'users/pages/report_gstr2.html',{'state_list':state_list,'invoice_list_purchase':invoice_list_purchase,'invoice_list_purchase_return':invoice_list_purchase_return,'branch_get':branch_get,'get_data':'just','branch_filter':branch_filter,'search_branch':search_branch,'from_date':from_date,'to_date':to_date,'date':date})
     else:
         return redirect('user-login')
 
@@ -24537,67 +24640,8 @@ def get_AccountLedger_balance(request):
         end_date                = request.POST.get('end','')
         start_date              = request.POST.get('start','')
 
-        voucher_type_ids        = voucher_type_data.objects.filter(name__in=['Proforma Invoice','Sales Quotation','Purchase Order','Sales Order','Purchase Quotation']).values_list('id', flat=True)
-        
-        invoice_data_list       = invoice_data.objects.filter(latest=1,status="Approved")
-
-        if voucher_type_ids:
-            invoice_data_list   = invoice_data_list.exclude(voucher_type_id__in=voucher_type_ids)
-        
-
-        list_invoice_data   = invoice_data_list.filter(
-                (Q(debit_ledger_id=ledger_id) | Q(credit_ledger_id=ledger_id))
-            )
-        print(list_invoice_data)
-
-        if start_date or end_date:
-            pass
-
-        else:
-            financial    = financial_year_data.objects.filter(active=1,branch_id=branch_id).order_by('-id')
-            if financial:
-                start_date  = financial[0].from_date
-                to_data     = financial[0].to_date
-
-        if  start_date and end_date:   
-                list_invoice_data                = list_invoice_data.filter(date__range=(start_date,end_date))
-                        
-        elif start_date:   
-            list_invoice_data                = list_invoice_data.filter(date__gte=start_date)
-
-        elif end_date:
-            list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
-
-        print(list_invoice_data)
-       
-        if getledger.opening_balance:
-            opening_balance     = float(getledger.opening_balance)
-        else:
-            opening_balance     = 0
-        acc_type    = getledger.entry_type
-        balance     = opening_balance
-        for row in list_invoice_data:
+        balance                 = AccountLedger_balance(ledger_id,'','')
             
-
-            debit_account = None if not row.debit_ledger_id else row.debit_ledger_id.id
-            credit_amount = None if not row.credit_ledger_id else row.credit_ledger_id.id
-            
-            if debit_account==ledger_id:
-                amount  = row.debit_amount
-                if acc_type=='Dr':
-                    balance = balance+ float(row.debit_amount)
-                    
-                else:
-                    balance = balance - float(row.debit_amount)      
-            else:
-                amount  = row.credit_amount
-                if acc_type=='Cr':
-                    balance = balance+ float(row.credit_amount)
-                else:
-                    balance = balance - float(row.credit_amount)
-            
-
-   
         return JsonResponse({'balance':balance})
 
 
@@ -25785,7 +25829,7 @@ def accledgeropening_balance(ledger_id,end_date):
 
             debit_account  = None if not row.debit_ledger_id else row.debit_ledger_id.id
             credit_account = None if not row.credit_ledger_id else row.credit_ledger_id.id
-            if debit_account==search_acc_ledger:
+            if debit_account==int(search_acc_ledger):
                     
                     if acc_type=='Dr':
                         balance = balance+ float(row.debit_amount)
@@ -25838,22 +25882,28 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
 
 
         elif end_date:
+            print(list_invoice_data)
             list_invoice_data                = list_invoice_data.filter(date__lte=end_date)
             opening_balance                  = getledger.opening_balance
             if not opening_balance:
                 opening_balance = 0.0
        
 
-        balance     = opening_balance
+        balance     = float(opening_balance)
         acc_type    = getledger.entry_type
         print(search_acc_ledger)
-
+        print(list_invoice_data)
 
         for row in list_invoice_data:
             
-            debit_account = None if not row.debit_ledger_id else row.debit_ledger_id.id
+            debit_account  = None if not row.debit_ledger_id else row.debit_ledger_id.id
             credit_account = None if not row.credit_ledger_id else row.credit_ledger_id.id
-            if debit_account==search_acc_ledger:        
+            print(debit_account)
+            print(credit_account)
+            print(search_acc_ledger)
+            print(acc_type)
+            if debit_account==int(search_acc_ledger):    
+                print("heyy")    
                 if acc_type=='Dr':
                     balance = balance+ float(row.debit_amount)
                 else:
@@ -25863,7 +25913,8 @@ def AccountLedger_balance(ledger_id,start_date,end_date):
                     balance = balance+ float(row.credit_amount)
                 else:
                     balance = balance - float(row.credit_amount)  
-            
+        print(balance)
+        print("{[[[[[[[[[[[[]]]]]]]]]]]]}")
         return balance
 
 
@@ -28017,11 +28068,13 @@ def report_account_ledger(request):
             invoice_data_list   = invoice_data.objects.filter(latest=1,status="Approved")
             list_invoice_data   = invoice_data_list.filter(
                 (Q(debit_ledger_id=search_acc_ledger) | Q(credit_ledger_id=search_acc_ledger))
-                )
+                ).order_by('-id')
             balance         = float(opening_balance)
             print(list_invoice_data)
+            print("******")
             for row in list_invoice_data:
                 print(row)
+                print("77777")
                 data_to_display_child = []
                 description = row.description
                 reference       = row.voucher_number_appended
@@ -28056,12 +28109,15 @@ def report_account_ledger(request):
                     credit_account_name  = invoice_data_list.filter(Q(voucher_number_id=row.voucher_number_id) & Q(credit_ledger_id__isnull=False))
                     if credit_account_name:
                         credit_account_name = credit_account_name[0].credit_ledger_id.name
-                        
+                if not debit_account_name:
+                    debit_account_name  =None
+                if not credit_account_name:
+                    credit_account_name = None
                 data_to_display_child.extend([debit_account_name,credit_account_name,description,reference,amount,balance])
                 data_to_display.extend([data_to_display_child])
 
-
-        request.session['data_to_display'] = data_to_display
+        print(data_to_display)
+        request.session['data_to_display']  = data_to_display
         request.session['headings']         = headings
 
         page_number     = request.GET.get("page",1)

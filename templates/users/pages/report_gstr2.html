@@ -25,19 +25,21 @@
                 </div>
             </div>
 
+            
+
             <div class="col-md-2 col-6">
                 <div class="form-group">
-                    <label for="exampleInputName1">From Date </label>
-                    <input  class="form-control" type="date" name="from_date" id="from_date" value="{{from_date}}">                               
+                    <label for="exampleInputName1"> Month </label>
+                    <input  class="form-control" type="month" name="date" id="from_date" value="{{date}}">                               
                 </div>
             </div>
-            <div class="col-md-2 col-6">
+            <!-- <div class="col-md-2 col-6">
                 <div class="form-group">
                     <label for="exampleInputName1">To Date</label>
                     <div id="map-canvas"></div>
-                    <input type="date" class="form-control" id="date" name="to_date" value="{{to_date}}"> 
+                    <input type="month" class="form-control" id="date" name="to_date" value="{{to_date}}"> 
                 </div>
-            </div>
+            </div> -->
             <div class="col-md-2 col-6">
                 <div class="form-group mx-auto">
                 <button type="submit" class="btn-add btn btn-block btn-sm font-weight-medium auth-form-btn filter" name="search"><i class="fas fa-search"></i></button>
@@ -195,7 +197,7 @@
                                 {{purchase.date}}
                             </td>
                             <td>
-                                {{purchase.tax_value}}
+                                {{purchase.total_amount}}
                             </td>
                             <td>
                                 
@@ -203,8 +205,12 @@
                             <td>
                             </td>
                             <td>
+                                {{purchase.pretax_amount}}
+
                             </td>
-                            <td></td>
+                            <td>
+                                {{purchase.reverse_tax_value}}
+                            </td>
 
                             <td>
                                 {{purchase.igst}}
@@ -295,7 +301,7 @@
                                 {{return.date}}
                             </td>
                             <td>
-                                {{return.tax_value}}
+                                {{return.total_amount}}
                             </td>
                             <td>
                                 
@@ -303,9 +309,10 @@
                             <td>
                             </td>
                             <td>
+                                {{return.pretax_amount}}
                             </td>
                             <td>
-
+                                {{return.reverse_tax_value}}
                             </td>
                             <td>
                                 {{return.igst}}

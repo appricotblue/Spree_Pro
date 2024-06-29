@@ -4,12 +4,20 @@
     <div class="col-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Update Entity Type</h4>
+                <h4 class="card-title">Update User Role</h4>
                 <p class="card-description">
-                Update entity type from here
+                Update User Role from here
                 </p>
                 <form class="forms-sample" action="{% url 'update-user-role' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <div class="form-group">
+                        <div class="form-check form-check-primary">
+                            <label class="form-check-label">
+                                Active
+                                <input type="checkbox" class="form-check-input"  name="active" {% if role_data.client_access %} checked {%endif%}>
+                            </label>
+                        </div>
+                    </div>
                     <input type="hidden" name="id" value="{{role_data.id}}">
                     <div class="row">
                         <div class="col-md-6">
